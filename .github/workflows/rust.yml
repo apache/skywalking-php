@@ -1,0 +1,134 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Rust
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - "**"
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: "1"
+  RUSTFLAGS: "-D warnings"
+  LLVM_CONFIG_PATH: llvm-config-10
+
+jobs:
+  test:
+    name: Test
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+        version:
+          # Many composer dependencies need PHP 7.2+
+          # - php: "7.0"
+          #   swoole: "4.3.6"
+          # - php: "7.1"
+          #   swoole: "4.5.11"
+          - php: "7.2"
+            swoole: "4.6.7"
+          - php: "7.3"
+            swoole: "4.7.1"
+          - php: "7.4"
+            swoole: "4.8.10"
+          - php: "8.0"
+            swoole: "5.0.0"
+          - php: "8.1"
+            swoole: "5.0.0"
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Install libclang
+        run: sudo apt-get install -y llvm-10-dev libclang-10-dev
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.version.php }}
+          tools: php-config, composer:v2
+          extensions: opcache, swoole-${{ matrix.version.swoole }}
+
+      - name: Setup php-fpm
+        run: |
+          sudo apt-get install -y php${{ matrix.version.php }}-fpm
+          sudo rm -f /usr/sbin/php-fpm
+          sudo ln -s /usr/sbin/php-fpm${{ matrix.version.php }} /usr/sbin/php-fpm
+
+      - name: PHP version
+        run: |
+          php-config || true
+          /usr/sbin/php-fpm --version
+          php -r 'echo "Swoole version: " . phpversion("swoole");'
+          composer --version
+
+      - name: Install Rust Stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: clippy
+
+      - name: Cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          command: clippy
+          args: --release
+
+      - name: Docker compose
+        run: docker compose up -d
+
+      - name: Make test
+        run: make test
+
+  fmt:
+    name: Fmt
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-20.04
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Install Rust Nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt
+
+      - name: Cargo fmt
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: nightly
+          command: fmt
+          args: --all -- --check

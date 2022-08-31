@@ -1,0 +1,61 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+[package]
+name = "skywalking-php"
+version = "0.1.0"
+authors = ["Apache Software Foundation", "jmjoy <jmjoy@apache.org>", "Yanlong He <heyanlong@apache.org>"]
+description = "Apache SkyWalking PHP Agent."
+edition = "2021"
+rust-version = "1.58"
+repository = "https://github.com/jmjoy/skywalking-php"
+license = "MulanPSL-2.0"
+readme = "README.md"
+publish = false
+
+[lib]
+name = "skywalking_agent"
+crate-type = ["lib", "cdylib"]
+
+[[bin]]
+name = "skywalking_agent"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0.63"
+chrono = "0.4.22"
+dashmap = "5.4.0"
+futures-util = "0.3.24"
+helper = "3.3.0"
+hostname = "0.3.1"
+ipc-channel = { git = "https://github.com/servo/ipc-channel.git", branch = "master" }
+libc = "0.2.132"
+once_cell = "1.13.1"
+phper = "0.5.0"
+prost = "0.11.0"
+skywalking = { version = "0.4.0", features = ["vendored"] }
+systemstat = "0.2.0"
+tokio = { version = "1.20.1", features = ["full"] }
+tokio-stream = "0.1.9"
+tonic = "0.8.0"
+tracing = { version = "0.1.36", features = ["attributes"] }
+tracing-appender = "0.2.2"
+tracing-subscriber = "0.3.15"
+url = "2.2.2"
+
+[dev-dependencies]
+axum = "0.5.15"
+fastcgi-client = "0.8.0"
+reqwest = { version = "0.11.11", features = ["trust-dns", "json", "stream"] }
