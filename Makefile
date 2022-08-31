@@ -31,8 +31,10 @@ build:
 test: build composer-install
 	$(CARGO_BIN) test $(cargo_flags) $(CARGO_TEST_FLAGS)
 
-install: build
-	./target/$(target_dir)/skywalking install
+install: build extension-install
+
+extension-install:
+	./target/$(target_dir)/skywalking_agent install
 
 composer-install:
 	$(COMPOSER_BIN) install --working-dir=tests/php
