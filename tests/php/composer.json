@@ -1,0 +1,17 @@
+{
+    "name": "skywalking-agent/php-test",
+    "type": "project",
+    "authors": [
+        {
+            "name": "jmjoy",
+            "email": "jmjoy@apache.org"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "ext-swoole": ">=4.5",
+        "predis/predis": "^2.0",
+        "guzzlehttp/guzzle": "^7.4",
+        "webmozart/assert": "^1.11"
+    }
+}
