@@ -21,7 +21,7 @@ description = "Apache SkyWalking PHP Agent."
 edition = "2021"
 rust-version = "1.58"
 repository = "https://github.com/apache/skywalking-php"
-license = "MulanPSL-2.0"
+license = "Apache-2.0"
 readme = "README.md"
 publish = false
 
