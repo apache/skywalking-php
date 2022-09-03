@@ -1,9 +1,34 @@
-# Apache SkyWalking PHP Agent - Config
+# Setup PHP Agent
 
-## Add SkyWalking config to php.ini
+1. Agent is available for PHP 7.0 - 8.x
+2. Build from source
+3. Configure php.ini
 
-```shell
-extension = skywalking_agent
+## Build from source
+
+```shell script
+sudo apt install gcc make rust libclang
+```
+
+```shell script
+git clone --recursive https://github.com/apache/skywalking-php.git
+
+cd skywalking-php
+
+# Optional, specify if php isn't installed globally.
+# export PHP_CONFIG=<Your path of php-config>
+
+# Build libskywalking_agent.so.
+make build
+
+# Install to php extension dir.
+sudo make install
+```
+
+## Configure php.ini
+```ini
+[skywalking]
+extension=skywalking_agent.so
 
 # Enable skywalking extension or not.
 skywalking_agent.enable = On
