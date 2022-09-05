@@ -27,6 +27,7 @@ limitations under the License.
         <email>dev@skywalking.apache.org</email>
 		<active>yes</active>
 	</lead>
+        <!-- SkyWalking committers could be listed here as core maintainers. -->
 	<developer>
 		<name>jmjoy</name>
 		<user>jmjoy</user>
