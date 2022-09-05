@@ -98,6 +98,13 @@ jobs:
           command: clippy
           args: --release
 
+      - name: Cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          command: build
+          args: --release
+
       - name: Docker compose
         run: docker compose up -d
 

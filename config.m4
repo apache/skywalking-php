@@ -49,9 +49,9 @@ if test "$PHP_SKYWALKING_AGENT" != "no"; then
     CARGO_MODE_DIR="debug"
   fi
 
-  echo -e "$srcdir/modules/skywalking_agent.so:\n\ttree\n\tPHP_CONFIG=$PHP_PHP_CONFIG cargo build $CARGO_MODE_FLAGS\n\tcp $srcdir/target/$CARGO_MODE_DIR/libskywalking_agent.so $srcdir/modules/skywalking_agent.so" >> Makefile.objects
+  echo -e "./modules/skywalking_agent.so:\n\tPHP_CONFIG=$PHP_PHP_CONFIG cargo build $CARGO_MODE_FLAGS\n\tcp ./target/$CARGO_MODE_DIR/libskywalking_agent.so ./modules/skywalking_agent.so" > Makefile.objects
 
-  PHP_MODULES="$srcdir/modules/skywalking_agent.so"
+  PHP_MODULES="./modules/skywalking_agent.so"
 
-  AC_CONFIG_LINKS([ README.md  Cargo.toml:Cargo.toml  Cargo.lock:Cargo.lock  src:src ])
+  AC_CONFIG_LINKS([ README.md:README.md  Cargo.toml:Cargo.toml  Cargo.lock:Cargo.lock  src:src ])
 fi

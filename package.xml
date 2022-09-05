@@ -58,7 +58,7 @@ limitations under the License.
 			<file role="doc" name=".rustfmt.toml" />
 			<file role="doc" name="LICENSE" />
 			<file role="doc" name="NOTICE" />
-			<file role="doc" name="README.md" />
+			<file role="src" name="README.md" />
 			<file role="src" name="Cargo.lock" />
 			<file role="src" name="Cargo.toml" />
 			<file role="src" name="config.m4" />
