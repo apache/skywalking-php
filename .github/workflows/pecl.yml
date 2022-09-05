@@ -68,5 +68,5 @@ jobs:
 
       - name: PECL install
         run: |
-          rustup default stable
+          sudo rustup default stable
           printf "\n" | sudo pecl install package.xml
