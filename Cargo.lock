@@ -85,15 +85,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
-name = "autotools"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8138adefca3e5d2e73bfba83bd6eeaf904b26a7ac1b4a19892cfe16cc7e1701"
-dependencies = [
- "cc",
-]
-
-[[package]]
 name = "axum"
 version = "0.5.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1375,15 +1366,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "protobuf-src"
-version = "1.0.5+3.19.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe57f68bf9767f48f8cbcbceb5da21524e2b1330a821c1c2502c447d8043f078"
-dependencies = [
- "autotools",
-]
-
-[[package]]
 name = "quick-error"
 version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1701,7 +1683,6 @@ dependencies = [
  "portable-atomic",
  "prost",
  "prost-derive",
- "protobuf-src",
  "serde",
  "thiserror",
  "tokio",
