@@ -19,17 +19,18 @@ header:
     copyright-owner: Apache Software Foundation
 
   paths-ignore:
-    - 'LICENSE'
-    - 'NOTICE'
-    - '**/*.md'
     - '**/*.json'
     - '**/*.lock'
+    - '**/*.md'
     - '**/.gitignore'
     - '**/.gitmodules'
-    - 'vendor'
     - '.cargo'
-    - '.vscode'
     - '.idea'
+    - '.vscode'
+    - 'LICENSE'
+    - 'NOTICE'
+    - 'config.m4'
+    - 'vendor'
 
   comment: on-failure
 
