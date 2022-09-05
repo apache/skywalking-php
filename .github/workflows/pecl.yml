@@ -63,6 +63,7 @@ jobs:
       - name: Install Rust Stable Globally
         run: |
           curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path
+          rustup default stable
           ln -s $CARGO_HOME/bin/cargo /usr/local/bin/cargo
 
       - name: PECL install
