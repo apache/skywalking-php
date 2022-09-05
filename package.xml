@@ -22,12 +22,12 @@ limitations under the License.
 	<summary>Apache SkyWalking PHP Agent.</summary>
 	<description>The PHP Agent for Apache SkyWalking, which provides the native tracing abilities for PHP project.</description>
 	<lead>
-        <name>Apache SkyWalking</name>
+		<name>Apache SkyWalking</name>
 		<user>Apache SkyWalking</user>
-        <email>dev@skywalking.apache.org</email>
+		<email>dev@skywalking.apache.org</email>
 		<active>yes</active>
 	</lead>
-        <!-- SkyWalking committers could be listed here as core maintainers. -->
+	<!-- SkyWalking committers could be listed here as core maintainers. -->
 	<developer>
 		<name>jmjoy</name>
 		<user>jmjoy</user>
@@ -41,7 +41,7 @@ limitations under the License.
 		<active>yes</active>
 	</developer>
 	<!-- TODO The date should be changed before release -->
-	<date>2022-09-04</date> 
+	<date>2022-09-04</date>
 	<version>
 		<release>0.1.0</release>
 		<api>0.1.0</api>

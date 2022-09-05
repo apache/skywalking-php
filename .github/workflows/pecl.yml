@@ -28,6 +28,8 @@ env:
   RUST_BACKTRACE: "1"
   RUSTFLAGS: "-D warnings"
   LLVM_CONFIG_PATH: llvm-config-10
+  RUSTUP_HOME: /opt/rustup
+  CARGO_HOME: /opt/cargo
 
 jobs:
   pecl:
@@ -58,11 +60,10 @@ jobs:
           tools: php-config
           extensions: swoole-${{ matrix.version.swoole }}
 
-      - name: Install Rust Stable
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
+      - name: Install Rust Stable Globally
+        run: |
+          curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path
+          ln -s $CARGO_HOME/bin/cargo /usr/local/bin/cargo
 
       - name: PECL install
         run: printf "\n" | sudo pecl install package.xml
