@@ -32,11 +32,6 @@ if test "$PHP_SKYWALKING_AGENT" != "no"; then
     AC_MSG_ERROR([cargo command missing, please reinstall the cargo distribution])
   fi
 
-  AC_PATH_PROG(RUSTFMT, rustfmt, no)
-  if ! test -x "$RUSTFMT"; then
-    AC_MSG_ERROR([rustfmt command missing, please reinstall the rustfmt distribution])
-  fi
-
   AC_PATH_PROG(PROTOC, protoc, no)
   if ! test -x "$PROTOC"; then
     AC_MSG_ERROR([protoc command missing, please reinstall the protoc distribution])
@@ -44,7 +39,7 @@ if test "$PHP_SKYWALKING_AGENT" != "no"; then
 
   AC_DEFINE(HAVE_SKYWALKING_AGENT, 1, [ Have skywalking_agent support ])
 
-  PHP_NEW_EXTENSION(skywalking_agent, [], $ext_shared)
+  PHP_NEW_EXTENSION(skywalking_agent, [ ], $ext_shared)
 
   CARGO_MODE_FLAGS="--release"
   CARGO_MODE_DIR="release"
@@ -54,7 +49,9 @@ if test "$PHP_SKYWALKING_AGENT" != "no"; then
     CARGO_MODE_DIR="debug"
   fi
 
-  echo -e "$srcdir/modules/skywalking_agent.so:\n\ttree\n\tPHP_CONFIG=$PHP_PHP_CONFIG cargo build $CARGO_MODE_FLAGS\n\tcp $srcdir/target/$CARGO_MODE_DIR/libskywalking_agent.so $srcdir/modules/skywalking_agent.so" > Makefile.objects
+  echo -e "$srcdir/modules/skywalking_agent.so:\n\ttree\n\tPHP_CONFIG=$PHP_PHP_CONFIG cargo build $CARGO_MODE_FLAGS\n\tcp $srcdir/target/$CARGO_MODE_DIR/libskywalking_agent.so $srcdir/modules/skywalking_agent.so" >> Makefile.objects
 
   PHP_MODULES="$srcdir/modules/skywalking_agent.so"
+
+  AC_CONFIG_LINKS([ README.md  Cargo.toml:Cargo.toml  Cargo.lock:Cargo.lock  src:src ])
 fi

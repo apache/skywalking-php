@@ -29,10 +29,6 @@ publish = false
 name = "skywalking_agent"
 crate-type = ["lib", "cdylib"]
 
-[[bin]]
-name = "skywalking_agent"
-path = "src/main.rs"
-
 [dependencies]
 anyhow = "1.0.63"
 chrono = "0.4.22"
