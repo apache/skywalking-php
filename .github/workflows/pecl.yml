@@ -64,6 +64,7 @@ jobs:
         run: |
           curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path
           ln -s $CARGO_HOME/bin/rustup /usr/local/bin/rustup
+          ln -s $CARGO_HOME/bin/rustc /usr/local/bin/rustc
           ln -s $CARGO_HOME/bin/cargo /usr/local/bin/cargo
 
       - name: PECL install
