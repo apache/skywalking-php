@@ -1,37 +1,27 @@
 <?xml version="1.0"?>
-<!--
-Licensed to the Apache Software Foundation (ASF) under one or more
-contributor license agreements.  See the NOTICE file distributed with
-this work for additional information regarding copyright ownership.
-The ASF licenses this file to You under the Apache License, Version 2.0
-(the "License"); you may not use this file except in compliance with
-the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
--->
 <package version="2.0" 
 	xmlns="http://pear.php.net/dtd/package-2.0" 
 	xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
-http://pear.php.net/dtd/tasks-1.0.xsd
-http://pear.php.net/dtd/package-2.0
-http://pear.php.net/dtd/package-2.0.xsd">
+	http://pear.php.net/dtd/tasks-1.0.xsd
+	http://pear.php.net/dtd/package-2.0
+	http://pear.php.net/dtd/package-2.0.xsd">
 	<name>skywalking_agent</name>
 	<channel>pecl.php.net</channel>
 	<summary>Apache SkyWalking PHP Agent.</summary>
 	<description>The PHP Agent for Apache SkyWalking, which provides the native tracing abilities for PHP project.</description>
 	<lead>
 		<name>jmjoy</name>
-        <user>jmjoy</user>
-        <email>jmjoy@apache.org</email>
+        	<user>jmjoy</user>
+        	<email>jmjoy@apache.org</email>
 		<active>yes</active>
 	</lead>
+	<lead>
+		<name>Yanlong He</name>
+		<user>yanlong</user>
+		<email>yanlong@php.net</email>
+		<active>yes</active>
+        </lead>
 	<date>2022-09-04</date><!-- TODO -->
 	<version>
 		<release>0.1.0</release>
@@ -45,35 +35,13 @@ http://pear.php.net/dtd/package-2.0.xsd">
 	<notes>TODO</notes>
 	<contents>
 		<dir name="/">
-            <file role="doc" name=".asf.yaml" />
-            <file role="doc" name=".licenserc.yaml" />
-            <file role="doc" name=".rustfmt.toml" />
-            <file role="doc" name="LICENSE" />
-            <file role="doc" name="NOTICE" />
-            <file role="doc" name="README.md" />
-            <file role="src" name="Cargo.lock" />
-            <file role="src" name="Cargo.toml" />
-            <file role="src" name="config.m4" />
-            <file role="src" name="docker-compose.yml" />
-            <file role="src" name="src/channel.rs" />
-            <file role="src" name="src/component.rs" />
-            <file role="src" name="src/context.rs" />
-            <file role="src" name="src/execute.rs" />
-            <file role="src" name="src/global.rs" />
-            <file role="src" name="src/lib.rs" />
-            <file role="src" name="src/module.rs" />
-            <file role="src" name="src/plugin/mod.rs" />
-            <file role="src" name="src/plugin/plugin_curl.rs" />
-            <file role="src" name="src/plugin/plugin_swoole.rs" />
-            <file role="src" name="src/request.rs" />
-            <file role="src" name="src/util.rs" />
-            <file role="src" name="src/worker.rs" />
-        </dir>
+			<file role="src" name="src/lib.rs" />
+        	</dir>
 	</contents>
 	<dependencies>
 		<required>
 			<php>
-				<min>7.2.0</min>
+				<min>7.1.0</min>
 			</php>
 			<pearinstaller>
 				<min>1.4.0</min>
@@ -85,7 +53,18 @@ http://pear.php.net/dtd/package-2.0.xsd">
 		</required>
 	</dependencies>
 	<providesextension>skywalking_agent</providesextension>
-	<extsrcrelease>
-        <configureoption default="no" name="enable-cargo-debug" prompt="enable cargo debug?" />
-	</extsrcrelease>
+	<extsrcrelease/>
+	<changelog>
+	<release>
+		<version>
+			<release>0.1.0</release>
+			<api>0.1.0</api>
+		</version>
+		<stability>
+			<release>stable</release>
+			<api>stable</api>
+		</stability>
+			<notes>TODO</notes>
+		</release>
+	</changelog>
 </package>
