@@ -22,19 +22,25 @@ limitations under the License.
 	<summary>Apache SkyWalking PHP Agent.</summary>
 	<description>The PHP Agent for Apache SkyWalking, which provides the native tracing abilities for PHP project.</description>
 	<lead>
+        <name>Apache SkyWalking</name>
+		<user>Apache SkyWalking</user>
+        <email>dev@skywalking.apache.org</email>
+		<active>yes</active>
+	</lead>
+	<developer>
 		<name>jmjoy</name>
 		<user>jmjoy</user>
 		<email>jmjoy@apache.org</email>
 		<active>yes</active>
-	</lead>
-	<lead>
+	</developer>
+	<developer>
 		<name>Yanlong He</name>
 		<user>yanlong</user>
 		<email>yanlong@php.net</email>
 		<active>yes</active>
-	</lead>
-	<date>2022-09-04</date>
-	<!-- TODO -->
+	</developer>
+	<!-- TODO The date should be changed before release -->
+	<date>2022-09-04</date> 
 	<version>
 		<release>0.1.0</release>
 		<api>0.1.0</api>
@@ -44,7 +50,7 @@ limitations under the License.
 		<api>stable</api>
 	</stability>
 	<license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</license>
-	<notes>TODO</notes>
+	<notes>TODO The notes should be changed before release</notes>
 	<contents>
 		<dir name="/">
 			<file role="doc" name=".asf.yaml" />
@@ -90,17 +96,4 @@ limitations under the License.
 	<extsrcrelease>
 		<configureoption default="no" name="enable-cargo-debug" prompt="enable cargo debug?" />
 	</extsrcrelease>
-	<changelog>
-		<release>
-			<version>
-				<release>0.1.0</release>
-				<api>0.1.0</api>
-			</version>
-			<stability>
-				<release>stable</release>
-				<api>stable</api>
-			</stability>
-			<notes>TODO</notes>
-		</release>
-	</changelog>
 </package>
