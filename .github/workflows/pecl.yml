@@ -30,13 +30,16 @@ env:
   LLVM_CONFIG_PATH: llvm-config-10
 
 jobs:
-  fmt:
-    name: Fmt
+  pecl:
+    name: PECL
     strategy:
       fail-fast: false
       matrix:
         os:
           - ubuntu-20.04
+        version:
+          - php: "8.1"
+            swoole: "5.0.0"
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -47,6 +50,13 @@ jobs:
 
       - name: Install libclang
         run: sudo apt-get install -y llvm-10-dev libclang-10-dev protobuf-compiler
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.version.php }}
+          tools: php-config
+          extensions: swoole-${{ matrix.version.swoole }}
 
       - name: Install Rust Stable
         uses: actions-rs/toolchain@v1
