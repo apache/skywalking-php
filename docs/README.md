@@ -1,7 +1,6 @@
-# Documents
+# SkyWalking PHP Agent
 
-The following are some documents to help you quickly experience the functions provided by Apache SkyWalking PHP Agent.
+**This is the official documentation of SkyWalking PHP Agent. Welcome to the SkyWalking community!**
 
-* Quick Start
-  * [Building](BUILDING.md)
-  * [Config](CONFIG.md)
+In here, you could learn how to set up PHP agent for the PHP services.
+
