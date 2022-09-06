@@ -40,43 +40,24 @@ limitations under the License.
 		<email>yanlong@php.net</email>
 		<active>yes</active>
 	</developer>
-	<!-- TODO The date should be changed before release -->
-	<date>2022-09-04</date>
+	<date>{{ date }}</date>
 	<version>
-		<release>0.1.0</release>
-		<api>0.1.0</api>
+		<release>{{ version }}</release>
+		<api>{{ version }}</api>
 	</version>
 	<stability>
 		<release>stable</release>
 		<api>stable</api>
 	</stability>
 	<license uri="http://www.apache.org/licenses/LICENSE-2.0.html">Apache-2.0</license>
-	<notes>TODO The notes should be changed before release</notes>
+	<notes>
+		{{ notes }}
+	</notes>
 	<contents>
 		<dir name="/">
-			<file role="doc" name=".asf.yaml" />
-			<file role="doc" name=".licenserc.yaml" />
-			<file role="doc" name=".rustfmt.toml" />
-			<file role="doc" name="LICENSE" />
-			<file role="doc" name="NOTICE" />
-			<file role="src" name="README.md" />
-			<file role="src" name="Cargo.lock" />
-			<file role="src" name="Cargo.toml" />
-			<file role="src" name="config.m4" />
-			<file role="src" name="docker-compose.yml" />
-			<file role="src" name="src/channel.rs" />
-			<file role="src" name="src/component.rs" />
-			<file role="src" name="src/context.rs" />
-			<file role="src" name="src/execute.rs" />
-			<file role="src" name="src/global.rs" />
-			<file role="src" name="src/lib.rs" />
-			<file role="src" name="src/module.rs" />
-			<file role="src" name="src/plugin/mod.rs" />
-			<file role="src" name="src/plugin/plugin_curl.rs" />
-			<file role="src" name="src/plugin/plugin_swoole.rs" />
-			<file role="src" name="src/request.rs" />
-			<file role="src" name="src/util.rs" />
-			<file role="src" name="src/worker.rs" />
+			{% for file in files %}
+			<file role="src" name="{{ file.path }}" />
+			{% endfor %}
 		</dir>
 	</contents>
 	<dependencies>

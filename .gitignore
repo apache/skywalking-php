@@ -8,6 +8,7 @@
 /tests/php/vendor/
 
 /skywalking_agent-*.tgz
+package.xml
 
 *.lo
 *.la
