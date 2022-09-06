@@ -53,5 +53,17 @@ if test "$PHP_SKYWALKING_AGENT" != "no"; then
 
   PHP_MODULES="./modules/skywalking_agent.so"
 
-  AC_CONFIG_LINKS([ README.md:README.md  Cargo.toml:Cargo.toml  Cargo.lock:Cargo.lock  src:src ])
+  AC_CONFIG_LINKS([ \
+    .rustfmt.toml:.rustfmt.toml \
+    Cargo.lock:Cargo.lock \
+    Cargo.toml:Cargo.toml \
+    LICENSE:LICENSE \
+    NOTICE:NOTICE \
+    README.md:README.md \
+    docker-compose.yml:docker-compose.yml \
+    docs:docs \
+    scripts:scripts \
+    src:src \
+    tests:tests \
+    ])
 fi
