@@ -83,7 +83,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          version.php: ${{ matrix.version.php }}
+          php-version: ${{ matrix.version.php }}
           tools: php-config, composer:v2
           extensions: opcache, swoole-${{ matrix.version.swoole }}
 
