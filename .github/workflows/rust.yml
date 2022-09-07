@@ -30,6 +30,16 @@ env:
   LLVM_CONFIG_PATH: llvm-config-10
 
 jobs:
+  required:
+    needs:
+    - test
+    - fmt
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
   test:
     name: Test
     strategy:
@@ -37,6 +47,7 @@ jobs:
       matrix:
         os:
           - ubuntu-20.04
+          - macos-11
         version:
           # Many composer dependencies need PHP 7.2+
           # - php: "7.0"
@@ -61,28 +72,43 @@ jobs:
         with:
           submodules: 'recursive'
 
-      - name: Install libclang
+      - name: Install libclang and protobuf for Linux
+        if: matrix.os == 'ubuntu-20.04'
         run: sudo apt-get install -y llvm-10-dev libclang-10-dev protobuf-compiler
+
+      - name: Install protobuf for Macos
+        if: matrix.os == 'macos-11'
+        run: brew install protobuf
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.version.php }}
+          version.php: ${{ matrix.version.php }}
           tools: php-config, composer:v2
           extensions: opcache, swoole-${{ matrix.version.swoole }}
 
-      - name: Setup php-fpm
+      - name: Setup php-fpm for Linux
+        if: matrix.os == 'ubuntu-20.04'
         run: |
           sudo apt-get install -y php${{ matrix.version.php }}-fpm
-          sudo rm -f /usr/sbin/php-fpm
-          sudo ln -s /usr/sbin/php-fpm${{ matrix.version.php }} /usr/sbin/php-fpm
+          sudo ln -sf /usr/sbin/php-fpm${{ matrix.version.php }} /usr/sbin/php-fpm
+
+      - name: Setup php-fpm for Macos
+        if: matrix.os == 'macos-11'
+        run: |
+          brew install php@${{ matrix.version.php }}
 
       - name: PHP version
         run: |
+          php --version
+          php-fpm --version
           php-config || true
-          /usr/sbin/php-fpm --version
           php -r 'echo "Swoole version: " . phpversion("swoole");'
           composer --version
+
+          [[ `php --version` == PHP\ ${{ matrix.version.php }}.* ]]
+          [[ `php-fpm --version` == PHP\ ${{ matrix.version.php }}.* ]]
+          [[ `php-config --version` == ${{ matrix.version.php }}.* ]]
 
       - name: Install Rust Stable
         uses: actions-rs/toolchain@v1
@@ -90,6 +116,17 @@ jobs:
           toolchain: stable
           override: true
           components: clippy
+
+      - name: Setup cargo cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ matrix.os }}-test-${{ matrix.version.php }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cargo clippy
         uses: actions-rs/cargo@v1

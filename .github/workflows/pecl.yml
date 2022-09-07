@@ -67,6 +67,17 @@ jobs:
           ln -s $CARGO_HOME/bin/rustc /usr/local/bin/rustc
           ln -s $CARGO_HOME/bin/cargo /usr/local/bin/cargo
 
+      - name: Setup cargo cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ matrix.os }}-pecl-${{ matrix.version.php }}-${{ hashFiles('**/Cargo.lock') }}
+
       - name: PECL install
         run: |
           sudo rustup default stable

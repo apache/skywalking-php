@@ -1387,9 +1387,9 @@ dependencies = [
 
 [[package]]
 name = "phper"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5987d6a0acd980136ddd6684aa68d8cdf1372ad03e0efd36bd026aa2a43307b"
+checksum = "6f00d5aaeb2c801be4ae2b649ca516f3d5673b1b183ff2f60a9fc824ee507442"
 dependencies = [
  "anyhow",
  "clap",
@@ -1406,9 +1406,9 @@ dependencies = [
 
 [[package]]
 name = "phper-alloc"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93607a6d5d40fb3500510eaa3664f291ec62483c44fb3f4600f1ce768b5cc832"
+checksum = "b56bc8fe1e25cd77ae79eb5870dd1838e16f2f6bdb5f6c91650e4d2e39d108de"
 dependencies = [
  "phper-build",
  "phper-sys",
@@ -1416,18 +1416,18 @@ dependencies = [
 
 [[package]]
 name = "phper-build"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b689615085e0d8c771955eda3ebef8382e1e54ffc8d0df2f4faab01a84402e0d"
+checksum = "90c5bdb2c0c9501d557153ac8733b08c01ff8b2d81229a61089ea621786942dd"
 dependencies = [
  "phper-sys",
 ]
 
 [[package]]
 name = "phper-macros"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8a1f6448e7ca619879e762af0c0762dbed1841394a230f3c10c4681a835799e"
+checksum = "0fb09917092f9a1d9596eb1e0caa943373b686774174d92ce9decc78586145ce"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1436,9 +1436,9 @@ dependencies = [
 
 [[package]]
 name = "phper-sys"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03b1f4f6caa24ac53f32b9af080eab16c98debb562a3cc5b5d8376dcbc42dba9"
+checksum = "bfadd8ae438b9cb5ce35b0f14bdad1755f58b3602c3a54e0b0f048180769b0e0"
 dependencies = [
  "bindgen",
  "cc",
@@ -2571,13 +2571,12 @@ dependencies = [
 
 [[package]]
 name = "url"
-version = "2.2.2"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a507c383b2d33b5fc35d1861e77e6b383d158b2da5e14fe51b83dfedf6fd578c"
+checksum = "22fe195a4f217c25b25cb5058ced57059824a678474874038dc88d211bf508d3"
 dependencies = [
  "form_urlencoded",
  "idna",
- "matches",
  "percent-encoding",
 ]
 
