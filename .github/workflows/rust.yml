@@ -62,7 +62,7 @@ jobs:
           submodules: 'recursive'
 
       - name: Install libclang
-        run: sudo apt-get install -y llvm-10-dev libclang-10-dev
+        run: sudo apt-get install -y llvm-10-dev libclang-10-dev protobuf-compiler
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -98,11 +98,25 @@ jobs:
           command: clippy
           args: --release
 
+      - name: Cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          command: build
+          args: --release
+
       - name: Docker compose
         run: docker compose up -d
 
-      - name: Make test
-        run: make test
+      - name: Composer install
+        run: composer install --working-dir=tests/php
+
+      - name: Cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: stable
+          command: test
+          args: --release
 
   fmt:
     name: Fmt
