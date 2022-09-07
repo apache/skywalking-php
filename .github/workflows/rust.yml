@@ -145,7 +145,7 @@ jobs:
 
       - name: Setup docker
         if: matrix.os == 'macos-11'
-        uses: docker-practice/actions-setup-docker@v1
+        run: brew install --cask docker
 
       - name: Docker compose
         run: docker compose up -d
