@@ -134,14 +134,18 @@ jobs:
         with:
           toolchain: stable
           command: clippy
-          args: --release
+          args: --release --workspace
 
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
           toolchain: stable
           command: build
-          args: --release
+          args: --release --workspace
+
+      - name: Setup docker
+        if: matrix.os == 'macos-11'
+        uses: docker-practice/actions-setup-docker@1.0.11
 
       - name: Docker compose
         run: docker compose up -d
@@ -154,7 +158,7 @@ jobs:
         with:
           toolchain: stable
           command: test
-          args: --release
+          args: --release --workspace
 
   fmt:
     name: Fmt
