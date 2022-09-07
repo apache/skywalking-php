@@ -14,7 +14,7 @@
 // limitations under the License.
 
 use crate::{channel, SKYWALKING_AGENT_SERVER_ADDR, SKYWALKING_AGENT_WORKER_THREADS};
-use libc::{fork, prctl, PR_SET_PDEATHSIG, SIGTERM};
+use libc::fork;
 use phper::ini::Ini;
 use skywalking::reporter::grpc::GrpcReporter;
 use std::{
@@ -44,7 +44,9 @@ pub fn init_worker() {
                 error!("fork failed");
             }
             Ordering::Equal => {
-                prctl(PR_SET_PDEATHSIG, SIGTERM);
+                #[cfg(target_os = "linux")]
+                libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGTERM);
+
                 let rt = new_tokio_runtime(worker_threads);
                 rt.block_on(start_worker(server_addr));
                 exit(0);

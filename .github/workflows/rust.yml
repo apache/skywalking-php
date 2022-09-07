@@ -32,13 +32,14 @@ env:
 jobs:
   required:
     needs:
-    - test
-    - fmt
+      - test
+      - fmt
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
+      - name: Check results
+        run: |
+          [[ ${{ needs.test.result }} == 'success' ]] || exit 1;
+          [[ ${{ needs.fmt.result }} == 'success' ]] || exit 1;
 
   test:
     name: Test
@@ -70,7 +71,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
 
       - name: Install libclang and protobuf for Linux
         if: matrix.os == 'ubuntu-20.04'
@@ -106,9 +107,9 @@ jobs:
           php -r 'echo "Swoole version: " . phpversion("swoole");'
           composer --version
 
-          [[ `php --version` == PHP\ ${{ matrix.version.php }}.* ]]
-          [[ `php-fpm --version` == PHP\ ${{ matrix.version.php }}.* ]]
-          [[ `php-config --version` == ${{ matrix.version.php }}.* ]]
+          [[ `php --version` == PHP\ ${{ matrix.version.php }}.* ]] || exit 1;
+          [[ `php-fpm --version` == PHP\ ${{ matrix.version.php }}.* ]] || exit 1;
+          [[ `php-config --version` == ${{ matrix.version.php }}.* ]] || exit 1;
 
       - name: Install Rust Stable
         uses: actions-rs/toolchain@v1
@@ -168,7 +169,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
 
       - name: Install Rust Nightly
         uses: actions-rs/toolchain@v1
