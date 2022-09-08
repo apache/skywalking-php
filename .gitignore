@@ -9,6 +9,7 @@
 
 /skywalking_agent-*.tgz
 /package.xml
+/.vagrant
 
 *.lo
 *.la

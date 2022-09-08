@@ -13,28 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-services:
-  collector:
-    image: ghcr.io/apache/skywalking-agent-test-tool/mock-collector:f4f5ef22b1df623464772816bb6b42ba611444ff
-    ports:
-      - "19876:19876"
-      - "12800:12800"
-    healthcheck:
-      test: [ "CMD", "curl", "http://127.0.0.1:12800/healthCheck" ]
-      interval: 5s
-      timeout: 5s
+Vagrant.configure("2") do |config|
+    config.vm.box = "laravel/homestead"
 
-  mysql:
-    image: mysql:5.7.39
-    ports:
-      - "3306:3306"
-    environment:
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=skywalking
+    config.vm.network "forwarded_port", guest: 19876, host: 19876
+    config.vm.network "forwarded_port", guest: 12800, host: 12800
+    config.vm.network "forwarded_port", guest: 6379, host: 6379
 
-  redis:
-    image: bitnami/redis:7.0.4
-    ports:
-      - "6379:6379"
-    environment:
-      - REDIS_PASSWORD=password
+    config.vm.synced_folder ".", "/vagrant"
+
+    config.vm.provision "shell" do |s|
+        s.inline = <<-SHELL
+            systemctl stop mysql
+            systemctl stop redis
+            cd /vagrant
+            docker compose up -d
+        SHELL
+    end
+
+end

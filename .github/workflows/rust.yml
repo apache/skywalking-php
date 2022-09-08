@@ -48,7 +48,7 @@ jobs:
       matrix:
         os:
           - ubuntu-20.04
-          - macos-11
+          - macos-12
         version:
           # Many composer dependencies need PHP 7.2+
           # - php: "7.0"
@@ -78,7 +78,7 @@ jobs:
         run: sudo apt-get install -y llvm-10-dev libclang-10-dev protobuf-compiler
 
       - name: Install protobuf for Macos
-        if: matrix.os == 'macos-11'
+        if: matrix.os == 'macos-12'
         run: brew install protobuf
 
       - name: Setup PHP
@@ -95,7 +95,7 @@ jobs:
           sudo ln -sf /usr/sbin/php-fpm${{ matrix.version.php }} /usr/sbin/php-fpm
 
       - name: Setup php-fpm for Macos
-        if: matrix.os == 'macos-11'
+        if: matrix.os == 'macos-12'
         run: |
           brew install php@${{ matrix.version.php }}
 
@@ -143,11 +143,21 @@ jobs:
           command: build
           args: --release --workspace
 
-      - name: Setup docker
-        if: matrix.os == 'macos-11'
-        run: brew install --cask docker
+      - name: Cache Vagrant boxes
+        if: matrix.os == 'macos-12'
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.vagrant.d/boxes
+            .vagrant
+          key: ${{ matrix.os }}-vagrant-${{ hashFiles('Vagrantfile') }}
+
+      - name: Vagrant up for docker compose
+        if: matrix.os == 'macos-12'
+        run: vagrant up
 
       - name: Docker compose
+        if: matrix.os == 'ubuntu-20.04'
         run: docker compose up -d
 
       - name: Composer install
