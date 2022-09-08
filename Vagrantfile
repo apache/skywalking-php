@@ -14,7 +14,9 @@
 # limitations under the License.
 
 Vagrant.configure("2") do |config|
-    config.vm.box = "laravel/homestead"
+    config.vm.box = "generic/alpine316"
+    config.vm.box_version = "4.1.10"
+    config.vm.box_check_update = false
 
     config.vm.network "forwarded_port", guest: 19876, host: 19876
     config.vm.network "forwarded_port", guest: 12800, host: 12800
@@ -22,13 +24,11 @@ Vagrant.configure("2") do |config|
 
     config.vm.synced_folder ".", "/vagrant"
 
-    config.vm.provision "shell" do |s|
-        s.inline = <<-SHELL
-            systemctl stop mysql
-            systemctl stop redis
-            cd /vagrant
-            docker compose up -d
-        SHELL
-    end
-
+    config.vm.provision "shell", inline: <<-SHELL
+        apk add --no-cache docker docker-cli-compose
+        service docker restart
+        sleep 3
+        cd /vagrant
+        sudo docker compose up -d
+    SHELL
 end

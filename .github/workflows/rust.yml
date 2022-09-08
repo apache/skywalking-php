@@ -143,22 +143,13 @@ jobs:
           command: build
           args: --release --workspace
 
-      - name: Cache Vagrant boxes
-        if: matrix.os == 'macos-12'
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.vagrant.d/boxes
-            .vagrant
-          key: ${{ matrix.os }}-vagrant-${{ hashFiles('Vagrantfile') }}
+      - name: Docker compose
+        if: matrix.os == 'ubuntu-20.04'
+        run: docker compose up -d
 
       - name: Vagrant up for docker compose
         if: matrix.os == 'macos-12'
         run: vagrant up
-
-      - name: Docker compose
-        if: matrix.os == 'ubuntu-20.04'
-        run: docker compose up -d
 
       - name: Composer install
         run: composer install --working-dir=tests/php
