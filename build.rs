@@ -13,25 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use ipc_channel::ipc::IpcSharedMemory;
-use once_cell::sync::Lazy;
-use std::{
-    mem::{size_of, transmute},
-    sync::atomic::AtomicUsize,
-};
-
-#[derive(Default)]
-pub struct Global {
-    pub channel_size: AtomicUsize,
-    // pub worker_pid: AtomicU32,
+fn main() {
+    #[cfg(target_os = "macos")]
+    {
+        println!("cargo:rustc-link-arg=-undefined");
+        println!("cargo:rustc-link-arg=dynamic_lookup");
+    }
 }
-
-/// Global shared memory.
-pub static GLOBAL: Lazy<&Global> = Lazy::new(|| {
-    static SHARE: Lazy<IpcSharedMemory> = Lazy::new(|| {
-        let buf: [u8; size_of::<Global>()] = unsafe { transmute(Global::default()) };
-        IpcSharedMemory::from_bytes(&buf)
-    });
-    let share: &[u8] = &SHARE;
-    unsafe { (share.as_ptr() as *const Global).as_ref().unwrap() }
-});

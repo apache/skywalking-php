@@ -16,7 +16,6 @@
 use crate::{
     channel::{self, init_channel},
     execute::register_execute_functions,
-    global::GLOBAL,
     util::{get_sapi_module_name, IPS},
     worker::init_worker,
     SKYWALKING_AGENT_ENABLE, SKYWALKING_AGENT_LOG_FILE, SKYWALKING_AGENT_LOG_LEVEL,
@@ -47,11 +46,7 @@ pub fn init(_module: ModuleContext) -> bool {
         return true;
     }
 
-    Lazy::force(&GLOBAL);
-
     init_logger();
-
-    // get_ready_for_request();
 
     if let Err(e) = init_channel() {
         error!("Init channel failed: {}", e);

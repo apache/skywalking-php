@@ -49,7 +49,13 @@ if test "$PHP_SKYWALKING_AGENT" != "no"; then
     CARGO_MODE_DIR="debug"
   fi
 
-  echo -e "./modules/skywalking_agent.so:\n\tPHP_CONFIG=$PHP_PHP_CONFIG cargo build $CARGO_MODE_FLAGS\n\tcp ./target/$CARGO_MODE_DIR/libskywalking_agent.so ./modules/skywalking_agent.so" > Makefile.objects
+  echo -e "./modules/skywalking_agent.so:\n\
+\tPHP_CONFIG=$PHP_PHP_CONFIG cargo build $CARGO_MODE_FLAGS\n\
+\tif [[ -f ./target/$CARGO_MODE_DIR/libskywalking_agent.dylib ]] ; then \
+cp ./target/$CARGO_MODE_DIR/libskywalking_agent.dylib ./modules/skywalking_agent.so ; fi\n\
+\tif [[ -f ./target/$CARGO_MODE_DIR/libskywalking_agent.so ]] ; then \
+cp ./target/$CARGO_MODE_DIR/libskywalking_agent.so ./modules/skywalking_agent.so ; fi\n\
+" > Makefile.objects
 
   PHP_MODULES="./modules/skywalking_agent.so"
 
@@ -60,6 +66,7 @@ if test "$PHP_SKYWALKING_AGENT" != "no"; then
     LICENSE:LICENSE \
     NOTICE:NOTICE \
     README.md:README.md \
+    build.rs:build.rs \
     docker-compose.yml:docker-compose.yml \
     docs:docs \
     scripts:scripts \

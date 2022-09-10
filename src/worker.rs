@@ -14,7 +14,6 @@
 // limitations under the License.
 
 use crate::{channel, SKYWALKING_AGENT_SERVER_ADDR, SKYWALKING_AGENT_WORKER_THREADS};
-use libc::{fork, prctl, PR_SET_PDEATHSIG, SIGTERM};
 use phper::ini::Ini;
 use skywalking::reporter::grpc::GrpcReporter;
 use std::{
@@ -38,13 +37,12 @@ pub fn init_worker() {
         // operation.
         // TODO Chagne the worker process name.
 
-        let pid = fork();
+        let pid = libc::fork();
         match pid.cmp(&0) {
             Ordering::Less => {
                 error!("fork failed");
             }
             Ordering::Equal => {
-                prctl(PR_SET_PDEATHSIG, SIGTERM);
                 let rt = new_tokio_runtime(worker_threads);
                 rt.block_on(start_worker(server_addr));
                 exit(0);
@@ -65,6 +63,7 @@ fn worker_threads() -> usize {
 
 fn new_tokio_runtime(worker_threads: usize) -> Runtime {
     runtime::Builder::new_multi_thread()
+        .thread_name("sw: worker")
         .enable_all()
         .worker_threads(worker_threads)
         .build()
@@ -93,7 +92,14 @@ async fn start_worker(server_addr: String) {
         };
         let channel = connect(endpoint).await;
 
-        let reporter = GrpcReporter::new_with_pc(channel, (), channel::Consumer);
+        let consumer = match channel::Consumer::new() {
+            Ok(consumer) => consumer,
+            Err(err) => {
+                error!(?err, "Create consumer failed");
+                return;
+            }
+        };
+        let reporter = GrpcReporter::new_with_pc(channel, (), consumer);
 
         // report_instance_properties(channel.clone()).await;
         // mark_ready_for_request();

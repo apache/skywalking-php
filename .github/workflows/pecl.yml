@@ -28,10 +28,19 @@ env:
   RUST_BACKTRACE: "1"
   RUSTFLAGS: "-D warnings"
   LLVM_CONFIG_PATH: llvm-config-10
-  RUSTUP_HOME: /opt/rustup
-  CARGO_HOME: /opt/cargo
+  RUSTUP_HOME: /tmp/rustup
+  CARGO_HOME: /tmp/cargo
 
 jobs:
+  pecl-required:
+    needs:
+      - pecl
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check results
+        run: |
+          [[ ${{ needs.pecl.result }} == 'success' ]] || exit 1;
+
   pecl:
     name: PECL
     strategy:
@@ -39,6 +48,7 @@ jobs:
       matrix:
         os:
           - ubuntu-20.04
+          - macos-12
         version:
           - php: "8.1"
             swoole: "5.0.0"
@@ -51,7 +61,12 @@ jobs:
           submodules: 'recursive'
 
       - name: Install libclang
+        if: matrix.os == 'ubuntu-20.04'
         run: sudo apt-get install -y llvm-10-dev libclang-10-dev protobuf-compiler
+
+      - name: Install protobuf for Macos
+        if: matrix.os == 'macos-12'
+        run: brew install protobuf
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -62,14 +77,14 @@ jobs:
 
       - name: Install Rust Stable Globally
         run: |
-          curl https://sh.rustup.rs -sSf | sh -s -- -y --no-modify-path
-          ln -s $CARGO_HOME/bin/rustup /usr/local/bin/rustup
-          ln -s $CARGO_HOME/bin/rustc /usr/local/bin/rustc
-          ln -s $CARGO_HOME/bin/cargo /usr/local/bin/cargo
+          curl https://sh.rustup.rs -sSf | sudo -E sh -s -- -y --no-modify-path
+          sudo ln -sf $CARGO_HOME/bin/rustup /usr/local/bin/rustup
+          sudo ln -sf $CARGO_HOME/bin/rustc /usr/local/bin/rustc
+          sudo ln -sf $CARGO_HOME/bin/cargo /usr/local/bin/cargo
 
       - name: PECL install
         run: |
-          sudo rustup default stable
-          sudo cargo run -p scripts --release -- create-package-xml --version 0.0.0 --notes "Just for TEST."
-          printf "\n" | sudo pecl install package.xml
+          sudo -E cargo run -p scripts --release -- create-package-xml --version 0.0.0 --notes "Just for TEST."
+          cat package.xml
+          printf "\n" | sudo -E pecl install package.xml
           php -d "extension=skywalking_agent" --ri skywalking_agent

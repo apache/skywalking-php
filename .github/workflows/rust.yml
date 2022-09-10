@@ -30,6 +30,17 @@ env:
   LLVM_CONFIG_PATH: llvm-config-10
 
 jobs:
+  required:
+    needs:
+      - test
+      - fmt
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check results
+        run: |
+          [[ ${{ needs.test.result }} == 'success' ]] || exit 1;
+          [[ ${{ needs.fmt.result }} == 'success' ]] || exit 1;
+
   test:
     name: Test
     strategy:
@@ -37,6 +48,7 @@ jobs:
       matrix:
         os:
           - ubuntu-20.04
+          - macos-12
         version:
           # Many composer dependencies need PHP 7.2+
           # - php: "7.0"
@@ -59,30 +71,43 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
 
-      - name: Install libclang
+      - name: Install libclang and protobuf for Linux
+        if: matrix.os == 'ubuntu-20.04'
         run: sudo apt-get install -y llvm-10-dev libclang-10-dev protobuf-compiler
+
+      - name: Install protobuf for Macos
+        if: matrix.os == 'macos-12'
+        run: brew install protobuf
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.version.php }}
           tools: php-config, composer:v2
-          extensions: opcache, swoole-${{ matrix.version.swoole }}
+          extensions: >
+            bcmath, calendar, ctype, dom, exif, gettext, iconv, intl, json, mbstring,
+            mysqli, mysqlnd, opcache, pdo, pdo_mysql, phar, posix, readline,
+            swoole-${{ matrix.version.swoole }}, xml, xmlreader, xmlwriter, yaml, zip
 
-      - name: Setup php-fpm
+      - name: Setup php-fpm for Linux
+        if: matrix.os == 'ubuntu-20.04'
         run: |
           sudo apt-get install -y php${{ matrix.version.php }}-fpm
-          sudo rm -f /usr/sbin/php-fpm
-          sudo ln -s /usr/sbin/php-fpm${{ matrix.version.php }} /usr/sbin/php-fpm
+          sudo ln -sf /usr/sbin/php-fpm${{ matrix.version.php }} /usr/sbin/php-fpm
 
       - name: PHP version
         run: |
+          which php || php --version || php -m
+          which php-fpm || php-fpm --version || php-fpm -m
           php-config || true
-          /usr/sbin/php-fpm --version
-          php -r 'echo "Swoole version: " . phpversion("swoole");'
+          php -r 'echo "Swoole version: " . phpversion("swoole") . "\n";'
           composer --version
+
+          [[ `php --version` == PHP\ ${{ matrix.version.php }}.* ]] || exit 1;
+          [[ `php-fpm --version` == PHP\ ${{ matrix.version.php }}.* ]] || exit 1;
+          [[ `php-config --version` == ${{ matrix.version.php }}.* ]] || exit 1;
 
       - name: Install Rust Stable
         uses: actions-rs/toolchain@v1
@@ -91,22 +116,38 @@ jobs:
           override: true
           components: clippy
 
+      - name: Setup cargo cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ matrix.os }}-test-${{ matrix.version.php }}-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Cargo clippy
         uses: actions-rs/cargo@v1
         with:
           toolchain: stable
           command: clippy
-          args: --release
+          args: --release --workspace
 
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
           toolchain: stable
           command: build
-          args: --release
+          args: --release --workspace
 
       - name: Docker compose
+        if: matrix.os == 'ubuntu-20.04'
         run: docker compose up -d
+
+      - name: Vagrant up for docker compose
+        if: matrix.os == 'macos-12'
+        run: vagrant up
 
       - name: Composer install
         run: composer install --working-dir=tests/php
@@ -116,7 +157,12 @@ jobs:
         with:
           toolchain: stable
           command: test
-          args: --release
+          args: --release --workspace
+
+      - name: View logs
+        if: always()
+        run: |
+          cat /tmp/*.log
 
   fmt:
     name: Fmt
@@ -131,7 +177,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          submodules: 'recursive'
+          submodules: "recursive"
 
       - name: Install Rust Nightly
         uses: actions-rs/toolchain@v1
