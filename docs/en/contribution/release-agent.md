@@ -92,7 +92,7 @@ Keys to verify the Release Candidate :
 
 Guide to build the release from source :
 
-* TODO
+* https://github.com/jmjoy/skywalking-php/blob/master/docs/en/contribution/compiling.md
 
 Voting will start now (Date) and will remain open for at least 72
 hours, Request all PMC members to give their vote.
