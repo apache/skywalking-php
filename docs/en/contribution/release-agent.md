@@ -122,7 +122,7 @@ The voting process is as follows:
 
 2. Pecl publish package on [skywalking_agent](https://pecl.php.net/package/skywalking_agent).
 
-   Make sure you have a PECL account, and list in `package.tpl.xml` as `<develop>`,
+   Make sure you have a PECL account, and list in `package.tpl.xml` as `<developer>`,
    or reach `private@skywalking.apache.org` if you are a committer/PMC but not listed.
 
    You can request a PECL account via <https://pecl.php.net/account-request.php>.
