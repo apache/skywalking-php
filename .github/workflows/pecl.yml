@@ -28,8 +28,8 @@ env:
   RUST_BACKTRACE: "1"
   RUSTFLAGS: "-D warnings"
   LLVM_CONFIG_PATH: llvm-config-10
-  RUSTUP_HOME: /rustup
-  CARGO_HOME: /cargo
+  RUSTUP_HOME: /tmp/rustup
+  CARGO_HOME: /tmp/cargo
 
 jobs:
   pecl-required:
