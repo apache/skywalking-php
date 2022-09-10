@@ -86,7 +86,10 @@ jobs:
         with:
           php-version: ${{ matrix.version.php }}
           tools: php-config, composer:v2
-          extensions: opcache, swoole-${{ matrix.version.swoole }}
+          extensions: >
+            bcmath, calendar, ctype, dom, exif, gettext, iconv, intl, json, mbstring,
+            mysqli, mysqlnd, opcache, pdo, pdo_mysql, phar, posix, readline,
+            swoole-${{ matrix.version.swoole }}, xml, xmlreader, xmlwriter, yaml, zip
 
       - name: Setup php-fpm for Linux
         if: matrix.os == 'ubuntu-20.04'
@@ -94,17 +97,12 @@ jobs:
           sudo apt-get install -y php${{ matrix.version.php }}-fpm
           sudo ln -sf /usr/sbin/php-fpm${{ matrix.version.php }} /usr/sbin/php-fpm
 
-      - name: Setup php-fpm for Macos
-        if: matrix.os == 'macos-12'
-        run: |
-          brew install php@${{ matrix.version.php }}
-
       - name: PHP version
         run: |
-          php --version
-          php-fpm --version
+          which php || php --version || php -m
+          which php-fpm || php-fpm --version || php-fpm -m
           php-config || true
-          php -r 'echo "Swoole version: " . phpversion("swoole");'
+          php -r 'echo "Swoole version: " . phpversion("swoole") . "\n";'
           composer --version
 
           [[ `php --version` == PHP\ ${{ matrix.version.php }}.* ]] || exit 1;
@@ -160,6 +158,11 @@ jobs:
           toolchain: stable
           command: test
           args: --release --workspace
+
+      - name: View logs
+        if: always()
+        run: |
+          cat /tmp/*.log
 
   fmt:
     name: Fmt

@@ -13,32 +13,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::global::GLOBAL;
 use anyhow::{anyhow, bail, Context};
-use ipc_channel::ipc::{self, IpcReceiver, IpcSender, TryRecvError};
 use once_cell::sync::OnceCell;
 use skywalking::reporter::{grpc::ColletcItemConsume, CollectItem, Report};
 use std::{
-    error::Error,
-    sync::{atomic::Ordering, Mutex},
+    error::Error, io, mem::size_of, os::unix::net::UnixDatagram as StdUnixDatagram, sync::Mutex,
 };
-use tokio::task;
+use tokio::net::UnixDatagram;
 use tonic::async_trait;
-use tracing::{debug, error};
+use tracing::error;
 
-const MAX_COUNT: usize = 1000;
-
-static SENDER: OnceCell<Mutex<IpcSender<CollectItem>>> = OnceCell::new();
-static RECEIVER: OnceCell<Mutex<IpcReceiver<CollectItem>>> = OnceCell::new();
+static SENDER: OnceCell<StdUnixDatagram> = OnceCell::new();
+static RECEIVER: OnceCell<Mutex<Option<StdUnixDatagram>>> = OnceCell::new();
 
 pub fn init_channel() -> anyhow::Result<()> {
-    let channel = ipc::channel()?;
+    let (sender, receiver) = StdUnixDatagram::pair()?;
+    sender.set_nonblocking(true)?;
+    receiver.set_nonblocking(true)?;
 
-    if SENDER.set(Mutex::new(channel.0)).is_err() {
+    if SENDER.set(sender).is_err() {
         bail!("Channel has initialized");
     }
 
-    if RECEIVER.set(Mutex::new(channel.1)).is_err() {
+    if RECEIVER.set(Mutex::new(Some(receiver))).is_err() {
         bail!("Channel has initialized");
     }
 
@@ -46,48 +43,48 @@ pub fn init_channel() -> anyhow::Result<()> {
 }
 
 fn channel_send(data: CollectItem) -> anyhow::Result<()> {
-    let old_count = GLOBAL.channel_size.fetch_add(1, Ordering::SeqCst);
-    if old_count >= MAX_COUNT {
-        bail!("Channel is fulled");
-    }
-    debug!("Channel remainder count: {}", old_count);
+    let buf = bincode::serialize(&data)?;
 
-    SENDER
-        .get()
-        .context("Channel haven't initialized")?
-        .lock()
-        .map_err(|_| anyhow!("Get lock failed"))?
-        .send(data)?;
+    let sender = SENDER.get().context("Channel haven't initialized")?;
+
+    sender.send(&buf.len().to_le_bytes())?;
+    sender.send(&buf)?;
 
     Ok(())
 }
 
-fn channel_receive() -> anyhow::Result<CollectItem> {
-    let receiver = RECEIVER
-        .get()
-        .context("Channel haven't initialized")?
-        .lock()
-        .map_err(|_| anyhow!("Get lock failed"))?;
+async fn channel_receive(receiver: &UnixDatagram) -> anyhow::Result<CollectItem> {
+    let mut size_buf = [0u8; size_of::<usize>()];
+    receiver.recv(&mut size_buf).await?;
+    let size = usize::from_le_bytes(size_buf);
 
-    let r = receiver.recv();
-    GLOBAL.channel_size.fetch_sub(1, Ordering::SeqCst);
-    Ok(r?)
+    let mut buf = vec![0u8; size];
+    receiver.recv(&mut buf).await?;
+
+    let item = bincode::deserialize(&buf)?;
+    Ok(item)
 }
 
-fn channel_try_receive() -> anyhow::Result<Option<CollectItem>> {
-    let receiver = RECEIVER
-        .get()
-        .context("Channel haven't initialized")?
-        .lock()
-        .map_err(|_| anyhow!("Get lock failed"))?;
+fn channel_try_receive(receiver: &UnixDatagram) -> anyhow::Result<Option<CollectItem>> {
+    let mut size_buf = [0u8; size_of::<usize>()];
+    if let Err(e) = receiver.try_recv(&mut size_buf) {
+        if e.kind() == io::ErrorKind::WouldBlock {
+            return Ok(None);
+        }
+        return Err(e.into());
+    }
+    let size = usize::from_le_bytes(size_buf);
 
-    let r = match receiver.try_recv() {
-        Ok(data) => Ok(Some(data)),
-        Err(TryRecvError::Empty) => Ok(None),
-        Err(e) => Err(e.into()),
-    };
-    GLOBAL.channel_size.fetch_sub(1, Ordering::SeqCst);
-    r
+    let mut buf = vec![0u8; size];
+    if let Err(e) = receiver.try_recv(&mut buf) {
+        if e.kind() == io::ErrorKind::WouldBlock {
+            return Ok(None);
+        }
+        return Err(e.into());
+    }
+
+    let item = bincode::deserialize(&buf)?;
+    Ok(item)
 }
 
 pub struct Reporter;
@@ -100,27 +97,35 @@ impl Report for Reporter {
     }
 }
 
-pub struct Consumer;
+pub struct Consumer(UnixDatagram);
+
+impl Consumer {
+    pub fn new() -> anyhow::Result<Self> {
+        let receiver = RECEIVER.get().context("Channel haven't initialized")?;
+        let receiver = receiver
+            .lock()
+            .map_err(|_| anyhow!("Get Lock failed"))?
+            .take()
+            .context("The RECEIVER has been taked")?;
+        let receiver =
+            UnixDatagram::from_std(receiver).context("try into tokio unix datagram failed")?;
+        Ok(Self(receiver))
+    }
+}
 
 #[async_trait]
 impl ColletcItemConsume for Consumer {
     async fn consume(&mut self) -> Result<Option<CollectItem>, Box<dyn Error + Send>> {
-        match task::spawn_blocking(channel_receive).await {
-            Ok(r) => match r {
-                Ok(item) => Ok(Some(item)),
-                Err(e) => Err(e.into()),
-            },
-            Err(e) => Err(Box::new(e)),
+        match channel_receive(&self.0).await {
+            Ok(item) => Ok(Some(item)),
+            Err(e) => Err(e.into()),
         }
     }
 
     async fn try_consume(&mut self) -> Result<Option<CollectItem>, Box<dyn Error + Send>> {
-        match task::spawn_blocking(channel_try_receive).await {
-            Ok(r) => match r {
-                Ok(item) => Ok(item),
-                Err(e) => Err(e.into()),
-            },
-            Err(e) => Err(Box::new(e)),
+        match channel_try_receive(&self.0) {
+            Ok(item) => Ok(item),
+            Err(e) => Err(e.into()),
         }
     }
 }

@@ -30,7 +30,7 @@ use std::{
     io::{self, Cursor},
     net::SocketAddr,
     process::{ExitStatus, Stdio},
-    sync::Arc,
+    sync::Arc, fs::File,
 };
 use tokio::{
     net::TcpStream,
@@ -54,6 +54,14 @@ pub const TARGET: &str = if cfg!(debug_assertions) {
     "debug"
 } else {
     "release"
+};
+
+pub const EXT: &str = if cfg!(target_os = "linux") {
+    ".so"
+} else if cfg!(target_os = "macos") {
+    ".dylib"
+} else {
+    ""
 };
 
 pub static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
@@ -244,7 +252,7 @@ fn setup_php_fpm(index: usize, fpm_addr: &str) -> Child {
         "-c",
         "tests/conf/php.ini",
         "-d",
-        &format!("extension=target/{}/libskywalking_agent.so", TARGET),
+        &format!("extension=target/{}/libskywalking_agent{}", TARGET, EXT),
         "-d",
         "skywalking_agent.enable=On",
         "-d",
@@ -271,8 +279,8 @@ fn setup_php_fpm(index: usize, fpm_addr: &str) -> Child {
     Command::new(&args[0])
         .args(&args[1..])
         .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stdout(File::create("/tmp/fpm-skywalking-stdout.log").unwrap())
+        .stderr(File::create("/tmp/fpm-skywalking-stderr.log").unwrap())
         .spawn()
         .unwrap()
 }

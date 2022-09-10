@@ -33,8 +33,8 @@ github:
       required_status_checks:
         strict: true
         contexts:
-          - PECL (ubuntu-20.04, 8.1, 5.0.0)
           - license
+          - pecl-required
           - required
       required_pull_request_reviews:
         dismiss_stale_reviews: true
