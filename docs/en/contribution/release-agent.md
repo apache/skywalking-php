@@ -92,7 +92,7 @@ Keys to verify the Release Candidate :
 
 Guide to build the release from source :
 
-* https://github.com/jmjoy/skywalking-php/blob/master/docs/en/contribution/compiling.md
+* https://github.com/apache/skywalking-php/blob/master/docs/en/contribution/compiling.md
 
 Voting will start now (Date) and will remain open for at least 72
 hours, Request all PMC members to give their vote.
@@ -121,6 +121,11 @@ The voting process is as follows:
    ```
 
 2. Pecl publish package on [skywalking_agent](https://pecl.php.net/package/skywalking_agent).
+
+   Make sure you have a PECL account, and list in `package.tpl.xml` as `<develop>`,
+   or reach `private@skywalking.apache.org` if you are a committer/PMC but not listed.
+
+   You can request a PECL account via <https://pecl.php.net/account-request.php>.
 
 3. Add an release event, update download and doc releases on the SkyWalking website.
 
