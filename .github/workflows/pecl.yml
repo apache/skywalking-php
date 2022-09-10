@@ -84,7 +84,7 @@ jobs:
 
       - name: PECL install
         run: |
-          sudo cargo run -p scripts --release -- create-package-xml --version 0.0.0 --notes "Just for TEST."
+          sudo -E cargo run -p scripts --release -- create-package-xml --version 0.0.0 --notes "Just for TEST."
           cat package.xml
-          printf "\n" | sudo pecl install package.xml
+          printf "\n" | sudo -E pecl install package.xml
           php -d "extension=skywalking_agent" --ri skywalking_agent
