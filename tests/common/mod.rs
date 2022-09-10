@@ -27,10 +27,11 @@ use libc::{kill, pid_t, SIGTERM};
 use once_cell::sync::Lazy;
 use std::{
     env,
+    fs::File,
     io::{self, Cursor},
     net::SocketAddr,
     process::{ExitStatus, Stdio},
-    sync::Arc, fs::File,
+    sync::Arc,
 };
 use tokio::{
     net::TcpStream,
