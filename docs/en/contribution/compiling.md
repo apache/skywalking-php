@@ -48,7 +48,7 @@ brew install protobuf
 
 ## Build and install Skywalking PHP Agent
 
-* If you clone codes from https://github.com/apache/skywalking-java
+* If you clone codes from https://github.com/apache/skywalking-php
 
    ```shell
    git clone --recursive https://github.com/apache/skywalking-php.git
