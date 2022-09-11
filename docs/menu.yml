@@ -16,3 +16,13 @@
 catalog:
   - name: "PHP Agent Setup"
     path: "/en/setup/service-agent/php-agent/readme"
+  - name: "Plugins"
+    catalog:
+      - name: "Supported SAPI, extension and library"
+        path: "/en/setup/service-agent/php-agent/Supported-list"
+  - name: "Contribution"
+    catalog:
+      - name: "Compiling Guidance"
+        path: "/en/contribution/compiling/"
+      - name: "PHP Agent Release Guidance"
+        path: "/en/contribution/release-agent/"
