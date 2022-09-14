@@ -12,7 +12,7 @@ microservices, cloud native and container-based (Docker, Kubernetes, Mesos) arch
 
 ## Documentation
 
-* [Official documentation](docs/README.md)
+* [Official documentation](https://skywalking.apache.org/docs/#PHPAgent)
 
 ## Installation Requirements
 
