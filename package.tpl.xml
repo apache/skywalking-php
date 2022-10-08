@@ -23,7 +23,7 @@ limitations under the License.
 	<description>The PHP Agent for Apache SkyWalking, which provides the native tracing abilities for PHP project.</description>
 	<lead>
 		<name>Apache SkyWalking</name>
-		<user>Apache SkyWalking</user>
+		<user>skywalking</user>
 		<email>dev@skywalking.apache.org</email>
 		<active>yes</active>
 	</lead>
