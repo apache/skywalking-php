@@ -22,14 +22,18 @@ brew install php
 
 Install Rust globally.
 
-```shell
-export RUSTUP_HOME=/opt/rustup
-export CARGO_HOME=/opt/cargo
+For Linux user:
 
-curl https://sh.rustup.rs -sSf | sudo -E sh -s -- --no-modify-path
-sudo ln -s $CARGO_HOME/bin/rustup /usr/local/bin/rustup
-sudo ln -s $CARGO_HOME/bin/rustc /usr/local/bin/rustc
-sudo ln -s $CARGO_HOME/bin/cargo /usr/local/bin/cargo
+```shell
+curl https://sh.rustup.rs -sSf | sudo sh -s -- --no-modify-path
+sudo ln -s /root/.cargo/bin/rustup /usr/local/bin/rustup
+sudo ln -s /root/.cargo/bin/cargo /usr/local/bin/cargo
+```
+
+For MacOS user:
+
+```shell
+brew install rust
 ```
 
 ## Install requirement
@@ -46,24 +50,21 @@ For MacOS user:
 brew install protobuf
 ```
 
-## Build and install Skywalking PHP Agent
+## Build and install Skywalking PHP Agent from archive file
 
-* If you clone codes from https://github.com/apache/skywalking-php
+For Linux user:
 
-   ```shell
-   git clone --recursive https://github.com/apache/skywalking-php.git
-   cd skywalking-php
-   
-   phpize
-   ./configure
-   make
-   sudo make install
-   ```
+```shell
+sudo pecl install skywalking_agent-x.y.z.tgz
+```
 
-* If you download package tar from https://skywalking.apache.org/downloads/
+For MacOS user:
 
-   ```shell
-   sudo pecl install skywalking_agent-x.y.z.tgz
-   ```
+> Running the `pecl install` command with the php installed in brew may encounter the problem of `mkdir`, please refer to
+> [Installing PHP and PECL Extensions on MacOS](https://patriqueouimet.ca/tip/installing-php-and-pecl-extensions-on-macos).
+
+```shell
+pecl install skywalking_agent-x.y.z.tgz
+```
 
 The extension file `skywalking_agent.so` is generated in the php extension folder, get it by run `php-config --extension-dir`.
