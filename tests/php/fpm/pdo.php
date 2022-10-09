@@ -1,3 +1,5 @@
+<?php
+
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -11,12 +13,25 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License..
+// limitations under the License.
 
-//! Component ID
-//!
-//! <https://github.com/apache/skywalking/blob/014861535015745ae3f7b99acd7d14500b3b3927/oap-server/server-starter/src/main/resources/component-libraries.yml>
 
-pub const COMPONENT_PHP_ID: i32 = 8001;
-pub const COMPONENT_PHP_CURL_ID: i32 = 8002;
-pub const COMPONENT_PHP_PDO_ID: i32 = 8003;
+use Webmozart\Assert\Assert;
+
+require_once dirname(__DIR__) . "/vendor/autoload.php";
+
+{
+    $pdo = new PDO("mysql:dbname=skywalking;host=127.0.0.1;port=3306", "root", "password");
+    $result = $pdo->exec("SELECT 1");
+    Assert::notFalse($result);
+}
+
+{
+    $pdo = new PDO("mysql:dbname=skywalking;host=127.0.0.1:3306", "root", "password");
+    $sth = $pdo->prepare("SELECT * FROM `mysql`.`user` WHERE `User` = :user", [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+    $sth->execute(['user' => 'root']);
+    $rs = $sth->fetchAll();
+    Assert::same(count($rs), 2);
+}
+
+echo "ok";

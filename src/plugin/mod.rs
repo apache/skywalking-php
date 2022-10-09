@@ -14,6 +14,7 @@
 // limitations under the License.
 
 mod plugin_curl;
+mod plugin_pdo;
 mod plugin_swoole;
 
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
@@ -23,6 +24,7 @@ use once_cell::sync::Lazy;
 static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
     vec![
         Box::new(plugin_curl::CurlPlugin::default()),
+        Box::new(plugin_pdo::PdoPlugin::default()),
         // TODO Add swoole in future.
         // Box::new(plugin_swoole::SwooleServerPlugin::default()),
         // Box::new(plugin_swoole::SwooleHttpResponsePlugin::default()),

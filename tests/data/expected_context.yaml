@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 6
+    segmentSize: 7
     segments:
       - segmentId: "not null"
         spans:
@@ -242,6 +242,104 @@ segmentItems:
             skipAnalysis: false
             tags:
               - { key: url, value: /curl.enter.php }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+      - segmentId: "not null"
+        spans:
+          - operationName: PDO->exec
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8003
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+              - {
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1;port=3306",
+                }
+              - { key: db.statement, value: SELECT 1 }
+          - operationName: PDO->prepare
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8003
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+              - {
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1:3306",
+                }
+              - {
+                  key: db.statement,
+                  value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
+                }
+          - operationName: PDOStatement->execute
+            parentSpanId: 0
+            spanId: 3
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8003
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+              - {
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1:3306",
+                }
+              - {
+                  key: db.statement,
+                  value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
+                }
+          - operationName: PDOStatement->fetchAll
+            parentSpanId: 0
+            spanId: 4
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8003
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+              - {
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1:3306",
+                }
+              - {
+                  key: db.statement,
+                  value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
+                }
+          - operationName: GET:/pdo.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: /pdo.php }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
   - serviceName: skywalking-agent-test-2
