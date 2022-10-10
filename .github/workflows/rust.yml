@@ -76,7 +76,6 @@ jobs:
       - name: Sysctl
         if: matrix.os == 'macos-12'
         run: |
-          sudo sysctl -w kern.ipc.maxsockbuf=10000000
           sudo sysctl -w net.inet.udp.sendspace=4000000
           sudo sysctl -w net.inet.udp.recvspace=4000000
 
