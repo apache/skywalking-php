@@ -23,7 +23,7 @@ use tokio::net::UnixDatagram;
 use tonic::async_trait;
 use tracing::error;
 
-const PACKAGE_SIZE: usize = 4096;
+const PACKAGE_SIZE: usize = 1024;
 
 static SENDER: OnceCell<StdUnixDatagram> = OnceCell::new();
 static RECEIVER: OnceCell<Mutex<Option<StdUnixDatagram>>> = OnceCell::new();
