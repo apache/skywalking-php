@@ -76,9 +76,9 @@ jobs:
       - name: Sysctl
         if: matrix.os == 'macos-12'
         run: |
-          sudo sysctl -w kern.ipc.maxsockbuf=8000000
-          sudo sysctl -w net.inet.tcp.sendspace=4000000
-          sudo sysctl -w net.inet.tcp.recvspace=4000000
+          sudo sysctl -w kern.ipc.maxsockbuf=10000000
+          sudo sysctl -w net.inet.udp.sendspace=4000000
+          sudo sysctl -w net.inet.udp.recvspace=4000000
 
       - name: Install libclang and protobuf for Linux
         if: matrix.os == 'ubuntu-20.04'
