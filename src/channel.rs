@@ -23,6 +23,8 @@ use tokio::net::UnixDatagram;
 use tonic::async_trait;
 use tracing::error;
 
+const PACKAGE_SIZE: usize = 4096;
+
 static SENDER: OnceCell<StdUnixDatagram> = OnceCell::new();
 static RECEIVER: OnceCell<Mutex<Option<StdUnixDatagram>>> = OnceCell::new();
 
@@ -43,12 +45,15 @@ pub fn init_channel() -> anyhow::Result<()> {
 }
 
 fn channel_send(data: CollectItem) -> anyhow::Result<()> {
-    let buf = bincode::serialize(&data)?;
+    let content = bincode::serialize(&data)?;
 
     let sender = SENDER.get().context("Channel haven't initialized")?;
 
-    sender.send(&buf.len().to_le_bytes())?;
-    sender.send(&buf)?;
+    sender.send(&content.len().to_le_bytes())?;
+
+    for buf in content.chunks(PACKAGE_SIZE) {
+        sender.send(buf)?;
+    }
 
     Ok(())
 }
@@ -58,10 +63,17 @@ async fn channel_receive(receiver: &UnixDatagram) -> anyhow::Result<CollectItem>
     receiver.recv(&mut size_buf).await?;
     let size = usize::from_le_bytes(size_buf);
 
-    let mut buf = vec![0u8; size];
-    receiver.recv(&mut buf).await?;
+    let mut content = Vec::with_capacity(size);
+    let mut buf = [0u8; PACKAGE_SIZE];
+    let mut remain = size;
 
-    let item = bincode::deserialize(&buf)?;
+    while remain != 0 {
+        let received = receiver.recv(&mut buf).await?;
+        content.extend_from_slice(&buf[..received]);
+        remain -= received;
+    }
+
+    let item = bincode::deserialize(&content)?;
     Ok(item)
 }
 
