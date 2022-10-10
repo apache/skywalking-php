@@ -73,6 +73,12 @@ jobs:
         with:
           submodules: "recursive"
 
+      - name: Sysctl
+        if: matrix.os == 'macos-12'
+        run: |
+          sudo sysctl -w net.ipv4.igmp_max_memberships=50
+          sudo sysctl -w net.ipv4.igmp_max_msf=30
+
       - name: Install libclang and protobuf for Linux
         if: matrix.os == 'ubuntu-20.04'
         run: sudo apt-get install -y llvm-10-dev libclang-10-dev protobuf-compiler
