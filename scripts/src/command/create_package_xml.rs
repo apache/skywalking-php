@@ -16,9 +16,8 @@
 use chrono::{DateTime, Local};
 use clap::Parser;
 use serde::Serialize;
-use std::{fs, path::PathBuf, process::Command, time::SystemTime};
-use std::collections::HashMap;
-use tera::{Context, Tera, Value, Result};
+use std::{collections::HashMap, fs, path::PathBuf, process::Command, time::SystemTime};
+use tera::{Context, Result, Tera, Value};
 use tracing::info;
 
 /// Create package.xml from template file.
@@ -57,11 +56,14 @@ struct File {
 pub fn file_filter(value: &Value, _: &HashMap<String, Value>) -> Result<Value> {
     let mut role = "src";
     let path = value.to_string().trim_matches('"').to_string();
-    if path.ends_with(".md") || path == "LICENSE" || path ==  "NOTICE" {
+    if path.ends_with(".md") || path == "LICENSE" || path == "NOTICE" {
         role = "doc"
     }
 
-    Ok(Value::String(format!("<file name=\"{}\" role=\"{}\"/>", path, role)))
+    Ok(Value::String(format!(
+        "<file name=\"{}\" role=\"{}\"/>",
+        path, role
+    )))
 }
 
 impl CreatePackageXmlCommand {
