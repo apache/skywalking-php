@@ -171,6 +171,11 @@ jobs:
         run: |
           cat /tmp/*.log
 
+      - name: Memory check
+        if: always()
+        run: |
+          free -h
+
   fmt:
     name: Fmt
     strategy:
