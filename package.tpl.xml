@@ -55,7 +55,7 @@ limitations under the License.
 	</notes>
 	<contents>
 		<dir name="/">
-			{% for file in files %}<file role="src" name="{{ file.path }}" />
+			{% for file in files %}{{ file.path|file_filter }}
 			{% endfor %}
 		</dir>
 	</contents>
