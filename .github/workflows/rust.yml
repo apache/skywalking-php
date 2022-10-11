@@ -73,13 +73,6 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: Sysctl
-        if: matrix.os == 'macos-12'
-        run: |
-          sudo sysctl -w kern.maxfiles=1048600
-          sudo sysctl -w kern.maxfilesperproc=1048576
-          sudo ulimit -n 1048576
-
       - name: Install libclang and protobuf for Linux
         if: matrix.os == 'ubuntu-20.04'
         run: sudo apt-get install -y llvm-10-dev libclang-10-dev protobuf-compiler
@@ -170,11 +163,6 @@ jobs:
         if: always()
         run: |
           cat /tmp/*.log
-
-      - name: Memory check
-        if: always()
-        run: |
-          free -h
 
   fmt:
     name: Fmt
