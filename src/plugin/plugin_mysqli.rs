@@ -23,7 +23,7 @@ use tracing_subscriber::fmt::format;
 use crate::{
     component::COMPONENT_PHP_MYSQLI_ID,
     context::RequestContext,
-    execute::{AfterExecuteHook, BeforeExecuteHook, get_this_mut, Noop, validate_num_args},
+    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
 };
 
 use super::Plugin;
@@ -47,10 +47,7 @@ impl Plugin for MySQLImprovedPlugin {
     ) -> Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)> {
         match (class_name, function_name) {
             (Some("mysqli"), "__construct") => Some(self.hook_mysqli_construct()),
-            (Some("mysqli"), f)
-            if [
-                "query"
-            ].contains(&f) => {
+            (Some("mysqli"), f) if ["query"].contains(&f) => {
                 Some(self.hook_mysqli_methods(function_name))
             }
             _ => None,
@@ -65,14 +62,18 @@ impl MySQLImprovedPlugin {
                 let this = get_this_mut(execute_data)?;
                 let handle = this.handle();
                 let mut info: MySQLInfo = MySQLInfo {
-                    hostname: "".to_string(),
+                    hostname: "127.0.0.1".to_string(),
                     port: 3306,
                 };
 
                 let num_args = execute_data.num_args();
-                if num_args >= 1 { // host only
+                if num_args >= 1 {
+                    // host only
                     let hostname = execute_data.get_parameter(0);
-                    let hostname = hostname.as_z_str().context("hostname isn't str")?.to_str()?;
+                    let hostname = hostname
+                        .as_z_str()
+                        .context("hostname isn't str")?
+                        .to_str()?;
                     debug!(hostname, "mysqli hostname");
 
                     info.hostname = hostname.to_owned();
@@ -106,7 +107,6 @@ impl MySQLImprovedPlugin {
                     create_mysqli_exit_span("mysqli", &function_name, info)
                 })?;
 
-
                 Ok(Box::new(span) as _)
             }),
             Noop::noop(),
@@ -115,12 +115,12 @@ impl MySQLImprovedPlugin {
 }
 
 fn create_mysqli_exit_span(
-    class_name: &str, function_name: &str, info: &MySQLInfo
+    class_name: &str, function_name: &str, info: &MySQLInfo,
 ) -> anyhow::Result<Span> {
     RequestContext::try_with_global_ctx(None, |ctx| {
         let mut span = ctx.create_exit_span(
             &format!("{}->{}", class_name, function_name),
-            &format!("{}:{}", info.hostname, info.port)
+            &format!("{}:{}", info.hostname, info.port),
         );
         span.with_span_object_mut(|obj| {
             obj.set_span_layer(SpanLayer::Database);
@@ -131,8 +131,11 @@ fn create_mysqli_exit_span(
     })
 }
 
-fn with_info<T>(handle:u32, f:impl FnOnce(&MySQLInfo) -> anyhow::Result<T>) -> anyhow::Result<T>{
-    MYSQL_MAP.get(&handle).map(|r| f(r.value())).context("info not exists")?
+fn with_info<T>(handle: u32, f: impl FnOnce(&MySQLInfo) -> anyhow::Result<T>) -> anyhow::Result<T> {
+    MYSQL_MAP
+        .get(&handle)
+        .map(|r| f(r.value()))
+        .context("info not exists")?
 }
 
 struct MySQLInfo {

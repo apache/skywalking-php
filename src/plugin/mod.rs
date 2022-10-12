@@ -14,9 +14,9 @@
 // limitations under the License.
 
 mod plugin_curl;
+mod plugin_mysqli;
 mod plugin_pdo;
 mod plugin_swoole;
-mod plugin_mysqli;
 
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
 use once_cell::sync::Lazy;

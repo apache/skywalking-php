@@ -72,7 +72,7 @@ async fn request_fpm_mysqli() {
         HTTP_CLIENT.get(format!("http://{}/mysqli.php", PROXY_SERVER_1_ADDRESS)),
         "ok",
     )
-        .await;
+    .await;
 }
 
 async fn request_collector_validate() {
