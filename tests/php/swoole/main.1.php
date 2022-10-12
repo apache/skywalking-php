@@ -19,6 +19,8 @@ use Webmozart\Assert\Assert;
 
 require_once dirname(__DIR__) . "/vendor/autoload.php";
 
+extension_loaded('swoole') or die("extension swoole not loaded");
+
 $http = new Swoole\Http\Server('127.0.0.1', 9501);
 
 $http->set([
