@@ -14,6 +14,10 @@ microservices, cloud native and container-based (Docker, Kubernetes, Mesos) arch
 
 * [Official documentation](https://skywalking.apache.org/docs/#PHPAgent)
 
+## How to create issue?
+
+Submit an [GitHub Issue](https://github.com/apache/skywalking/issues/new/choose) in the Apache Skywalking repository, by using [PHP] as title prefix.
+
 ## Installation Requirements
 
 SkyWalking PHP Agent requires SkyWalking 8.4+ and PHP 7.0+
@@ -22,7 +26,7 @@ SkyWalking PHP Agent requires SkyWalking 8.4+ and PHP 7.0+
 
 * PHP-FPM Ecosystem
   * [x] [cURL](https://www.php.net/manual/en/book.curl.php#book.curl)
-  * [ ] [PDO](https://www.php.net/manual/en/book.pdo.php)
+  * [x] [PDO](https://www.php.net/manual/en/book.pdo.php)
   * [ ] [Memcached](https://www.php.net/manual/en/book.memcached.php)
   * [ ] [phpredis](https://github.com/phpredis/phpredis)
   * [ ] [php-amqp](https://github.com/php-amqp/php-amqp)
@@ -31,7 +35,6 @@ SkyWalking PHP Agent requires SkyWalking 8.4+ and PHP 7.0+
 
 ## Contact Us
 
-* Submit an [GitHub Issue](https://github.com/apache/skywalking/issues/new) by using [PHP] as title prefix.
 * Mail list: **dev@skywalking.apache.org**. Mail to `dev-subscribe@skywalking.apache.org`, follow the reply to subscribe the mail list.
 * Join `skywalking` channel at [Apache Slack](http://s.apache.org/slack-invite). If the link is not working, find the latest one at [Apache INFRA WIKI](https://cwiki.apache.org/confluence/display/INFRA/Slack+Guest+Invites).
 * Twitter, [ASFSkyWalking](https://twitter.com/AsfSkyWalking)
