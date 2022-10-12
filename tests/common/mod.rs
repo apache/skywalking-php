@@ -48,6 +48,8 @@ pub const PROXY_SERVER_1_ADDRESS: &str = "127.0.0.1:9011";
 pub const PROXY_SERVER_2_ADDRESS: &str = "127.0.0.1:9012";
 pub const FPM_SERVER_1_ADDRESS: &str = "127.0.0.1:9001";
 pub const FPM_SERVER_2_ADDRESS: &str = "127.0.0.1:9002";
+pub const SWOOLE_SERVER_1_ADDRESS: &str = "127.0.0.1:9501";
+pub const SWOOLE_SERVER_2_ADDRESS: &str = "127.0.0.1:9502";
 pub const COLLECTOR_GRPC_ADDRESS: &str = "127.0.0.1:19876";
 pub const COLLECTOR_HTTP_ADDRESS: &str = "127.0.0.1:12800";
 
@@ -72,6 +74,8 @@ pub struct Fixture {
     http_server_2_handle: JoinHandle<()>,
     php_fpm_1_child: Child,
     php_fpm_2_child: Child,
+    php_swoole_1_child: Child,
+    php_swoole_2_child: Child,
 }
 
 pub async fn setup() -> Fixture {
@@ -87,6 +91,8 @@ pub async fn setup() -> Fixture {
         )),
         php_fpm_1_child: setup_php_fpm(1, FPM_SERVER_1_ADDRESS),
         php_fpm_2_child: setup_php_fpm(2, FPM_SERVER_2_ADDRESS),
+        php_swoole_1_child: setup_php_swoole(1),
+        php_swoole_2_child: setup_php_swoole(2),
     }
 }
 
@@ -97,6 +103,8 @@ pub async fn teardown(fixture: Fixture) {
     let results = join_all([
         kill_command(fixture.php_fpm_1_child),
         kill_command(fixture.php_fpm_2_child),
+        kill_command(fixture.php_swoole_1_child),
+        kill_command(fixture.php_swoole_2_child),
     ])
     .await;
     for result in results {
@@ -282,6 +290,49 @@ fn setup_php_fpm(index: usize, fpm_addr: &str) -> Child {
         .stdin(Stdio::null())
         .stdout(File::create("/tmp/fpm-skywalking-stdout.log").unwrap())
         .stderr(File::create("/tmp/fpm-skywalking-stderr.log").unwrap())
+        .spawn()
+        .unwrap()
+}
+
+#[instrument]
+fn setup_php_swoole(index: usize) -> Child {
+    let php = env::var("PHP_BIN").unwrap_or_else(|_| "php".to_string());
+    let args = [
+        &php,
+        "-n",
+        "-c",
+        "tests/conf/php.ini",
+        "-d",
+        &format!("extension=target/{}/libskywalking.so", TARGET),
+        "-d",
+        "skywalking.enable=On",
+        "-d",
+        &format!(
+            "skywalking.service_name=skywalking-agent-test-{}-swoole",
+            index
+        ),
+        "-d",
+        &format!(
+            "skywalking.server_addr=http://{}",
+            COLLECTOR_GRPC_ADDRESS
+        ),
+        "-d",
+        &format!("skywalking.log_level={}", PROCESS_LOG_LEVEL),
+        "-d",
+        &format!(
+            "skywalking.log_file=/tmp/swoole-skywalking-agent.{}.log",
+            index
+        ),
+        "-d",
+        "skywalking.worker_threads=3",
+        &format!("tests/php/swoole/main.{}.php", index),
+    ];
+    info!(cmd = args.join(" "), "start command");
+    Command::new(&args[0])
+        .args(&args[1..])
+        .stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
         .spawn()
         .unwrap()
 }
