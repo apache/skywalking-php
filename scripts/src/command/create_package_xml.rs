@@ -16,8 +16,8 @@
 use chrono::{DateTime, Local};
 use clap::Parser;
 use serde::Serialize;
-use std::{fs, path::PathBuf, process::Command, time::SystemTime};
-use tera::{Context, Tera};
+use std::{collections::HashMap, fs, path::PathBuf, process::Command, time::SystemTime};
+use tera::{Context, Result, Tera, Value};
 use tracing::info;
 
 /// Create package.xml from template file.
@@ -53,6 +53,19 @@ struct File {
     path: String,
 }
 
+pub fn file_filter(value: &Value, _: &HashMap<String, Value>) -> Result<Value> {
+    let mut role = "src";
+    let path = value.to_string().trim_matches('"').to_string();
+    if path.ends_with(".md") || path == "LICENSE" || path == "NOTICE" {
+        role = "doc"
+    }
+
+    Ok(Value::String(format!(
+        "<file name=\"{}\" role=\"{}\"/>",
+        path, role
+    )))
+}
+
 impl CreatePackageXmlCommand {
     pub fn run(&self) -> anyhow::Result<()> {
         info!(tpl_path = ?&self.tpl_path, "read template content");
@@ -64,7 +77,10 @@ impl CreatePackageXmlCommand {
         context.insert("notes", &self.notes);
         context.insert("files", &self.get_git_files()?);
 
-        let contents = Tera::one_off(&tpl, &context, false)?;
+        let mut tera = Tera::default();
+        tera.register_filter("file_filter", file_filter);
+        let contents = tera.render_str(&tpl, &context)?;
+
         info!(target_path = ?&self.target_path, "write target content");
         fs::write(&self.target_path, contents)?;
 
