@@ -256,7 +256,7 @@ fn setup_php_fpm(index: usize, fpm_addr: &str) -> Child {
     let args = [
         &php_fpm,
         "-F",
-        "-n",
+        // "-n",
         "-y",
         &format!("tests/conf/php-fpm.{}.conf", index),
         "-c",
@@ -300,7 +300,7 @@ fn setup_php_swoole(index: usize) -> Child {
     let php = env::var("PHP_BIN").unwrap_or_else(|_| "php".to_string());
     let args = [
         &php,
-        "-n",
+        // "-n",
         "-c",
         "tests/conf/php.ini",
         "-d",
