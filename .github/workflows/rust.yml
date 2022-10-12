@@ -99,8 +99,8 @@ jobs:
 
       - name: PHP version
         run: |
-          which php || php --version || php -m
-          which php-fpm || php-fpm --version || php-fpm -m
+          which php ; php --version ; php -m
+          which php-fpm ; php-fpm --version ; php-fpm -m
           php-config || true
           php -r 'echo "Swoole version: " . phpversion("swoole") . "\n";'
           composer --version

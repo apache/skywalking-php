@@ -17,21 +17,26 @@ use anyhow::{anyhow, bail, Context};
 use once_cell::sync::OnceCell;
 use skywalking::reporter::{grpc::ColletcItemConsume, CollectItem, Report};
 use std::{
-    error::Error, io, mem::size_of, os::unix::net::UnixDatagram as StdUnixDatagram, sync::Mutex,
+    error::Error,
+    io::{self, Write},
+    mem::size_of,
+    os::unix::net::UnixStream as StdUnixStream,
+    sync::Mutex,
 };
-use tokio::net::UnixDatagram;
+use tokio::{io::AsyncReadExt, net::UnixStream};
 use tonic::async_trait;
 use tracing::error;
 
-static SENDER: OnceCell<StdUnixDatagram> = OnceCell::new();
-static RECEIVER: OnceCell<Mutex<Option<StdUnixDatagram>>> = OnceCell::new();
+static SENDER: OnceCell<Mutex<StdUnixStream>> = OnceCell::new();
+static RECEIVER: OnceCell<Mutex<Option<StdUnixStream>>> = OnceCell::new();
 
 pub fn init_channel() -> anyhow::Result<()> {
-    let (sender, receiver) = StdUnixDatagram::pair()?;
+    let (sender, receiver) = StdUnixStream::pair()?;
+
     sender.set_nonblocking(true)?;
     receiver.set_nonblocking(true)?;
 
-    if SENDER.set(sender).is_err() {
+    if SENDER.set(Mutex::new(sender)).is_err() {
         bail!("Channel has initialized");
     }
 
@@ -43,31 +48,36 @@ pub fn init_channel() -> anyhow::Result<()> {
 }
 
 fn channel_send(data: CollectItem) -> anyhow::Result<()> {
-    let buf = bincode::serialize(&data)?;
+    let content = bincode::serialize(&data)?;
 
-    let sender = SENDER.get().context("Channel haven't initialized")?;
+    let mut sender = SENDER
+        .get()
+        .context("Channel haven't initialized")?
+        .lock()
+        .map_err(|_| anyhow!("Get lock failed"))?;
 
-    sender.send(&buf.len().to_le_bytes())?;
-    sender.send(&buf)?;
+    sender.write_all(&content.len().to_le_bytes())?;
+    sender.write_all(&content)?;
+    sender.flush()?;
 
     Ok(())
 }
 
-async fn channel_receive(receiver: &UnixDatagram) -> anyhow::Result<CollectItem> {
+async fn channel_receive(receiver: &mut UnixStream) -> anyhow::Result<CollectItem> {
     let mut size_buf = [0u8; size_of::<usize>()];
-    receiver.recv(&mut size_buf).await?;
+    receiver.read_exact(&mut size_buf).await?;
     let size = usize::from_le_bytes(size_buf);
 
-    let mut buf = vec![0u8; size];
-    receiver.recv(&mut buf).await?;
+    let mut content = vec![0u8; size];
+    receiver.read_exact(&mut content).await?;
 
-    let item = bincode::deserialize(&buf)?;
+    let item = bincode::deserialize(&content)?;
     Ok(item)
 }
 
-fn channel_try_receive(receiver: &UnixDatagram) -> anyhow::Result<Option<CollectItem>> {
+fn channel_try_receive(receiver: &UnixStream) -> anyhow::Result<Option<CollectItem>> {
     let mut size_buf = [0u8; size_of::<usize>()];
-    if let Err(e) = receiver.try_recv(&mut size_buf) {
+    if let Err(e) = receiver.try_read(&mut size_buf) {
         if e.kind() == io::ErrorKind::WouldBlock {
             return Ok(None);
         }
@@ -76,7 +86,7 @@ fn channel_try_receive(receiver: &UnixDatagram) -> anyhow::Result<Option<Collect
     let size = usize::from_le_bytes(size_buf);
 
     let mut buf = vec![0u8; size];
-    if let Err(e) = receiver.try_recv(&mut buf) {
+    if let Err(e) = receiver.try_read(&mut buf) {
         if e.kind() == io::ErrorKind::WouldBlock {
             return Ok(None);
         }
@@ -97,7 +107,7 @@ impl Report for Reporter {
     }
 }
 
-pub struct Consumer(UnixDatagram);
+pub struct Consumer(UnixStream);
 
 impl Consumer {
     pub fn new() -> anyhow::Result<Self> {
@@ -108,7 +118,7 @@ impl Consumer {
             .take()
             .context("The RECEIVER has been taked")?;
         let receiver =
-            UnixDatagram::from_std(receiver).context("try into tokio unix datagram failed")?;
+            UnixStream::from_std(receiver).context("try into tokio unix stream failed")?;
         Ok(Self(receiver))
     }
 }
@@ -116,7 +126,7 @@ impl Consumer {
 #[async_trait]
 impl ColletcItemConsume for Consumer {
     async fn consume(&mut self) -> Result<Option<CollectItem>, Box<dyn Error + Send>> {
-        match channel_receive(&self.0).await {
+        match channel_receive(&mut self.0).await {
             Ok(item) => Ok(Some(item)),
             Err(e) => Err(e.into()),
         }
