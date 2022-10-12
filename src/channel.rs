@@ -33,10 +33,8 @@ static RECEIVER: OnceCell<Mutex<Option<StdUnixStream>>> = OnceCell::new();
 pub fn init_channel() -> anyhow::Result<()> {
     let (sender, receiver) = StdUnixStream::pair()?;
 
-    if cfg!(target_os = "linux") {
-        sender.set_nonblocking(true)?;
-        receiver.set_nonblocking(true)?;
-    }
+    sender.set_nonblocking(true)?;
+    receiver.set_nonblocking(true)?;
 
     if SENDER.set(Mutex::new(sender)).is_err() {
         bail!("Channel has initialized");
