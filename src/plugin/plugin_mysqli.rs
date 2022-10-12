@@ -102,7 +102,7 @@ impl MySQLImprovedPlugin {
 
                 debug!(handle, function_name, "call mysql method");
 
-                let mut span = with_info(handle, |info| {
+                let span = with_info(handle, |info| {
                     create_mysqli_exit_span("mysqli", &function_name, info)
                 })?;
 
