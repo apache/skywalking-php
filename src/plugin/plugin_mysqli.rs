@@ -17,13 +17,12 @@ use anyhow::Context;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
-use tracing::log::debug;
-use tracing_subscriber::fmt::format;
+use tracing::debug;
 
 use crate::{
     component::COMPONENT_PHP_MYSQLI_ID,
     context::RequestContext,
-    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
+    execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook, Noop},
 };
 
 use super::Plugin;
@@ -124,7 +123,7 @@ fn create_mysqli_exit_span(
         );
         span.with_span_object_mut(|obj| {
             obj.set_span_layer(SpanLayer::Database);
-            obj.component_id = COMPONENT_PHP_MySQLi_ID;
+            obj.component_id = COMPONENT_PHP_MYSQLI_ID;
             obj.add_tag("db.type", "mysql");
         });
         Ok(span)
