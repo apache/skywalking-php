@@ -49,6 +49,7 @@ pub const PROXY_SERVER_2_ADDRESS: &str = "127.0.0.1:9012";
 pub const FPM_SERVER_1_ADDRESS: &str = "127.0.0.1:9001";
 pub const FPM_SERVER_2_ADDRESS: &str = "127.0.0.1:9002";
 pub const SWOOLE_SERVER_1_ADDRESS: &str = "127.0.0.1:9501";
+#[allow(dead_code)]
 pub const SWOOLE_SERVER_2_ADDRESS: &str = "127.0.0.1:9502";
 pub const COLLECTOR_GRPC_ADDRESS: &str = "127.0.0.1:19876";
 pub const COLLECTOR_HTTP_ADDRESS: &str = "127.0.0.1:12800";
@@ -305,22 +306,22 @@ fn setup_php_swoole(index: usize) -> Child {
         "-d",
         &format!("extension=target/{}/libskywalking_agent{}", TARGET, EXT),
         "-d",
-        "skywalking.enable=On",
+        "skywalking_agent.enable=On",
         "-d",
         &format!(
-            "skywalking.service_name=skywalking-agent-test-{}-swoole",
+            "skywalking_agent.service_name=skywalking-agent-test-{}-swoole",
             index
         ),
         "-d",
         &format!(
-            "skywalking.server_addr=http://{}",
+            "skywalking_agent.server_addr=http://{}",
             COLLECTOR_GRPC_ADDRESS
         ),
         "-d",
-        &format!("skywalking.log_level={}", PROCESS_LOG_LEVEL),
+        &format!("skywalking_agent.log_level={}", PROCESS_LOG_LEVEL),
         "-d",
         &format!(
-            "skywalking.log_file=/tmp/swoole-skywalking-agent.{}.log",
+            "skywalking_agent.log_file=/tmp/swoole-skywalking-agent.{}.log",
             index
         ),
         "-d",

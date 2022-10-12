@@ -15,7 +15,9 @@
 
 mod common;
 
-use crate::common::{COLLECTOR_HTTP_ADDRESS, HTTP_CLIENT, PROXY_SERVER_1_ADDRESS};
+use crate::common::{
+    COLLECTOR_HTTP_ADDRESS, HTTP_CLIENT, PROXY_SERVER_1_ADDRESS, SWOOLE_SERVER_1_ADDRESS,
+};
 use reqwest::{header::CONTENT_TYPE, RequestBuilder, StatusCode};
 use std::{
     panic::{catch_unwind, resume_unwind},
@@ -46,7 +48,6 @@ async fn e2e() {
 async fn run_e2e() {
     request_fpm_curl().await;
     request_fpm_pdo().await;
-    request_fpm_predis().await;
     request_swoole_curl().await;
     sleep(Duration::from_secs(3)).await;
     request_collector_validate().await;
