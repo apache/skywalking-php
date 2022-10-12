@@ -15,7 +15,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 use Webmozart\Assert\Assert;
 
 require_once dirname(__DIR__) . "/vendor/autoload.php";

@@ -303,7 +303,7 @@ fn setup_php_swoole(index: usize) -> Child {
         "-c",
         "tests/conf/php.ini",
         "-d",
-        &format!("extension=target/{}/libskywalking.so", TARGET),
+        &format!("extension=target/{}/libskywalking_agent{}", TARGET, EXT),
         "-d",
         "skywalking.enable=On",
         "-d",
@@ -331,8 +331,8 @@ fn setup_php_swoole(index: usize) -> Child {
     Command::new(&args[0])
         .args(&args[1..])
         .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stdout(File::create("/tmp/swoole-skywalking-stdout.log").unwrap())
+        .stderr(File::create("/tmp/swoole-skywalking-stderr.log").unwrap())
         .spawn()
         .unwrap()
 }
