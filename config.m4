@@ -63,12 +63,8 @@ cp ./target/$CARGO_MODE_DIR/libskywalking_agent.so ./modules/skywalking_agent.so
     .rustfmt.toml:.rustfmt.toml \
     Cargo.lock:Cargo.lock \
     Cargo.toml:Cargo.toml \
-    LICENSE:LICENSE \
-    NOTICE:NOTICE \
-    README.md:README.md \
     build.rs:build.rs \
     docker-compose.yml:docker-compose.yml \
-    docs:docs \
     scripts:scripts \
     src:src \
     tests:tests \
