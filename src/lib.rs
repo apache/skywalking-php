@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![warn(rust_2018_idioms, missing_docs)]
+#![allow(missing_docs)]
+#![warn(rust_2018_idioms)]
 #![warn(clippy::dbg_macro, clippy::print_stdout)]
-#![doc = include_str!("../README.md")]
 
 mod channel;
 mod component;
