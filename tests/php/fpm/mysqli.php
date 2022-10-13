@@ -28,7 +28,7 @@ require_once dirname(__DIR__) . "/vendor/autoload.php";
 {
     $mysqli = new mysqli("127.0.0.1", "root", "password", "skywalking", 3306);
     $result = $mysqli->query("SELECT * FROM `mysql`.`user` WHERE `User` = 'root'");
-    $rs = $result->fetch_all
+    $rs = $result->fetch_all();
     Assert::same(count($rs), 2);
 }
 

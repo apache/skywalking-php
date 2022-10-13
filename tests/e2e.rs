@@ -21,6 +21,7 @@ use std::{
     panic::{catch_unwind, resume_unwind},
     time::Duration,
 };
+use tracing::info;
 use tokio::{fs::File, runtime::Handle, task, time::sleep};
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
@@ -92,8 +93,10 @@ async fn request_collector_validate() {
 
 async fn request_common(request_builder: RequestBuilder, actual_content: impl Into<String>) {
     let response = request_builder.send().await.unwrap();
+    let content = response.text().await.unwrap();
+    info!(content, "response content");
     assert_eq!(
-        (response.status(), response.text().await.unwrap()),
+        (response.status(), content),
         (StatusCode::OK, actual_content.into())
     );
 }
