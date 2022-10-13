@@ -20,7 +20,7 @@ mod plugin_swoole;
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
 use once_cell::sync::Lazy;
 
-/// Register plugins here.
+// Register plugins here.
 static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
     vec![
         Box::new(plugin_curl::CurlPlugin::default()),
