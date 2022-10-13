@@ -93,10 +93,11 @@ async fn request_collector_validate() {
 
 async fn request_common(request_builder: RequestBuilder, actual_content: impl Into<String>) {
     let response = request_builder.send().await.unwrap();
+    let status = response.status();
     let content = response.text().await.unwrap();
     info!(content, "response content");
     assert_eq!(
-        (response.status(), content),
+        (status, content),
         (StatusCode::OK, actual_content.into())
     );
 }
