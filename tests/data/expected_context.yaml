@@ -342,6 +342,49 @@ segmentItems:
               - { key: url, value: /pdo.php }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
+      - segmentId: 'not null'
+        spans:
+          - operationName: mysqli->query
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8004
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - {key: db.type, value: mysql}
+          - operationName: mysqli->query
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8004
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - {key: db.type, value: mysql}
+          - operationName: GET:/mysqli.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - {key: url, value: /mysqli.php}
+              - {key: http.method, value: GET}
+              - {key: http.status_code, value: '200'}
   - serviceName: skywalking-agent-test-2
     segmentSize: 1
     segments:
