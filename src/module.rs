@@ -106,7 +106,6 @@ fn init_logger() {
     }
 }
 
-#[allow(dead_code)]
 fn get_module_registry() -> &'static ZArr {
     unsafe { ZArr::from_ptr(&sys::module_registry) }
 }
@@ -122,10 +121,9 @@ fn is_enable() -> bool {
         return true;
     }
 
-    // TODO Add swoole in future.
-    // if sapi == b"cli" && get_module_registry().exists("swoole") {
-    //     return true;
-    // }
+    if sapi == b"cli" && get_module_registry().exists("swoole") {
+        return true;
+    }
 
     false
 }
