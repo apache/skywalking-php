@@ -107,8 +107,5 @@ async fn request_common(request_builder: RequestBuilder, actual_content: impl In
     let status = response.status();
     let content = response.text().await.unwrap();
     info!(content, "response content");
-    assert_eq!(
-        (status, content),
-        (StatusCode::OK, actual_content.into())
-    );
+    assert_eq!((status, content), (StatusCode::OK, actual_content.into()));
 }
