@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 7
+    segmentSize: 8
     segments:
       - segmentId: "not null"
         spans:
