@@ -23,8 +23,8 @@ use std::{
     panic::{catch_unwind, resume_unwind},
     time::Duration,
 };
-use tracing::info;
 use tokio::{fs::File, runtime::Handle, task, time::sleep};
+use tracing::info;
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn e2e() {
