@@ -51,3 +51,5 @@ tests/**/*.log
 tests/**/*.db
 tests/**/*.mem
 tmp-php.ini
+.fleet
+.idea

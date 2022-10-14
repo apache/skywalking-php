@@ -34,6 +34,14 @@ SkyWalking PHP Agent requires SkyWalking 8.4+ and PHP 7.0+
   * [ ] [php-rdkafka](https://github.com/arnaud-lb/php-rdkafka)
   * [ ] [predis](https://github.com/predis/predis)
 
+* Swoole Ecosystem
+  * [ ] [Coroutine\Http\Client](https://wiki.swoole.com/#/coroutine_client/http_client)
+  * [ ] [Coroutine\MySQL](https://wiki.swoole.com/#/coroutine_client/mysql)
+  * [ ] [Swoole\Coroutine\Http\Client](https://wiki.swoole.com/#/coroutine_client/http_client)
+  * [ ] [Coroutine\Redis](https://wiki.swoole.com/#/coroutine_client/redis)
+
+  *The components of the PHP-FPM ecosystem can also be used in Swoole.*
+
 ## Contact Us
 
 * Mail list: **dev@skywalking.apache.org**. Mail to `dev-subscribe@skywalking.apache.org`, follow the reply to subscribe the mail list.

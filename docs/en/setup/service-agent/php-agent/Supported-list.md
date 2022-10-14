@@ -5,6 +5,7 @@ The following plugins provide the distributed tracing capability.
 ## Supported SAPI
 
 * PHP-FPM
+* CLI under [Swoole](https://www.swoole.com/)
 
 ## Support PHP extension
 

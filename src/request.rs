@@ -130,7 +130,6 @@ pub static IS_SWOOLE: AtomicBool = AtomicBool::new(false);
 
 /// The function is used by swoole plugin, to surround the callback of on
 /// request.
-#[allow(dead_code)]
 pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) {
     let f = ORI_SWOOLE_ON_REQUEST.load(Ordering::Relaxed);
     if f.is_null() {
@@ -161,7 +160,6 @@ pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) {
     }
 }
 
-#[allow(dead_code)]
 fn request_init_for_swoole(request: &mut ZVal) -> anyhow::Result<()> {
     let request = request
         .as_mut_z_obj()
@@ -191,7 +189,6 @@ fn request_init_for_swoole(request: &mut ZVal) -> anyhow::Result<()> {
     create_request_context(Some(fd), header.as_deref(), &method, &uri)
 }
 
-#[allow(dead_code)]
 fn request_shutdown_for_swoole(response: &mut ZVal) -> anyhow::Result<()> {
     let response = response
         .as_mut_z_obj()

@@ -27,9 +27,8 @@ static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
         Box::new(plugin_curl::CurlPlugin::default()),
         Box::new(plugin_pdo::PdoPlugin::default()),
         Box::new(plugin_mysqli::MySQLImprovedPlugin::default()),
-        // TODO Add swoole in future.
-        // Box::new(plugin_swoole::SwooleServerPlugin::default()),
-        // Box::new(plugin_swoole::SwooleHttpResponsePlugin::default()),
+        Box::new(plugin_swoole::SwooleServerPlugin::default()),
+        Box::new(plugin_swoole::SwooleHttpResponsePlugin::default()),
     ]
 });
 
