@@ -102,9 +102,15 @@ impl MySQLImprovedPlugin {
 
                 debug!(handle, function_name, "call mysql method");
 
-                let span = with_info(handle, |info| {
+                let mut span = with_info(handle, |info| {
                     create_mysqli_exit_span("mysqli", &function_name, info)
                 })?;
+
+                if execute_data.num_args() >= 1 {
+                    if let Some(statement) = execute_data.get_parameter(0).as_z_str() {
+                        span.add_tag("db.statement", statement.to_str()?);
+                    }
+                }
 
                 Ok(Box::new(span) as _)
             }),
