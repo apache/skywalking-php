@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 8
+    segmentSize: 9
     segments:
       - segmentId: "not null"
         spans:
@@ -340,6 +340,79 @@ segmentItems:
             skipAnalysis: false
             tags:
               - { key: url, value: /pdo.php }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+      - segmentId: "not null"
+        spans:
+          - operationName: "Predis\\Connection\\AbstractConnection->AUTH"
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8006
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: redis }
+              - { key: redis.command, value: AUTH password }
+          - operationName: "Predis\\Connection\\AbstractConnection->SET"
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8006
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: redis }
+              - { key: redis.command, value: SET foo bar }
+          - operationName: "Predis\\Connection\\AbstractConnection->GET"
+            parentSpanId: 0
+            spanId: 3
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8006
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: redis }
+              - { key: redis.command, value: GET foo }
+          - operationName: "Predis\\Connection\\AbstractConnection->GET"
+            parentSpanId: 0
+            spanId: 4
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8006
+            isError: true
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: redis }
+              - { key: redis.command, value: GET not-exists }
+          - operationName: GET:/predis.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: /predis.php }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
       - segmentId: 'not null'

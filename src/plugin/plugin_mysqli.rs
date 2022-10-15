@@ -13,19 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use anyhow::Context;
-use dashmap::DashMap;
-use once_cell::sync::Lazy;
-use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
-use tracing::debug;
-
+use super::Plugin;
 use crate::{
     component::COMPONENT_PHP_MYSQLI_ID,
     context::RequestContext,
     execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook, Noop},
 };
-
-use super::Plugin;
+use anyhow::Context;
+use dashmap::DashMap;
+use once_cell::sync::Lazy;
+use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
+use tracing::debug;
 
 static MYSQL_MAP: Lazy<DashMap<u32, MySQLInfo>> = Lazy::new(Default::default);
 
