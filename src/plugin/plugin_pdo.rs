@@ -206,18 +206,24 @@ fn after_hook(
 }
 
 fn after_hook_when_false(this: &mut ZObj, span: &mut Span) -> anyhow::Result<()> {
-    span.with_span_object_mut(|span| {
-        span.is_error = true;
-    });
-
     let info = this.call("errorInfo", [])?;
     let info = info.as_z_arr().context("errorInfo isn't array")?;
 
     let state = get_error_info_item(info, 0)?.expect_z_str()?.to_str()?;
-    let code = &get_error_info_item(info, 1)?.expect_long()?.to_string();
+    let code = {
+        let code = get_error_info_item(info, 1)?;
+        // PDOStatement::fetch
+        // In all cases, false is returned on failure or if there are no more rows.
+        if code.get_type_info().is_null() {
+            return Ok(())
+        }
+
+        &code.expect_long()?.to_string()
+    };
     let error = get_error_info_item(info, 2)?.expect_z_str()?.to_str()?;
 
     span.with_span_object_mut(|span| {
+        span.is_error = true;
         span.add_log([("SQLSTATE", state), ("Error Code", code), ("Error", error)]);
     });
 
@@ -288,6 +294,10 @@ impl FromStr for Dsn {
 
         let ss = data_source.split(';');
         for s in ss {
+            if s.is_empty() {
+                continue;
+            }
+
             let mut kv = s.splitn(2, '=');
             let k = kv.next().context("unknown key")?;
             let v = kv.next().context("unknown value")?;
