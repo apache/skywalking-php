@@ -51,6 +51,7 @@ async fn run_e2e() {
     request_fpm_pdo().await;
     request_fpm_mysqli().await;
     request_swoole_curl().await;
+    request_fpm_predis().await;
     sleep(Duration::from_secs(3)).await;
     request_collector_validate().await;
 }
@@ -74,6 +75,14 @@ async fn request_fpm_pdo() {
 async fn request_fpm_mysqli() {
     request_common(
         HTTP_CLIENT.get(format!("http://{}/mysqli.php", PROXY_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_fpm_predis() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/predis.php", PROXY_SERVER_1_ADDRESS)),
         "ok",
     )
     .await;

@@ -14,3 +14,5 @@ The following plugins provide the distributed tracing capability.
 * [MySQL Improved](https://www.php.net/manual/en/book.mysqli.php)
 
 ## Support PHP library
+
+* [predis](https://github.com/predis/predis)
