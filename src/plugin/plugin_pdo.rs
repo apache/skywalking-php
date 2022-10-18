@@ -215,7 +215,7 @@ fn after_hook_when_false(this: &mut ZObj, span: &mut Span) -> anyhow::Result<()>
         // PDOStatement::fetch
         // In all cases, false is returned on failure or if there are no more rows.
         if code.get_type_info().is_null() {
-            return Ok(())
+            return Ok(());
         }
 
         &code.expect_long()?.to_string()
