@@ -37,6 +37,6 @@ jobs:
       - name: Docker build
         run: |
           cd docker
-          docker build -t skywalking-php --build-arg ${{ steps.vars.outputs.VERSION }} .
+          docker build -t skywalking-php --build-arg SKYWALKING_AGENT=${{ steps.vars.outputs.VERSION }} .
           docker tag skywalking-php ghcr.io/apache/skywalking-php:latest
           docker tag skywalking-php ghcr.io/apache/skywalking-php:${{ steps.vars.outputs.VERSION }}
