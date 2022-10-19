@@ -33,4 +33,12 @@ require_once dirname(__DIR__) . "/vendor/autoload.php";
     Assert::same(count($rs), 2);
 }
 
+{
+    $pdo = new PDO("mysql:dbname=skywalking;host=127.0.0.1:3306;", "root", "password");
+    $sth = $pdo->prepare("SELECT * FROM `mysql`.`user` WHERE `User` = :user", [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
+    $sth->execute(['user' => 'anon']);
+    $rs = $sth->fetchAll();
+    Assert::same(count($rs), 0);
+}
+
 echo "ok";
