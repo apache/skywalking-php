@@ -13,13 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Package
+name: Container
 
 on: workflow_dispatch
 
 jobs:
-  package:
-    name: package
+  container:
+    name: container
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
