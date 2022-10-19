@@ -34,9 +34,14 @@ jobs:
         id: vars
         run: echo ::set-output name=VERSION::$(echo ${{ github.event.release.tag_name }} | sed "s/v//")
 
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+        
       - name: Docker build
         run: |
           cd docker
           docker build -t skywalking-php --build-arg SKYWALKING_AGENT=${{ steps.vars.outputs.VERSION }} .
           docker tag skywalking-php ghcr.io/apache/skywalking-php:latest
           docker tag skywalking-php ghcr.io/apache/skywalking-php:${{ steps.vars.outputs.VERSION }}
+          docker push ghcr.io/apache/skywalking-php:latest
+          docker push ghcr.io/apache/skywalking-php:${{ steps.vars.outputs.VERSION }}
