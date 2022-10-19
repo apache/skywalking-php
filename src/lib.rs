@@ -20,6 +20,7 @@
 mod channel;
 mod component;
 mod context;
+mod exception_frame;
 mod execute;
 mod module;
 mod plugin;
