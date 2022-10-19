@@ -18,7 +18,8 @@ FROM php:8.1-fpm-bullseye
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
-    RUST_VERSION=1.64.0
+    RUST_VERSION=1.64.0 \
+    SKYWALKING_AGENT=0.1.0
 
 RUN apt update \
         && apt install -y wget protobuf-compiler libclang-dev \
@@ -27,7 +28,7 @@ RUN apt update \
         && ./rustup-init -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION --default-host x86_64-unknown-linux-gnu \
         && rm rustup-init \
         && chmod -R a+w $RUSTUP_HOME $CARGO_HOME \
-        && pecl install skywalking_agent-0.1.0 \
+        && pecl install skywalking_agent-$SKYWALKING_AGENT \
         && docker-php-ext-enable skywalking_agent \
         && apt-get remove -y --auto-remove wget protobuf-compiler \
         && rm -rf /var/lib/apt/lists/*
