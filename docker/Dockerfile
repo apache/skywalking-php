@@ -15,6 +15,10 @@
 
 FROM php:8.1-fpm-bullseye
 
+LABEL org.opencontainers.image.source=https://github.com/apache/skywalking-php
+LABEL org.opencontainers.image.description="The PHP Agent for Apache SkyWalking, which provides the native tracing abilities for PHP project."
+LABEL org.opencontainers.image.licenses="Apache 2.0"
+
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
     PATH=/usr/local/cargo/bin:$PATH \
