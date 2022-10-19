@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![warn(rust_2018_idioms, missing_docs)]
+#![allow(missing_docs)]
+#![warn(rust_2018_idioms)]
 #![warn(clippy::dbg_macro, clippy::print_stdout)]
-#![doc = include_str!("../README.md")]
 
 mod channel;
 mod component;
@@ -93,14 +93,13 @@ pub fn get_module() -> Module {
     module.on_request_init(request::init);
     module.on_request_shutdown(request::shutdown);
 
-    // TODO Add swoole in future.
     // The function is used by swoole plugin, to surround the callback of on
     // request.
-    // module.add_function(
-    //     "skywalking_hack_swoole_on_request_please_do_not_use",
-    //     request::skywalking_hack_swoole_on_request,
-    //     vec![],
-    // );
+    module.add_function(
+        "skywalking_hack_swoole_on_request_please_do_not_use",
+        request::skywalking_hack_swoole_on_request,
+        vec![],
+    );
 
     module
 }

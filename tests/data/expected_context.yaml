@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 7
+    segmentSize: 9
     segments:
       - segmentId: "not null"
         spans:
@@ -342,6 +342,130 @@ segmentItems:
               - { key: url, value: /pdo.php }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
+      - segmentId: "not null"
+        spans:
+          - operationName: "Predis\\Connection\\AbstractConnection->AUTH"
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8006
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: redis }
+              - { key: redis.command, value: AUTH password }
+          - operationName: "Predis\\Connection\\AbstractConnection->SET"
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8006
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: redis }
+              - { key: redis.command, value: SET foo bar }
+          - operationName: "Predis\\Connection\\AbstractConnection->GET"
+            parentSpanId: 0
+            spanId: 3
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8006
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: redis }
+              - { key: redis.command, value: GET foo }
+          - operationName: "Predis\\Connection\\AbstractConnection->GET"
+            parentSpanId: 0
+            spanId: 4
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8006
+            isError: true
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: redis }
+              - { key: redis.command, value: GET not-exists }
+          - operationName: GET:/predis.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: /predis.php }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+      - segmentId: 'not null'
+        spans:
+          - operationName: mysqli->query
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8004
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - {key: db.type, value: mysql}
+              - {
+                  key: db.statement,
+                  value: "SELECT 1",
+                }
+          - operationName: mysqli->query
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8004
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - {key: db.type, value: mysql}
+              - {
+                  key: db.statement,
+                  value: "SELECT * FROM `mysql`.`user` WHERE `User` = 'root'",
+                }
+          - operationName: GET:/mysqli.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - {key: url, value: /mysqli.php}
+              - {key: http.method, value: GET}
+              - {key: http.status_code, value: '200'}
   - serviceName: skywalking-agent-test-2
     segmentSize: 1
     segments:
@@ -385,5 +509,112 @@ segmentItems:
                   parentTraceSegmentId: "not null",
                   parentServiceInstance: "not null",
                   parentService: skywalking-agent-test-1,
+                  traceId: "not null",
+                }
+  - serviceName: skywalking-agent-test-1-swoole
+    segmentSize: 2
+    segments:
+      - segmentId: "not null"
+        spans:
+          - operationName: GET:/
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: / }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+            refs:
+              - {
+                  parentEndpoint: /,
+                  networkAddress: "127.0.0.1:9501",
+                  refType: CrossProcess,
+                  parentSpanId: 1,
+                  parentTraceSegmentId: "not null",
+                  parentServiceInstance: "not null",
+                  parentService: skywalking-agent-test-1-swoole,
+                  traceId: "not null",
+                }
+      - segmentId: "not null"
+        spans:
+          - operationName: /
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8002
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:9501
+            skipAnalysis: false
+            tags:
+              - { key: url, value: "http://127.0.0.1:9501/" }
+              - { key: status_code, value: "200" }
+          - operationName: /
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8002
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:9502
+            skipAnalysis: false
+            tags:
+              - { key: url, value: "http://127.0.0.1:9502/" }
+              - { key: status_code, value: "200" }
+          - operationName: GET:/curl
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: /curl }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+  - serviceName: skywalking-agent-test-2-swoole
+    segmentSize: 1
+    segments:
+      - segmentId: "not null"
+        spans:
+          - operationName: GET:/
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: / }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+            refs:
+              - {
+                  parentEndpoint: /,
+                  networkAddress: "127.0.0.1:9502",
+                  refType: CrossProcess,
+                  parentSpanId: 2,
+                  parentTraceSegmentId: "not null",
+                  parentServiceInstance: "not null",
+                  parentService: skywalking-agent-test-1-swoole,
                   traceId: "not null",
                 }

@@ -14,7 +14,9 @@
 // limitations under the License.
 
 mod plugin_curl;
+mod plugin_mysqli;
 mod plugin_pdo;
+mod plugin_predis;
 mod plugin_swoole;
 
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
@@ -25,9 +27,10 @@ static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
     vec![
         Box::new(plugin_curl::CurlPlugin::default()),
         Box::new(plugin_pdo::PdoPlugin::default()),
-        // TODO Add swoole in future.
-        // Box::new(plugin_swoole::SwooleServerPlugin::default()),
-        // Box::new(plugin_swoole::SwooleHttpResponsePlugin::default()),
+        Box::new(plugin_mysqli::MySQLImprovedPlugin::default()),
+        Box::new(plugin_swoole::SwooleServerPlugin::default()),
+        Box::new(plugin_swoole::SwooleHttpResponsePlugin::default()),
+        Box::new(plugin_predis::PredisPlugin::default()),
     ]
 });
 

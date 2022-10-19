@@ -27,11 +27,20 @@ SkyWalking PHP Agent requires SkyWalking 8.4+ and PHP 7.0+
 * PHP-FPM Ecosystem
   * [x] [cURL](https://www.php.net/manual/en/book.curl.php#book.curl)
   * [x] [PDO](https://www.php.net/manual/en/book.pdo.php)
+  * [x] [MySQL Improved](https://www.php.net/manual/en/book.mysqli.php)
   * [ ] [Memcached](https://www.php.net/manual/en/book.memcached.php)
   * [ ] [phpredis](https://github.com/phpredis/phpredis)
   * [ ] [php-amqp](https://github.com/php-amqp/php-amqp)
   * [ ] [php-rdkafka](https://github.com/arnaud-lb/php-rdkafka)
-  * [ ] [predis](https://github.com/predis/predis)
+  * [x] [predis](https://github.com/predis/predis)
+
+* Swoole Ecosystem
+  * [ ] [Coroutine\Http\Client](https://wiki.swoole.com/#/coroutine_client/http_client)
+  * [ ] [Coroutine\MySQL](https://wiki.swoole.com/#/coroutine_client/mysql)
+  * [ ] [Swoole\Coroutine\Http\Client](https://wiki.swoole.com/#/coroutine_client/http_client)
+  * [ ] [Coroutine\Redis](https://wiki.swoole.com/#/coroutine_client/redis)
+
+  *The components of the PHP-FPM ecosystem can also be used in Swoole.*
 
 ## Contact Us
 

@@ -15,13 +15,16 @@
 
 mod common;
 
-use crate::common::{COLLECTOR_HTTP_ADDRESS, HTTP_CLIENT, PROXY_SERVER_1_ADDRESS};
+use crate::common::{
+    COLLECTOR_HTTP_ADDRESS, HTTP_CLIENT, PROXY_SERVER_1_ADDRESS, SWOOLE_SERVER_1_ADDRESS,
+};
 use reqwest::{header::CONTENT_TYPE, RequestBuilder, StatusCode};
 use std::{
     panic::{catch_unwind, resume_unwind},
     time::Duration,
 };
 use tokio::{fs::File, runtime::Handle, task, time::sleep};
+use tracing::info;
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn e2e() {
@@ -46,6 +49,9 @@ async fn e2e() {
 async fn run_e2e() {
     request_fpm_curl().await;
     request_fpm_pdo().await;
+    request_fpm_mysqli().await;
+    request_swoole_curl().await;
+    request_fpm_predis().await;
     sleep(Duration::from_secs(3)).await;
     request_collector_validate().await;
 }
@@ -61,6 +67,30 @@ async fn request_fpm_curl() {
 async fn request_fpm_pdo() {
     request_common(
         HTTP_CLIENT.get(format!("http://{}/pdo.php", PROXY_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_fpm_mysqli() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/mysqli.php", PROXY_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_fpm_predis() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/predis.php", PROXY_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_swoole_curl() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/curl", SWOOLE_SERVER_1_ADDRESS)),
         "ok",
     )
     .await;
@@ -83,8 +113,8 @@ async fn request_collector_validate() {
 
 async fn request_common(request_builder: RequestBuilder, actual_content: impl Into<String>) {
     let response = request_builder.send().await.unwrap();
-    assert_eq!(
-        (response.status(), response.text().await.unwrap()),
-        (StatusCode::OK, actual_content.into())
-    );
+    let status = response.status();
+    let content = response.text().await.unwrap();
+    info!(content, "response content");
+    assert_eq!((status, content), (StatusCode::OK, actual_content.into()));
 }
