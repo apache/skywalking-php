@@ -14,10 +14,10 @@
 // limitations under the License.
 
 use phper::sys;
+use std::marker;
 
 pub struct ExceptionFrame {
-    #[allow(dead_code)]
-    not_matter: i32,
+    phantom: marker::PhantomData<isize>,
 }
 
 impl ExceptionFrame {
@@ -25,7 +25,9 @@ impl ExceptionFrame {
         unsafe {
             sys::zend_exception_save();
         }
-        ExceptionFrame { not_matter: 0 }
+        ExceptionFrame {
+            phantom: marker::PhantomData,
+        }
     }
 }
 
