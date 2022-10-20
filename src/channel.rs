@@ -16,13 +16,12 @@
 use anyhow::{anyhow, bail, Context};
 use once_cell::sync::{Lazy, OnceCell};
 use skywalking::reporter::{grpc::ColletcItemConsume, CollectItem, Report};
-use std::sync::mpsc;
 use std::{
     error::Error,
     io::{self, Write},
     mem::size_of,
     os::unix::net::UnixStream as StdUnixStream,
-    sync::Mutex,
+    sync::{mpsc, Mutex},
     thread,
 };
 use tokio::{io::AsyncReadExt, net::UnixStream};
