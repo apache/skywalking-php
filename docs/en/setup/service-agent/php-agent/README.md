@@ -1,10 +1,17 @@
 # Setup PHP Agent
 
-1. Agent is available for PHP 7.0 - 8.x
+1. Agent is available for PHP 7.2 - 8.x
 2. Build from source
 3. Configure php.ini
 
 ## Requirements
+
+- GCC
+- Rustc
+- Cargo
+- Libclang
+- Make
+- Protoc
 
 For Debian-base OS:
 
@@ -12,13 +19,15 @@ For Debian-base OS:
 sudo apt install gcc make cargo libclang protobuf-compiler
 ```
 
-## Install from pecl.net
+## Install
+
+### Install from pecl.net
 
 ```shell script
-sudo pecl install skywalking_agent
+pecl install skywalking_agent
 ```
 
-## Build & install from source
+### Or install from source
 
 ```shell script
 git clone --recursive https://github.com/apache/skywalking-php.git

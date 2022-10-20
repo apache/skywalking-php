@@ -52,10 +52,6 @@ jobs:
           - macos-12
         version:
           # Many composer dependencies need PHP 7.2+
-          # - php: "7.0"
-          #   swoole: "4.3.6"
-          # - php: "7.1"
-          #   swoole: "4.5.11"
           - php: "7.2"
             swoole: "4.6.7"
           - php: "7.3"

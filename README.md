@@ -20,7 +20,7 @@ Submit an [GitHub Issue](https://github.com/apache/skywalking/issues/new/choose)
 
 ## Installation Requirements
 
-SkyWalking PHP Agent requires SkyWalking 8.4+ and PHP 7.0+
+SkyWalking PHP Agent requires SkyWalking 8.4+ and PHP 7.2+
 
 ## Support List
 
