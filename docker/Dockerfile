@@ -15,10 +15,6 @@
 
 FROM php:8.1-fpm-bullseye as builder
 
-LABEL org.opencontainers.image.source=https://github.com/apache/skywalking-php
-LABEL org.opencontainers.image.description="The PHP Agent for Apache SkyWalking, which provides the native tracing abilities for PHP project."
-LABEL org.opencontainers.image.licenses="Apache 2.0"
-
 ARG SKYWALKING_AGENT
 
 ENV RUSTUP_HOME=/usr/local/rustup \
@@ -40,5 +36,8 @@ RUN apt update \
         && rm -rf /var/lib/apt/lists/*
 
 FROM php:8.1-fpm-bullseye
+LABEL org.opencontainers.image.source=https://github.com/apache/skywalking-php
+LABEL org.opencontainers.image.description="The PHP Agent for Apache SkyWalking, which provides the native tracing abilities for PHP project."
+LABEL org.opencontainers.image.licenses="Apache 2.0"
 COPY --from=builder /usr/local/etc/php/conf.d/docker-php-ext-skywalking_agent.ini /usr/local/etc/php/conf.d/
 COPY --from=builder /usr/local/lib/php/extensions/no-debug-non-zts-20210902/skywalking_agent.so /usr/local/lib/php/extensions/no-debug-non-zts-20210902/
