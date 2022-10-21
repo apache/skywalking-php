@@ -52,6 +52,8 @@ if test "$PHP_SKYWALKING_AGENT" != "no"; then
   cat >>Makefile.objects<< EOF
 all: cargo_build
 
+clean: cargo_clean
+
 cargo_build:
 	PHP_CONFIG=$PHP_PHP_CONFIG cargo build $CARGO_MODE_FLAGS
 	if [[ -f ./target/$CARGO_MODE_DIR/libskywalking_agent.dylib ]] ; then \\
@@ -59,7 +61,10 @@ cargo_build:
 	if [[ -f ./target/$CARGO_MODE_DIR/libskywalking_agent.so ]] ; then \\
 		cp ./target/$CARGO_MODE_DIR/libskywalking_agent.so ./modules/skywalking_agent.so ; fi
 
-.PHONY: cargo_build
+cargo_clean:
+	cargo clean
+
+.PHONY: cargo_build cargo_clean
 EOF
 
   AC_CONFIG_LINKS([ \

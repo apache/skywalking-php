@@ -41,4 +41,13 @@ require_once dirname(__DIR__) . "/vendor/autoload.php";
     Assert::same(count($rs), 0);
 }
 
+{
+    Assert::throws(function () {
+        $pdo = new PDO("mysql:dbname=skywalking;host=127.0.0.1;port=3306", "root", "password");
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $sth = $pdo->prepare("SELECT * FROM not_exist");
+        $sth->execute();
+    }, PDOException::class);
+}
+
 echo "ok";

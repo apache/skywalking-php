@@ -17,6 +17,7 @@ use super::Plugin;
 use crate::{
     component::COMPONENT_PHP_PDO_ID,
     context::RequestContext,
+    exception_frame::ExceptionFrame,
     execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
 };
 use anyhow::Context;
@@ -206,6 +207,7 @@ fn after_hook(
 }
 
 fn after_hook_when_false(this: &mut ZObj, span: &mut Span) -> anyhow::Result<()> {
+    let _e = ExceptionFrame::new();
     let info = this.call("errorInfo", [])?;
     let info = info.as_z_arr().context("errorInfo isn't array")?;
 
