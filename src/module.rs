@@ -14,7 +14,7 @@
 // limitations under the License.
 
 use crate::{
-    channel::{self, init_channel},
+    channel::Reporter,
     execute::register_execute_functions,
     util::{get_sapi_module_name, IPS},
     worker::init_worker,
@@ -48,11 +48,6 @@ pub fn init(_module: ModuleContext) -> bool {
 
     init_logger();
 
-    if let Err(e) = init_channel() {
-        error!("Init channel failed: {}", e);
-        return true;
-    }
-
     let service_name = Lazy::force(&SERVICE_NAME);
     let service_instance = Lazy::force(&SERVICE_INSTANCE);
     let skywalking_version = Lazy::force(&SKYWALKING_VERSION);
@@ -61,13 +56,23 @@ pub fn init(_module: ModuleContext) -> bool {
         service_instance, skywalking_version, "Starting skywalking agent"
     );
 
+    let worker_addr = {
+        match tempfile::NamedTempFile::new() {
+            Err(e) => {
+                error!("Create named temporary file failed: {}", e);
+                return true;
+            }
+            Ok(f) => f.into_temp_path().to_str().unwrap().to_string(),
+        }
+    };
+
+    init_worker(&worker_addr);
+
     tracer::set_global_tracer(Tracer::new(
         service_name,
         service_instance,
-        channel::Reporter,
+        Reporter::new(worker_addr),
     ));
-
-    init_worker();
 
     register_execute_functions();
 

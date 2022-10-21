@@ -13,48 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use anyhow::{anyhow, bail, Context};
+use anyhow::anyhow;
 use once_cell::sync::OnceCell;
-use skywalking::reporter::{grpc::ColletcItemConsume, CollectItem, Report};
+use skywalking::reporter::{CollectItem, Report};
 use std::{
-    error::Error,
-    io::{self, Write},
-    mem::size_of,
-    os::unix::net::UnixStream as StdUnixStream,
-    sync::Mutex,
+    io::Write, mem::size_of, ops::DerefMut, os::unix::net::UnixStream, path::Path, sync::Mutex,
 };
-use tokio::{io::AsyncReadExt, net::UnixStream};
-use tonic::async_trait;
+use tokio::io::AsyncReadExt;
 use tracing::error;
 
-static SENDER: OnceCell<Mutex<StdUnixStream>> = OnceCell::new();
-static RECEIVER: OnceCell<Mutex<Option<StdUnixStream>>> = OnceCell::new();
-
-pub fn init_channel() -> anyhow::Result<()> {
-    let (sender, receiver) = StdUnixStream::pair()?;
-
-    sender.set_nonblocking(false)?;
-    receiver.set_nonblocking(true)?;
-
-    if SENDER.set(Mutex::new(sender)).is_err() {
-        bail!("Channel has initialized");
-    }
-
-    if RECEIVER.set(Mutex::new(Some(receiver))).is_err() {
-        bail!("Channel has initialized");
-    }
-
-    Ok(())
-}
-
-fn channel_send(data: CollectItem) -> anyhow::Result<()> {
+fn channel_send<T>(data: CollectItem, mut sender: T) -> anyhow::Result<()>
+where
+    T: DerefMut<Target = UnixStream>,
+{
     let content = bincode::serialize(&data)?;
-
-    let mut sender = SENDER
-        .get()
-        .context("Channel haven't initialized")?
-        .lock()
-        .map_err(|_| anyhow!("Get lock failed"))?;
 
     sender.write_all(&content.len().to_le_bytes())?;
     sender.write_all(&content)?;
@@ -63,7 +35,7 @@ fn channel_send(data: CollectItem) -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn channel_receive(receiver: &mut UnixStream) -> anyhow::Result<CollectItem> {
+pub async fn channel_receive(receiver: &mut tokio::net::UnixStream) -> anyhow::Result<CollectItem> {
     let mut size_buf = [0u8; size_of::<usize>()];
     receiver.read_exact(&mut size_buf).await?;
     let size = usize::from_le_bytes(size_buf);
@@ -75,67 +47,34 @@ async fn channel_receive(receiver: &mut UnixStream) -> anyhow::Result<CollectIte
     Ok(item)
 }
 
-fn channel_try_receive(receiver: &UnixStream) -> anyhow::Result<Option<CollectItem>> {
-    let mut size_buf = [0u8; size_of::<usize>()];
-    if let Err(e) = receiver.try_read(&mut size_buf) {
-        if e.kind() == io::ErrorKind::WouldBlock {
-            return Ok(None);
-        }
-        return Err(e.into());
-    }
-    let size = usize::from_le_bytes(size_buf);
-
-    let mut buf = vec![0u8; size];
-    if let Err(e) = receiver.try_read(&mut buf) {
-        if e.kind() == io::ErrorKind::WouldBlock {
-            return Ok(None);
-        }
-        return Err(e.into());
-    }
-
-    let item = bincode::deserialize(&buf)?;
-    Ok(item)
+pub struct Reporter<T: AsRef<Path>> {
+    worker_addr: T,
+    stream: OnceCell<Mutex<UnixStream>>,
 }
 
-pub struct Reporter;
-
-impl Report for Reporter {
-    fn report(&self, item: CollectItem) {
-        if let Err(err) = channel_send(item) {
-            error!(?err, "channel send failed");
+impl<T: AsRef<Path>> Reporter<T> {
+    pub fn new(worker_addr: T) -> Self {
+        Self {
+            worker_addr,
+            stream: OnceCell::new(),
         }
     }
-}
 
-pub struct Consumer(UnixStream);
-
-impl Consumer {
-    pub fn new() -> anyhow::Result<Self> {
-        let receiver = RECEIVER.get().context("Channel haven't initialized")?;
-        let receiver = receiver
+    fn try_report(&self, item: CollectItem) -> anyhow::Result<()> {
+        let stream = self
+            .stream
+            .get_or_try_init(|| UnixStream::connect(&self.worker_addr).map(Mutex::new))?
             .lock()
-            .map_err(|_| anyhow!("Get Lock failed"))?
-            .take()
-            .context("The RECEIVER has been taked")?;
-        let receiver =
-            UnixStream::from_std(receiver).context("try into tokio unix stream failed")?;
-        Ok(Self(receiver))
+            .map_err(|_| anyhow!("Get Lock failed"))?;
+
+        channel_send(item, stream)
     }
 }
 
-#[async_trait]
-impl ColletcItemConsume for Consumer {
-    async fn consume(&mut self) -> Result<Option<CollectItem>, Box<dyn Error + Send>> {
-        match channel_receive(&mut self.0).await {
-            Ok(item) => Ok(Some(item)),
-            Err(e) => Err(e.into()),
-        }
-    }
-
-    async fn try_consume(&mut self) -> Result<Option<CollectItem>, Box<dyn Error + Send>> {
-        match channel_try_receive(&self.0) {
-            Ok(item) => Ok(item),
-            Err(e) => Err(e.into()),
+impl<T: AsRef<Path>> Report for Reporter<T> {
+    fn report(&self, item: CollectItem) {
+        if let Err(err) = self.try_report(item) {
+            error!(?err, "channel send failed");
         }
     }
 }

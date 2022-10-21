@@ -1897,6 +1897,7 @@ dependencies = [
  "reqwest",
  "skywalking",
  "systemstat",
+ "tempfile",
  "tokio",
  "tokio-stream",
  "tonic",
