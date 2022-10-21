@@ -14,15 +14,14 @@
 // limitations under the License.
 
 use anyhow::{anyhow, bail, Context};
-use once_cell::sync::{Lazy, OnceCell};
+use once_cell::sync::OnceCell;
 use skywalking::reporter::{grpc::ColletcItemConsume, CollectItem, Report};
 use std::{
     error::Error,
     io::{self, Write},
     mem::size_of,
     os::unix::net::UnixStream as StdUnixStream,
-    sync::{mpsc, Mutex},
-    thread,
+    sync::Mutex,
 };
 use tokio::{io::AsyncReadExt, net::UnixStream};
 use tonic::async_trait;
@@ -30,18 +29,6 @@ use tracing::error;
 
 static SENDER: OnceCell<Mutex<StdUnixStream>> = OnceCell::new();
 static RECEIVER: OnceCell<Mutex<Option<StdUnixStream>>> = OnceCell::new();
-static TX: Lazy<Mutex<mpsc::Sender<CollectItem>>> = Lazy::new(|| {
-    let (tx, rx) = mpsc::channel();
-    thread::spawn(move || {
-        for data in rx.into_iter() {
-            if let Err(err) = channel_send(data) {
-                error!(?err, "channel send failed");
-            }
-        }
-    });
-
-    Mutex::new(tx)
-});
 
 pub fn init_channel() -> anyhow::Result<()> {
     let (sender, receiver) = StdUnixStream::pair()?;
@@ -114,18 +101,10 @@ pub struct Reporter;
 
 impl Report for Reporter {
     fn report(&self, item: CollectItem) {
-        if let Err(err) = tx_send(item) {
-            error!(?err, "tx send failed");
+        if let Err(err) = channel_send(item) {
+            error!(?err, "channel send failed");
         }
     }
-}
-
-fn tx_send(data: CollectItem) -> anyhow::Result<()> {
-    TX.lock()
-        .map_err(|_| anyhow!("Get lock failed"))?
-        .send(data)?;
-
-    Ok(())
 }
 
 pub struct Consumer(UnixStream);
