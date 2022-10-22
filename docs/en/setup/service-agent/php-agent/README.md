@@ -27,7 +27,7 @@ sudo apt install gcc make cargo libclang protobuf-compiler
 pecl install skywalking_agent
 ```
 
-### Or install from source
+### install from the source codes
 
 ```shell script
 git clone --recursive https://github.com/apache/skywalking-php.git
