@@ -39,7 +39,10 @@ use tracing::{debug, error, info, warn};
 
 use crate::{channel, SKYWALKING_AGENT_SERVER_ADDR, SKYWALKING_AGENT_WORKER_THREADS};
 
-pub fn init_worker<P: AsRef<Path>>(worker_addr: P) {
+pub fn init_worker<P>(worker_addr: P)
+where
+    P: AsRef<Path> + tracing::Value,
+{
     let server_addr = Ini::get::<String>(SKYWALKING_AGENT_SERVER_ADDR).unwrap_or_default();
     let worker_threads = worker_threads();
 
@@ -81,7 +84,10 @@ fn new_tokio_runtime(worker_threads: usize) -> Runtime {
         .unwrap()
 }
 
-async fn start_worker<P: AsRef<Path>>(worker_addr: P, server_addr: String) {
+async fn start_worker<P>(worker_addr: P, server_addr: String)
+where
+    P: AsRef<Path> + tracing::Value,
+{
     debug!("Starting worker...");
 
     // Graceful shutdown signal, put it on the top of program.
@@ -94,7 +100,7 @@ async fn start_worker<P: AsRef<Path>>(worker_addr: P, server_addr: String) {
     };
 
     let fut = async move {
-        let (tx, rx) = mpsc::channel::<Result<CollectItem, Box<dyn Error + Send>>>(255);
+        debug!(worker_addr, "Bind");
         let listener = match UnixListener::bind(worker_addr) {
             Ok(listener) => listener,
             Err(err) => {
@@ -103,20 +109,22 @@ async fn start_worker<P: AsRef<Path>>(worker_addr: P, server_addr: String) {
             }
         };
 
-        debug!("Bind");
+        let (tx, rx) = mpsc::channel::<Result<CollectItem, Box<dyn Error + Send>>>(255);
         tokio::spawn(async move {
             loop {
                 match listener.accept().await {
                     Ok((mut stream, _addr)) => {
-                        debug!("Accept");
-
                         let tx = tx.clone();
+
                         tokio::spawn(async move {
+                            debug!("Entering channel_receive loop");
+
                             loop {
                                 let r = match channel::channel_receive(&mut stream).await {
                                     Err(err) => match err.downcast_ref::<io::Error>() {
                                         Some(e) if e.kind() == io::ErrorKind::UnexpectedEof => {
-                                            return
+                                            debug!("Leaving channel_receive loop");
+                                            return;
                                         }
                                         _ => Err(err.into()),
                                     },

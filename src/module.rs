@@ -62,7 +62,13 @@ pub fn init(_module: ModuleContext) -> bool {
                 error!("Create named temporary file failed: {}", e);
                 return true;
             }
-            Ok(f) => f.into_temp_path().to_str().unwrap().to_string(),
+            Ok(f) => match f.into_temp_path().to_str() {
+                None => {
+                    error!("Yields a &str slice from the Path failed.");
+                    return true;
+                }
+                Some(s) => s.to_string(),
+            },
         }
     };
 
