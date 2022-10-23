@@ -38,3 +38,8 @@ services:
       - "6379:6379"
     environment:
       - REDIS_PASSWORD=password
+
+  memcached:
+    image: memcached:1.6.17
+    ports:
+      - "11211:11211"
