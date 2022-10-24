@@ -2,15 +2,13 @@ use super::Plugin;
 use crate::{
     component::COMPONENT_PHP_MEMCACHED_ID,
     context::RequestContext,
-    execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook, Noop},
+    execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook},
 };
 use anyhow::{bail, Context};
 use once_cell::sync::Lazy;
 use phper::{functions::call, values::ExecuteData};
-use skywalking::skywalking_proto::v3::SpanLayer;
-use tracing::warn;
-
-// TODO Detect is error.
+use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
+use tracing::{debug, warn};
 
 static MEC_KEYS_COMMANDS: Lazy<Vec<String>> = Lazy::new(|| {
     [
@@ -142,6 +140,7 @@ impl MemcachedPlugin {
                         let key = {
                             let key = execute_data.get_parameter(0);
                             if !key.get_type_info().is_string() {
+                                // The `*Multi` methods will failed here.
                                 bail!("The argument key of {} isn't string", &function_name);
                             }
                             key.clone()
@@ -173,6 +172,8 @@ impl MemcachedPlugin {
                     "".to_owned()
                 };
 
+                debug!(peer, "Get memcached peer");
+
                 let span = RequestContext::try_with_global_ctx(request_id, |ctx| {
                     let mut span =
                         ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &peer);
@@ -191,11 +192,21 @@ impl MemcachedPlugin {
                         }
                     });
                     Ok(span)
-                });
+                })?;
 
                 Ok(Box::new(span) as _)
             }),
-            Noop::noop(),
+            Box::new(|_, span, _, return_value| {
+                let mut span = span.downcast::<Span>().unwrap();
+                if let Some(b) = return_value.as_bool() {
+                    if !b {
+                        span.with_span_object_mut(|span| {
+                            span.is_error = true;
+                        });
+                    }
+                }
+                Ok(())
+            }),
         )
     }
 }
