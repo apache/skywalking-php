@@ -49,6 +49,7 @@ phper = "0.5.1"
 prost = "0.11.0"
 skywalking = "0.4.0"
 systemstat = "0.2.0"
+tempfile = "3.3.0"
 tokio = { version = "1.21.0", features = ["full"] }
 tokio-stream = "0.1.9"
 tonic = "0.8.0"
