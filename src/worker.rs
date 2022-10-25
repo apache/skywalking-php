@@ -13,22 +13,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{channel, SKYWALKING_AGENT_SERVER_ADDR, SKYWALKING_AGENT_WORKER_THREADS};
-use phper::ini::Ini;
-use skywalking::reporter::grpc::GrpcReporter;
 use std::{
-    cmp::Ordering, num::NonZeroUsize, process::exit, thread::available_parallelism, time::Duration,
+    cmp::Ordering, error::Error, io, num::NonZeroUsize, path::Path, process::exit,
+    thread::available_parallelism, time::Duration,
+};
+
+use phper::ini::Ini;
+use skywalking::reporter::{
+    grpc::{ColletcItemConsume, GrpcReporter},
+    CollectItem,
 };
 use tokio::{
+    net::UnixListener,
     runtime::{self, Runtime},
     select,
     signal::unix::{signal, SignalKind},
+    sync::mpsc,
     time::sleep,
 };
-use tonic::transport::{Channel, Endpoint};
+use tonic::{
+    async_trait,
+    transport::{Channel, Endpoint},
+};
 use tracing::{debug, error, info, warn};
 
-pub fn init_worker() {
+use crate::{channel, SKYWALKING_AGENT_SERVER_ADDR, SKYWALKING_AGENT_WORKER_THREADS};
+
+pub fn init_worker<P>(worker_addr: P)
+where
+    P: AsRef<Path> + tracing::Value,
+{
     let server_addr = Ini::get::<String>(SKYWALKING_AGENT_SERVER_ADDR).unwrap_or_default();
     let worker_threads = worker_threads();
 
@@ -44,7 +58,7 @@ pub fn init_worker() {
             }
             Ordering::Equal => {
                 let rt = new_tokio_runtime(worker_threads);
-                rt.block_on(start_worker(server_addr));
+                rt.block_on(start_worker(worker_addr, server_addr));
                 exit(0);
             }
             Ordering::Greater => {}
@@ -70,7 +84,10 @@ fn new_tokio_runtime(worker_threads: usize) -> Runtime {
         .unwrap()
 }
 
-async fn start_worker(server_addr: String) {
+async fn start_worker<P>(worker_addr: P, server_addr: String)
+where
+    P: AsRef<Path> + tracing::Value,
+{
     debug!("Starting worker...");
 
     // Graceful shutdown signal, put it on the top of program.
@@ -83,6 +100,51 @@ async fn start_worker(server_addr: String) {
     };
 
     let fut = async move {
+        debug!(worker_addr, "Bind");
+        let listener = match UnixListener::bind(worker_addr) {
+            Ok(listener) => listener,
+            Err(err) => {
+                error!(?err, "Bind failed");
+                return;
+            }
+        };
+
+        let (tx, rx) = mpsc::channel::<Result<CollectItem, Box<dyn Error + Send>>>(255);
+        tokio::spawn(async move {
+            loop {
+                match listener.accept().await {
+                    Ok((mut stream, _addr)) => {
+                        let tx = tx.clone();
+
+                        tokio::spawn(async move {
+                            debug!("Entering channel_receive loop");
+
+                            loop {
+                                let r = match channel::channel_receive(&mut stream).await {
+                                    Err(err) => match err.downcast_ref::<io::Error>() {
+                                        Some(e) if e.kind() == io::ErrorKind::UnexpectedEof => {
+                                            debug!("Leaving channel_receive loop");
+                                            return;
+                                        }
+                                        _ => Err(err.into()),
+                                    },
+                                    Ok(i) => Ok(i),
+                                };
+
+                                if let Err(err) = tx.send(r).await {
+                                    error!(?err, "Send failed");
+                                    return;
+                                }
+                            }
+                        });
+                    }
+                    Err(err) => {
+                        error!(?err, "Accept failed");
+                    }
+                }
+            }
+        });
+
         let endpoint = match Endpoint::from_shared(server_addr) {
             Ok(endpoint) => endpoint,
             Err(err) => {
@@ -92,14 +154,7 @@ async fn start_worker(server_addr: String) {
         };
         let channel = connect(endpoint).await;
 
-        let consumer = match channel::Consumer::new() {
-            Ok(consumer) => consumer,
-            Err(err) => {
-                error!(?err, "Create consumer failed");
-                return;
-            }
-        };
-        let reporter = GrpcReporter::new_with_pc(channel, (), consumer);
+        let reporter = GrpcReporter::new_with_pc(channel, (), Consumer(rx));
 
         // report_instance_properties(channel.clone()).await;
         // mark_ready_for_request();
@@ -145,4 +200,24 @@ async fn connect(endpoint: Endpoint) -> Channel {
     info!(uri, "Skywalking server connected");
 
     channel
+}
+
+struct Consumer(mpsc::Receiver<Result<CollectItem, Box<dyn Error + Send>>>);
+
+#[async_trait]
+impl ColletcItemConsume for Consumer {
+    async fn consume(&mut self) -> Result<Option<CollectItem>, Box<dyn Error + Send>> {
+        self.0
+            .recv()
+            .await
+            .map(|result| result.map(Some))
+            .unwrap_or(Ok(None))
+    }
+
+    async fn try_consume(&mut self) -> Result<Option<CollectItem>, Box<dyn Error + Send>> {
+        self.0
+            .try_recv()
+            .map(|result| result.map(Some))
+            .unwrap_or(Ok(None))
+    }
 }
