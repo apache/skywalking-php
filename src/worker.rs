@@ -18,6 +18,7 @@ use std::{
     thread::available_parallelism, time::Duration,
 };
 
+use once_cell::sync::OnceCell;
 use phper::ini::Ini;
 use skywalking::reporter::{
     grpc::{ColletcItemConsume, GrpcReporter},
@@ -38,6 +39,8 @@ use tonic::{
 use tracing::{debug, error, info, warn};
 
 use crate::{channel, SKYWALKING_AGENT_SERVER_ADDR, SKYWALKING_AGENT_WORKER_THREADS};
+
+static WORKER_PID: OnceCell<libc::pid_t> = OnceCell::new();
 
 pub fn init_worker<P>(worker_addr: P)
 where
@@ -61,7 +64,17 @@ where
                 rt.block_on(start_worker(worker_addr, server_addr));
                 exit(0);
             }
-            Ordering::Greater => {}
+            Ordering::Greater => {
+                WORKER_PID.set(pid).unwrap();
+            }
+        }
+    }
+}
+
+pub fn shutdown_worker() {
+    if let Some(pid) = WORKER_PID.get() {
+        unsafe {
+            libc::kill(*pid, libc::SIGTERM);
         }
     }
 }
