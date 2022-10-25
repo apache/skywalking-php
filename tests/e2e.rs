@@ -49,9 +49,10 @@ async fn e2e() {
 async fn run_e2e() {
     request_fpm_curl().await;
     request_fpm_pdo().await;
-    request_fpm_mysqli().await;
-    request_swoole_curl().await;
     request_fpm_predis().await;
+    request_fpm_mysqli().await;
+    request_fpm_memcached().await;
+    request_swoole_curl().await;
     sleep(Duration::from_secs(3)).await;
     request_collector_validate().await;
 }
@@ -83,6 +84,14 @@ async fn request_fpm_mysqli() {
 async fn request_fpm_predis() {
     request_common(
         HTTP_CLIENT.get(format!("http://{}/predis.php", PROXY_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_fpm_memcached() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/memcached.php", PROXY_SERVER_1_ADDRESS)),
         "ok",
     )
     .await;

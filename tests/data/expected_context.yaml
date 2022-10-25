@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 9
+    segmentSize: 10
     segments:
       - segmentId: "not null"
         spans:
@@ -576,6 +576,111 @@ segmentItems:
               - {key: url, value: /mysqli.php}
               - {key: http.method, value: GET}
               - {key: http.status_code, value: '200'}
+      - segmentId: 'not null'
+        spans:
+          - operationName: Memcached->addServer
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: memcached }
+              - { key: memcached.command, value: addServer 127.0.0.1 11211 }
+          - operationName: Memcached->set
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: memcached }
+              - { key: memcached.command, value: set foo Hello! }
+          - operationName: Memcached->set
+            parentSpanId: 0
+            spanId: 3
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: memcached }
+              - { key: memcached.command, value: set bar Memcached... }
+          - operationName: Memcached->get
+            parentSpanId: 0
+            spanId: 4
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: memcached }
+              - { key: memcached.command, value: get foo }
+          - operationName: Memcached->get
+            parentSpanId: 0
+            spanId: 5
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: memcached }
+              - { key: memcached.command, value: get bar }
+          - operationName: Memcached->setMulti
+            parentSpanId: 0
+            spanId: 6
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: memcached }
+              - {
+                  key: memcached.command,
+                  value:
+                    'setMulti {"key1":"value1","key2":"value2","key3":"value3"}',
+                }
+          - operationName: GET:/memcached.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: /memcached.php }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
   - serviceName: skywalking-agent-test-2
     segmentSize: 1
     segments:
