@@ -17,7 +17,7 @@ use crate::{
     channel::Reporter,
     execute::register_execute_functions,
     util::{get_sapi_module_name, IPS},
-    worker::init_worker,
+    worker::{init_worker, shutdown_worker},
     SKYWALKING_AGENT_ENABLE, SKYWALKING_AGENT_LOG_FILE, SKYWALKING_AGENT_LOG_LEVEL,
     SKYWALKING_AGENT_SERVICE_NAME, SKYWALKING_AGENT_SKYWALKING_VERSION,
 };
@@ -86,6 +86,8 @@ pub fn init(_module: ModuleContext) -> bool {
 }
 
 pub fn shutdown(_module: ModuleContext) -> bool {
+    shutdown_worker();
+
     true
 }
 
