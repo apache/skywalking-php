@@ -19,6 +19,7 @@ mod plugin_mysqli;
 mod plugin_pdo;
 mod plugin_predis;
 mod plugin_swoole;
+mod plugin_redis;
 
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
 use once_cell::sync::Lazy;
