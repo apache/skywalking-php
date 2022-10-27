@@ -14,6 +14,7 @@
 // limitations under the License.
 
 mod plugin_curl;
+mod plugin_memcached;
 mod plugin_mysqli;
 mod plugin_pdo;
 mod plugin_predis;
@@ -31,6 +32,7 @@ static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
         Box::new(plugin_swoole::SwooleServerPlugin::default()),
         Box::new(plugin_swoole::SwooleHttpResponsePlugin::default()),
         Box::new(plugin_predis::PredisPlugin::default()),
+        Box::new(plugin_memcached::MemcachedPlugin::default()),
     ]
 });
 
