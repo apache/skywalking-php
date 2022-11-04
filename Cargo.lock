@@ -704,15 +704,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2540771e65fc8cb83cd6e8a237f70c319bd5c29f78ed1084ba5d50eeac86f7f9"
 
 [[package]]
-name = "helper"
-version = "3.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7074fed15c2a220ef4e842419a5e6cf21f5fd6b83e82ee65d34e408434e1cb2b"
-dependencies = [
- "proc-macro2",
-]
-
-[[package]]
 name = "hermit-abi"
 version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1888,7 +1879,6 @@ dependencies = [
  "dashmap",
  "fastcgi-client",
  "futures-util",
- "helper",
  "hostname",
  "libc",
  "once_cell",
