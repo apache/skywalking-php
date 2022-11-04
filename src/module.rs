@@ -96,7 +96,7 @@ fn init_logger() {
         Ini::get::<String>(SKYWALKING_AGENT_LOG_LEVEL).unwrap_or_else(|| "OFF".to_string());
     let log_level = log_level.trim();
 
-    let log_file = Ini::get::<String>(SKYWALKING_AGENT_LOG_FILE).unwrap_or_else(|| "".to_string());
+    let log_file = Ini::get::<String>(SKYWALKING_AGENT_LOG_FILE).unwrap_or_default();
     let log_file = log_file.trim();
 
     if !log_file.is_empty() {
