@@ -253,8 +253,8 @@ fn create_request_context(
     };
     span.with_span_object_mut(|span| {
         span.component_id = COMPONENT_PHP_ID;
-        span.add_tag("url", &uri);
-        span.add_tag("http.method", &method);
+        span.add_tag("url", uri);
+        span.add_tag("http.method", method);
     });
 
     RequestContext::set_global(

@@ -15,7 +15,6 @@
 
 use crate::{plugin::select_plugin, request::IS_SWOOLE, util::catch_unwind_anyhow};
 use anyhow::{bail, Context};
-use helper::try_option;
 use phper::{
     objects::ZObj,
     strings::ZStr,
@@ -295,8 +294,9 @@ fn infer_request_id(execute_data: &mut ExecuteData) -> Option<i64> {
 
     let mut prev_execute_data_ptr = execute_data.as_mut_ptr();
     loop {
-        let prev_execute_data =
-            unsafe { try_option!(ExecuteData::try_from_mut_ptr(prev_execute_data_ptr) ? None) };
+        let Some(prev_execute_data) = (unsafe { ExecuteData::try_from_mut_ptr(prev_execute_data_ptr) }) else {
+            return None;
+        };
         let func_name = prev_execute_data.func().get_function_name();
         if !func_name
             .map(|s| s == b"skywalking_hack_swoole_on_request_please_do_not_use")
@@ -305,7 +305,9 @@ fn infer_request_id(execute_data: &mut ExecuteData) -> Option<i64> {
             prev_execute_data_ptr = unsafe { (*prev_execute_data_ptr).prev_execute_data };
             continue;
         }
-        let request = try_option!(prev_execute_data.get_parameter(0).as_mut_z_obj() ? None);
+        let Some(request) = prev_execute_data.get_parameter(0).as_mut_z_obj() else {
+            return None;
+        };
         match request.get_mut_property("fd").as_long() {
             Some(fd) => return Some(fd),
             None => {
