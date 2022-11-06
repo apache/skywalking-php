@@ -85,8 +85,9 @@ jobs:
           tools: php-config, composer:v2
           extensions: >
             bcmath, calendar, ctype, dom, exif, gettext, iconv, intl, json, mbstring,
-            mysqli, mysqlnd, opcache, pdo, pdo_mysql, phar, posix, readline, memcached,
-            swoole-${{ matrix.version.swoole }}, xml, xmlreader, xmlwriter, yaml, zip
+            mysqli, mysqlnd, opcache, pdo, pdo_mysql, phar, posix, readline, redis,
+            memcached, swoole-${{ matrix.version.swoole }}, xml, xmlreader, xmlwriter,
+            yaml, zip
 
       - name: Setup php-fpm for Linux
         if: matrix.os == 'ubuntu-20.04'
