@@ -46,6 +46,7 @@ libc = "0.2.132"
 once_cell = "1.14.0"
 phper = "0.5.1"
 prost = "0.11.0"
+serde_json = { version = "1.0.87", features = ["preserve_order"] }
 skywalking = "0.4.0"
 systemstat = "0.2.0"
 tempfile = "3.3.0"

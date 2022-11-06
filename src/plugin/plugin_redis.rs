@@ -13,16 +13,173 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::{any::Any, collections::HashSet};
+
 use super::Plugin;
-use crate::execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook, Noop};
+use crate::{
+    component::COMPONENT_PHP_REDIS_ID,
+    context::RequestContext,
+    execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook, Noop},
+    util::json_encode_values,
+};
 use anyhow::Context;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
-use phper::{objects::ZObj, sys, values::ExecuteData};
+use phper::{
+    eg,
+    objects::ZObj,
+    sys,
+    values::{ExecuteData, ZVal},
+};
+use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
 use tracing::{debug, warn};
 
 static PEER_MAP: Lazy<DashMap<u32, Peer>> = Lazy::new(Default::default);
+
 static FREE_MAP: Lazy<DashMap<u32, sys::zend_object_free_obj_t>> = Lazy::new(Default::default);
+
+static REDIS_COMMANDS: Lazy<HashSet<String>> = Lazy::new(|| {
+    [
+        "ping",
+        "echo",
+        "append",
+        "bitCount",
+        "bitOp",
+        "decr",
+        "decrBy",
+        "get",
+        "getBit",
+        "getRange",
+        "getSet",
+        "incr",
+        "incrBy",
+        "incrByFloat",
+        "mGet",
+        "getMultiple",
+        "mSet",
+        "mSetNX",
+        "set",
+        "setBit",
+        "setEx",
+        "pSetEx",
+        "setNx",
+        "setRange",
+        "strLen",
+        "del",
+        "delete",
+        "unlink",
+        "dump",
+        "exists",
+        "expire",
+        "setTimeout",
+        "pexpire",
+        "expireAt",
+        "pexpireAt",
+        "keys",
+        "getKeys",
+        "scan",
+        "migrate",
+        "move",
+        "object",
+        "persist",
+        "randomKey",
+        "rename",
+        "renameKey",
+        "renameNx",
+        "type",
+        "sort",
+        "ttl",
+        "pttl",
+        "restore",
+        "hDel",
+        "hExists",
+        "hGet",
+        "hGetAll",
+        "hIncrBy",
+        "hIncrByFloat",
+        "hKeys",
+        "hLen",
+        "hMGet",
+        "hMSet",
+        "hSet",
+        "hSetNx",
+        "hVals",
+        "hScan",
+        "hStrLen",
+        "blPop",
+        "brPop",
+        "bRPopLPush",
+        "lIndex",
+        "lGet",
+        "lInsert",
+        "lLen",
+        "lSize",
+        "lPop",
+        "lPush",
+        "lPushx",
+        "lRange",
+        "lGetRange",
+        "lRem",
+        "lRemove",
+        "lSet",
+        "lTrim",
+        "listTrim",
+        "rPop",
+        "rPopLPush",
+        "rPush",
+        "rPushX",
+        "sAdd",
+        "sCard",
+        "sSize",
+        "sDiff",
+        "sDiffStore",
+        "sInter",
+        "sInterStore",
+        "sIsMember",
+        "sContains",
+        "sMembers",
+        "sGetMembers",
+        "sMove",
+        "sPop",
+        "sRandMember",
+        "sRem",
+        "sRemove",
+        "sUnion",
+        "sUnionStore",
+        "sScan",
+        "bzPop",
+        "zAdd",
+        "zCard",
+        "zSize",
+        "zCount",
+        "zIncrBy",
+        "zinterstore",
+        "zInter",
+        "zPop",
+        "zRange",
+        "zRangeByScore",
+        "zRevRangeByScore",
+        "zRangeByLex",
+        "zRank",
+        "zRevRank",
+        "zRem",
+        "zDelete",
+        "zRemove",
+        "zRemRangeByRank",
+        "zDeleteRangeByRank",
+        "zRemRangeByScore",
+        "zDeleteRangeByScore",
+        "zRemoveRangeByScore",
+        "zRevRange",
+        "zScore",
+        "zunionstore",
+        "zUnion",
+        "zScan",
+    ]
+    .into_iter()
+    .map(str::to_ascii_lowercase)
+    .collect()
+});
 
 #[derive(Default, Clone)]
 pub struct RedisPlugin;
@@ -41,14 +198,15 @@ impl Plugin for RedisPlugin {
     fn hook(
         &self, class_name: Option<&str>, function_name: &str,
     ) -> Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)> {
-        debug!(function_name, "REDIS COMMAND");
         match (class_name, function_name) {
             (Some("Redis"), "__construct") => Some(self.hook_redis_construct()),
-            (Some("Redis"), f) if ["connect", "open", "pconnect", "popen"].contains(&f) => {
-                Some(self.hook_redis_connect())
+            (Some(class_name @ "Redis"), f)
+                if ["connect", "open", "pconnect", "popen"].contains(&f) =>
+            {
+                Some(self.hook_redis_connect(class_name, function_name))
             }
-            (Some("Redis"), f) if ["get", "mget"].contains(&f) => {
-                Some(self.hook_redis_methods(function_name))
+            (Some(class_name @ "Redis"), f) if REDIS_COMMANDS.contains(&f.to_ascii_lowercase()) => {
+                Some(self.hook_redis_methods(class_name, function_name))
             }
             _ => None,
         }
@@ -70,9 +228,13 @@ impl RedisPlugin {
         )
     }
 
-    fn hook_redis_connect(&self) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
+    fn hook_redis_connect(
+        &self, class_name: &str, function_name: &str,
+    ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
+        let class_name = class_name.to_owned();
+        let function_name = function_name.to_owned();
         (
-            Box::new(|_, execute_data| {
+            Box::new(move |request_id, execute_data| {
                 if execute_data.num_args() < 2 {
                     debug!("argument count less than 2, skipped.");
                     return Ok(Box::new(()));
@@ -118,31 +280,50 @@ impl RedisPlugin {
                 let this = get_this_mut(execute_data)?;
                 let addr = format!("{}:{}", host, port);
                 debug!(addr, "Get redis peer");
-                PEER_MAP.insert(this.handle(), Peer { addr });
+                PEER_MAP.insert(this.handle(), Peer { addr: addr.clone() });
 
-                Ok(Box::new(()))
+                let span = RequestContext::try_with_global_ctx(request_id, |ctx| {
+                    Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &addr))
+                })?;
+
+                Ok(Box::new(span))
             }),
-            Noop::noop(),
+            Box::new(after_hook),
         )
     }
 
     fn hook_redis_methods(
-        &self, function_name: &str,
+        &self, class_name: &str, function_name: &str,
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
+        let class_name = class_name.to_owned();
         let function_name = function_name.to_owned();
         (
             Box::new(move |request_id, execute_data| {
                 let handle = get_this_mut(execute_data)?.handle();
-
                 debug!(handle, function_name, "call redis method");
+                let peer = PEER_MAP
+                    .get(&handle)
+                    .map(|r| r.value().addr.clone())
+                    .unwrap_or_default();
 
                 let command = generate_command(&function_name, execute_data)?;
 
                 debug!(handle, function_name, command, "call redis command");
 
-                Ok(Box::new(()))
+                let mut span = RequestContext::try_with_global_ctx(request_id, |ctx| {
+                    Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &peer))
+                })?;
+
+                span.with_span_object_mut(|span| {
+                    span.set_span_layer(SpanLayer::Cache);
+                    span.component_id = COMPONENT_PHP_REDIS_ID;
+                    span.add_tag("db.type", "redis");
+                    span.add_tag("redis.command", command);
+                });
+
+                Ok(Box::new(span))
             }),
-            Noop::noop(),
+            Box::new(after_hook),
         )
     }
 }
@@ -175,13 +356,41 @@ unsafe extern "C" fn redis_dtor(object: *mut sys::zend_object) {
 fn generate_command(function_name: &str, execute_data: &mut ExecuteData) -> anyhow::Result<String> {
     let num_args = execute_data.num_args();
     let mut args = Vec::with_capacity(num_args + 1);
-    args.push(function_name.to_owned());
+    args.push(ZVal::from(function_name));
 
     for i in 0..num_args {
-        let mut arg = execute_data.get_parameter(i).clone();
-        arg.convert_to_string();
-        args.push(arg.as_z_str().unwrap().to_str()?.to_string());
+        let arg = execute_data.get_parameter(i).clone();
+        args.push(arg);
     }
 
-    Ok(args.join(" "))
+    Ok(json_encode_values(&args)?)
+}
+
+fn after_hook(
+    _request_id: Option<i64>, span: Box<dyn Any>, _execute_data: &mut ExecuteData,
+    _return_value: &mut ZVal,
+) -> anyhow::Result<()> {
+    let mut span = span.downcast::<Span>().unwrap();
+
+    let ex = unsafe { ZObj::try_from_mut_ptr(eg!(exception)) };
+    if let Some(ex) = ex {
+        span.with_span_object_mut(|span| {
+            span.is_error = true;
+
+            let mut logs = Vec::new();
+            if let Ok(class_name) = ex.get_class().get_name().to_str() {
+                logs.push(("Exception Class", class_name.to_owned()));
+            }
+            if let Some(message) = ex.get_property("message").as_z_str() {
+                if let Ok(message) = message.to_str() {
+                    logs.push(("Exception Message", message.to_owned()));
+                }
+            }
+            if !logs.is_empty() {
+                span.add_log(logs);
+            }
+        });
+    }
+
+    Ok(())
 }

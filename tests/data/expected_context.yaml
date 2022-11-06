@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 10
+    segmentSize: 12
     segments:
       - segmentId: "not null"
         spans:
@@ -679,6 +679,139 @@ segmentItems:
             skipAnalysis: false
             tags:
               - { key: url, value: /memcached.php }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+      - segmentId: "not null"
+        spans:
+          - {
+              operationName: Redis->connect,
+              parentSpanId: 0,
+              spanId: 1,
+              spanLayer: Http,
+              startTime: gt 0,
+              endTime: gt 0,
+              componentId: 11000,
+              isError: false,
+              spanType: Exit,
+              peer: "127.0.0.1:6379",
+              skipAnalysis: false,
+            }
+          - operationName: Redis->mset
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 7
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - key: db.type
+                value: redis
+              - key: redis.command
+                value: |
+                  ["mset",{"key0":"value0","key1":"value1"}]
+          - operationName: Redis->get
+            parentSpanId: 0
+            spanId: 3
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 7
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - key: db.type
+                value: redis
+              - key: redis.command
+                value: |
+                  ["get","key0"]
+          - operationName: Redis->get
+            parentSpanId: 0
+            spanId: 4
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 7
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - key: db.type
+                value: redis
+              - key: redis.command
+                value: |
+                  ["get","key1"]
+          - operationName: GET:/redis.succ.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: /redis.succ.php }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+      - segmentId: "not null"
+        spans:
+          - operationName: Redis->connect
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 11000
+            isError: false
+            spanType: Exit
+            peer: "127.0.0.1:6379"
+            skipAnalysis: false
+          - operationName: Redis->set
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 7
+            isError: true
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - key: db.type
+                value: redis
+              - key: redis.command
+                value: |
+                  ["set","foo","bar"]
+            logs:
+              - logEvent:
+                  - { key: Exception Class, value: RedisException }
+                  - {
+                      key: Exception Message,
+                      value: NOAUTH Authentication required.,
+                    }
+          - operationName: GET:/redis.fail.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: /redis.fail.php }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
   - serviceName: skywalking-agent-test-2
