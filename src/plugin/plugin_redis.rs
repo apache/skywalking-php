@@ -261,12 +261,10 @@ impl RedisPlugin {
                 };
                 let port = {
                     let mut f = || {
-                        Ok::<_, anyhow::Error>(
-                            execute_data
-                                .get_parameter(1)
-                                .as_long()
-                                .context("isn't long")?,
-                        )
+                        execute_data
+                            .get_parameter(1)
+                            .as_long()
+                            .context("isn't long")
                     };
                     match f() {
                         Ok(port) => port,
