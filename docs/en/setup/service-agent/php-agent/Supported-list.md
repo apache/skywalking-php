@@ -13,6 +13,7 @@ The following plugins provide the distributed tracing capability.
 * [PDO](https://www.php.net/manual/en/book.pdo.php)
 * [MySQL Improved](https://www.php.net/manual/en/book.mysqli.php)
 * [Memcached](https://www.php.net/manual/en/book.memcached.php)
+* [phpredis](https://github.com/phpredis/phpredis)
 
 ## Support PHP library
 
