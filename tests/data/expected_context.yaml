@@ -683,19 +683,20 @@ segmentItems:
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
         spans:
-          - {
-              operationName: Redis->connect,
-              parentSpanId: 0,
-              spanId: 1,
-              spanLayer: Http,
-              startTime: gt 0,
-              endTime: gt 0,
-              componentId: 11000,
-              isError: false,
-              spanType: Exit,
-              peer: "127.0.0.1:6379",
-              skipAnalysis: false,
-            }
+          - operationName: Redis->connect
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 7
+            isError: false
+            spanType: Exit
+            peer: "127.0.0.1:6379"
+            skipAnalysis: false
+            tags:
+              - key: db.type
+                value: redis
           - operationName: Redis->mset
             parentSpanId: 0
             spanId: 2
@@ -767,14 +768,17 @@ segmentItems:
           - operationName: Redis->connect
             parentSpanId: 0
             spanId: 1
-            spanLayer: Http
+            spanLayer: Cache
             startTime: gt 0
             endTime: gt 0
-            componentId: 11000
+            componentId: 7
             isError: false
             spanType: Exit
             peer: "127.0.0.1:6379"
             skipAnalysis: false
+            tags:
+              - key: db.type
+                value: redis
           - operationName: Redis->set
             parentSpanId: 0
             spanId: 2

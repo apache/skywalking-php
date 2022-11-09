@@ -280,9 +280,15 @@ impl RedisPlugin {
                 debug!(addr, "Get redis peer");
                 PEER_MAP.insert(this.handle(), Peer { addr: addr.clone() });
 
-                let span = RequestContext::try_with_global_ctx(request_id, |ctx| {
+                let mut span = RequestContext::try_with_global_ctx(request_id, |ctx| {
                     Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &addr))
                 })?;
+
+                span.with_span_object_mut(|span| {
+                    span.set_span_layer(SpanLayer::Cache);
+                    span.component_id = COMPONENT_PHP_REDIS_ID;
+                    span.add_tag("db.type", "redis");
+                });
 
                 Ok(Box::new(span))
             }),
