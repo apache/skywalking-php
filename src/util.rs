@@ -114,6 +114,8 @@ pub fn get_sapi_module_name() -> &'static CStr {
     unsafe { CStr::from_ptr(sys::sapi_module.name) }
 }
 
+/// Use for later scene.
+#[allow(dead_code)]
 pub fn json_encode_values(values: &[ZVal]) -> serde_json::Result<String> {
     fn add(json_value: &mut Value, key: Option<String>, item: Value) {
         match key {

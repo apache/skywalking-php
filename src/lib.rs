@@ -25,6 +25,7 @@ mod execute;
 mod module;
 mod plugin;
 mod request;
+mod tag;
 mod util;
 mod worker;
 

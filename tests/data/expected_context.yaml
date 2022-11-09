@@ -695,7 +695,7 @@ segmentItems:
             peer: "127.0.0.1:6379"
             skipAnalysis: false
             tags:
-              - key: db.type
+              - key: cache.type
                 value: redis
           - operationName: Redis->mset
             parentSpanId: 0
@@ -709,11 +709,12 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - key: db.type
+              - key: cache.type
                 value: redis
-              - key: redis.command
-                value: |
-                  ["mset",{"key0":"value0","key1":"value1"}]
+              - key: cache.cmd
+                value: mset
+              - key: cache.op
+                value: write
           - operationName: Redis->get
             parentSpanId: 0
             spanId: 3
@@ -726,11 +727,14 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - key: db.type
+              - key: cache.type
                 value: redis
-              - key: redis.command
-                value: |
-                  ["get","key0"]
+              - key: cache.cmd
+                value: get
+              - key: cache.key
+                value: key0
+              - key: cache.op
+                value: read
           - operationName: Redis->get
             parentSpanId: 0
             spanId: 4
@@ -743,11 +747,14 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - key: db.type
+              - key: cache.type
                 value: redis
-              - key: redis.command
-                value: |
-                  ["get","key1"]
+              - key: cache.cmd
+                value: get
+              - key: cache.key
+                value: key1
+              - key: cache.op
+                value: read
           - operationName: GET:/redis.succ.php
             parentSpanId: -1
             spanId: 0
@@ -777,7 +784,7 @@ segmentItems:
             peer: "127.0.0.1:6379"
             skipAnalysis: false
             tags:
-              - key: db.type
+              - key: cache.type
                 value: redis
           - operationName: Redis->set
             parentSpanId: 0
@@ -791,11 +798,14 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - key: db.type
+              - key: cache.type
                 value: redis
-              - key: redis.command
-                value: |
-                  ["set","foo","bar"]
+              - key: cache.cmd
+                value: set
+              - key: cache.key
+                value: foo
+              - key: cache.op
+                value: write
             logs:
               - logEvent:
                   - { key: Exception Class, value: RedisException }
