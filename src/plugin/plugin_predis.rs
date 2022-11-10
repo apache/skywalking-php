@@ -58,7 +58,7 @@ impl PredisPlugin {
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         let class_name = class_name.to_owned();
         (
-            Box::new(move |_, execute_data| {
+            Box::new(move |request_id, execute_data| {
                 validate_num_args(execute_data, 1)?;
 
                 let this = get_this_mut(execute_data)?;
@@ -87,7 +87,7 @@ impl PredisPlugin {
                     .context("call getArguments failed")?;
                 let arguments = arguments.expect_mut_z_arr()?;
 
-                let mut span = RequestContext::try_with_global_ctx(None, |ctx| {
+                let mut span = RequestContext::try_with_global_ctx(request_id, |ctx| {
                     Ok(ctx.create_exit_span(&format!("{}->{}", class_name, id), &peer))
                 })?;
 

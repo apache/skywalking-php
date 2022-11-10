@@ -109,13 +109,13 @@ impl PdoPlugin {
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         let function_name = function_name.to_owned();
         (
-            Box::new(move |_, execute_data| {
+            Box::new(move |request_id, execute_data| {
                 let handle = get_this_mut(execute_data)?.handle();
 
                 debug!(handle, function_name, "call PDO method");
 
                 let mut span = with_dsn(handle, |dsn| {
-                    create_exit_span_with_dsn("PDO", &function_name, dsn)
+                    create_exit_span_with_dsn(request_id, "PDO", &function_name, dsn)
                 })?;
 
                 if execute_data.num_args() >= 1 {
@@ -135,14 +135,14 @@ impl PdoPlugin {
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         let function_name = function_name.to_owned();
         (
-            Box::new(move |_, execute_data| {
+            Box::new(move |request_id, execute_data| {
                 let this = get_this_mut(execute_data)?;
                 let handle = this.handle();
 
                 debug!(handle, function_name, "call PDOStatement method");
 
                 let mut span = with_dsn(handle, |dsn| {
-                    create_exit_span_with_dsn("PDOStatement", &function_name, dsn)
+                    create_exit_span_with_dsn(request_id, "PDOStatement", &function_name, dsn)
                 })?;
 
                 if let Some(query) = this.get_property("queryString").as_z_str() {
@@ -248,9 +248,9 @@ fn get_error_info_item(info: &ZArr, i: u64) -> anyhow::Result<&ZVal> {
 }
 
 fn create_exit_span_with_dsn(
-    class_name: &str, function_name: &str, dsn: &Dsn,
+    request_id: Option<i64>, class_name: &str, function_name: &str, dsn: &Dsn,
 ) -> anyhow::Result<Span> {
-    RequestContext::try_with_global_ctx(None, |ctx| {
+    RequestContext::try_with_global_ctx(request_id, |ctx| {
         let mut span =
             ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &dsn.peer);
         span.with_span_object_mut(|obj| {
