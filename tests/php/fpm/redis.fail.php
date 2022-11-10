@@ -1,3 +1,5 @@
+<?php
+
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -11,16 +13,18 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under the License..
+// limitations under the License.
 
-//! Component ID
-//!
-//! <https://github.com/apache/skywalking/blob/014861535015745ae3f7b99acd7d14500b3b3927/oap-server/server-starter/src/main/resources/component-libraries.yml>
 
-pub const COMPONENT_PHP_ID: i32 = 8001;
-pub const COMPONENT_PHP_CURL_ID: i32 = 8002;
-pub const COMPONENT_PHP_PDO_ID: i32 = 8003;
-pub const COMPONENT_PHP_MYSQLI_ID: i32 = 8004;
-pub const COMPONENT_PHP_PREDIS_ID: i32 = 8006;
-pub const COMPONENT_PHP_MEMCACHED_ID: i32 = 20;
-pub const COMPONENT_PHP_REDIS_ID: i32 = 7;
+use Webmozart\Assert\Assert;
+
+require_once dirname(__DIR__) . "/vendor/autoload.php";
+
+try {
+    $client = new Redis();
+    $client->connect("127.0.0.1", 6379);
+    $client->set('foo', 'bar');
+} catch (RedisException $e) {
+}
+
+echo "ok";

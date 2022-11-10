@@ -13,14 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License..
 
-//! Component ID
+//! Tags
 //!
-//! <https://github.com/apache/skywalking/blob/014861535015745ae3f7b99acd7d14500b3b3927/oap-server/server-starter/src/main/resources/component-libraries.yml>
+//! Virtual Cache
+//!
+//! https://skywalking.apache.org/docs/main/next/en/setup/service-agent/virtual-cache/
 
-pub const COMPONENT_PHP_ID: i32 = 8001;
-pub const COMPONENT_PHP_CURL_ID: i32 = 8002;
-pub const COMPONENT_PHP_PDO_ID: i32 = 8003;
-pub const COMPONENT_PHP_MYSQLI_ID: i32 = 8004;
-pub const COMPONENT_PHP_PREDIS_ID: i32 = 8006;
-pub const COMPONENT_PHP_MEMCACHED_ID: i32 = 20;
-pub const COMPONENT_PHP_REDIS_ID: i32 = 7;
+pub const TAG_CACHE_TYPE: &str = "cache.type";
+pub const TAG_CACHE_OP: &str = "cache.op";
+pub const TAG_CACHE_CMD: &str = "cache.cmd";
+pub const TAG_CACHE_KEY: &str = "cache.key";

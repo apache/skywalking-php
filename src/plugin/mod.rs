@@ -18,6 +18,7 @@ mod plugin_memcached;
 mod plugin_mysqli;
 mod plugin_pdo;
 mod plugin_predis;
+mod plugin_redis;
 mod plugin_swoole;
 
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
@@ -33,6 +34,7 @@ static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
         Box::new(plugin_swoole::SwooleHttpResponsePlugin::default()),
         Box::new(plugin_predis::PredisPlugin::default()),
         Box::new(plugin_memcached::MemcachedPlugin::default()),
+        Box::new(plugin_redis::RedisPlugin::default()),
     ]
 });
 
