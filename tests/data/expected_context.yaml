@@ -731,10 +731,10 @@ segmentItems:
                 value: redis
               - key: cache.cmd
                 value: get
-              - key: cache.key
-                value: key0
               - key: cache.op
                 value: read
+              - key: cache.key
+                value: key0
           - operationName: Redis->get
             parentSpanId: 0
             spanId: 4
@@ -751,10 +751,10 @@ segmentItems:
                 value: redis
               - key: cache.cmd
                 value: get
-              - key: cache.key
-                value: key1
               - key: cache.op
                 value: read
+              - key: cache.key
+                value: key1
           - operationName: GET:/redis.succ.php
             parentSpanId: -1
             spanId: 0
@@ -802,10 +802,10 @@ segmentItems:
                 value: redis
               - key: cache.cmd
                 value: set
-              - key: cache.key
-                value: foo
               - key: cache.op
                 value: write
+              - key: cache.key
+                value: foo
             logs:
               - logEvent:
                   - { key: Exception Class, value: RedisException }
