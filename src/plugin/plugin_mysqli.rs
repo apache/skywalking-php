@@ -94,14 +94,14 @@ impl MySQLImprovedPlugin {
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         let function_name = function_name.to_owned();
         (
-            Box::new(move |_, execute_data| {
+            Box::new(move |request_id, execute_data| {
                 let this = get_this_mut(execute_data)?;
                 let handle = this.handle();
 
                 debug!(handle, function_name, "call mysql method");
 
                 let mut span = with_info(handle, |info| {
-                    create_mysqli_exit_span("mysqli", &function_name, info)
+                    create_mysqli_exit_span(request_id, "mysqli", &function_name, info)
                 })?;
 
                 if execute_data.num_args() >= 1 {
@@ -118,9 +118,9 @@ impl MySQLImprovedPlugin {
 }
 
 fn create_mysqli_exit_span(
-    class_name: &str, function_name: &str, info: &MySQLInfo,
+    request_id: Option<i64>, class_name: &str, function_name: &str, info: &MySQLInfo,
 ) -> anyhow::Result<Span> {
-    RequestContext::try_with_global_ctx(None, |ctx| {
+    RequestContext::try_with_global_ctx(request_id, |ctx| {
         let mut span = ctx.create_exit_span(
             &format!("{}->{}", class_name, function_name),
             &format!("{}:{}", info.hostname, info.port),
