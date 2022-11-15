@@ -20,10 +20,116 @@ use crate::{
     component::COMPONENT_PHP_PREDIS_ID,
     context::RequestContext,
     execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook},
+    tag::{TAG_CACHE_CMD, TAG_CACHE_KEY, TAG_CACHE_OP, TAG_CACHE_TYPE},
 };
 use anyhow::Context;
-use phper::arrays::ZArr;
+use once_cell::sync::Lazy;
 use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
+use std::collections::HashSet;
+use tracing::debug;
+
+pub static REDIS_READ_COMMANDS: Lazy<HashSet<&str>> = Lazy::new(|| {
+    [
+        "BLPOP",
+        "BRPOP",
+        "GET",
+        "GETBIT",
+        "GETRANGE",
+        "HEXISTS",
+        "HGET",
+        "HGETALL",
+        "HKEYS",
+        "HLEN",
+        "HMGET",
+        "HSCAN",
+        "HSTRLEN",
+        "HVALS",
+        "KEYS",
+        "LGET",
+        "LGETRANGE",
+        "LLEN",
+        "LRANGE",
+        "LSIZE",
+        "MGET",
+        "SCONTAINS",
+        "SGETMEMBERS",
+        "SISMEMBER",
+        "SMEMBERS",
+        "SSCAN",
+        "SSIZE",
+        "STRLEN",
+        "ZCOUNT",
+        "ZRANGE",
+        "ZRANGEBYLEX",
+        "ZRANGEBYSCORE",
+        "ZSCAN",
+        "ZSIZE",
+    ]
+    .into_iter()
+    .collect()
+});
+
+pub static REDIS_WRITE_COMMANDS: Lazy<HashSet<&str>> = Lazy::new(|| {
+    [
+        "APPEND",
+        "BRPOPLPUSH",
+        "DECR",
+        "DECRBY",
+        "DEL",
+        "DELETE",
+        "HDEL",
+        "HINCRBY",
+        "HINCRBYFLOAT",
+        "HMSET",
+        "HSET",
+        "HSETNX",
+        "INCR",
+        "INCRBY",
+        "INCRBYFLOAT",
+        "LINSERT",
+        "LPUSH",
+        "LPUSHX",
+        "LREM",
+        "LREMOVE",
+        "LSET",
+        "LTRIM",
+        "LISTTRIM",
+        "MSET",
+        "MSETNX",
+        "PSETEX",
+        "RPOPLPUSH",
+        "RPUSH",
+        "RPUSHX",
+        "RANDOMKEY",
+        "SADD",
+        "SINTER",
+        "SINTERSTORE",
+        "SMOVE",
+        "SRANDMEMBER",
+        "SREM",
+        "SREMOVE",
+        "SET",
+        "SETBIT",
+        "SETEX",
+        "SETNX",
+        "SETRANGE",
+        "SETTIMEOUT",
+        "SORT",
+        "UNLINK",
+        "ZADD",
+        "ZDELETE",
+        "ZDELETERANGEBYRANK",
+        "ZDELETERANGEBYSCORE",
+        "ZINCRBY",
+        "ZREM",
+        "ZREMRANGEBYRANK",
+        "ZREMRANGEBYSCORE",
+        "ZREMOVE",
+        "ZREMOVERANGEBYSCORE",
+    ]
+    .into_iter()
+    .collect()
+});
 
 #[derive(Default, Clone)]
 pub struct PredisPlugin;
@@ -44,9 +150,10 @@ impl Plugin for PredisPlugin {
         Box<crate::execute::AfterExecuteHook>,
     )> {
         match (class_name, function_name) {
-            (Some(class_name @ "Predis\\Connection\\AbstractConnection"), "executeCommand") => {
-                Some(self.hook_predis_execute_command(class_name))
-            }
+            (
+                Some(class_name @ "Predis\\Connection\\AbstractConnection"),
+                function_name @ "executeCommand",
+            ) => Some(self.hook_predis_execute_command(class_name, function_name)),
             _ => None,
         }
     }
@@ -54,9 +161,10 @@ impl Plugin for PredisPlugin {
 
 impl PredisPlugin {
     fn hook_predis_execute_command(
-        &self, class_name: &str,
+        &self, class_name: &str, function_name: &str,
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         let class_name = class_name.to_owned();
+        let function_name = function_name.to_owned();
         (
             Box::new(move |request_id, execute_data| {
                 validate_num_args(execute_data, 1)?;
@@ -77,25 +185,56 @@ impl PredisPlugin {
                     .expect_long()?;
                 let peer = format!("{}:{}", host, port);
 
+                let handle = this.handle();
                 let command = execute_data.get_parameter(0).expect_mut_z_obj()?;
+                let command_class_name = command
+                    .get_class()
+                    .get_name()
+                    .to_str()
+                    .map(ToOwned::to_owned)
+                    .unwrap_or_default();
 
                 let id = command.call("getid", []).context("call getId failed")?;
-                let id = id.expect_z_str()?.to_str()?;
+                let cmd = id.expect_z_str()?.to_str()?.to_ascii_uppercase();
 
                 let mut arguments = command
                     .call("getarguments", [])
                     .context("call getArguments failed")?;
                 let arguments = arguments.expect_mut_z_arr()?;
 
+                let op = if REDIS_READ_COMMANDS.contains(&*cmd) {
+                    Some("read")
+                } else if REDIS_WRITE_COMMANDS.contains(&*cmd) {
+                    Some("write")
+                } else {
+                    None
+                };
+
+                let key = op
+                    .and_then(|_| arguments.get(0))
+                    .and_then(|arg| arg.as_z_str())
+                    .and_then(|s| s.to_str().ok());
+
+                debug!(handle, cmd, key, op, "call redis command");
+
                 let mut span = RequestContext::try_with_global_ctx(request_id, |ctx| {
-                    Ok(ctx.create_exit_span(&format!("{}->{}", class_name, id), &peer))
+                    Ok(ctx.create_exit_span(
+                        &format!("{}->{}({})", class_name, function_name, command_class_name),
+                        &peer,
+                    ))
                 })?;
 
                 span.with_span_object_mut(|span| {
                     span.set_span_layer(SpanLayer::Cache);
                     span.component_id = COMPONENT_PHP_PREDIS_ID;
-                    span.add_tag("db.type", "redis");
-                    span.add_tag("redis.command", generate_command(id, arguments));
+                    span.add_tag(TAG_CACHE_TYPE, "redis");
+                    span.add_tag(TAG_CACHE_CMD, cmd);
+                    if let Some(op) = op {
+                        span.add_tag(TAG_CACHE_OP, op);
+                    };
+                    if let Some(key) = key {
+                        span.add_tag(TAG_CACHE_KEY, key)
+                    }
                 });
 
                 Ok(Box::new(span))
@@ -112,19 +251,4 @@ impl PredisPlugin {
             }),
         )
     }
-}
-
-fn generate_command(id: &str, arguments: &mut ZArr) -> String {
-    let mut ss = Vec::with_capacity(arguments.len() + 1);
-    ss.push(id);
-
-    for (_, argument) in arguments.iter() {
-        if let Some(value) = argument.as_z_str().and_then(|s| s.to_str().ok()) {
-            ss.push(value);
-        } else if argument.as_z_arr().is_some() {
-            break;
-        }
-    }
-
-    ss.join(" ")
 }

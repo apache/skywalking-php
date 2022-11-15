@@ -30,12 +30,13 @@ require_once dirname(__DIR__) . "/vendor/autoload.php";
     Assert::same($mc->get("foo"), 'Hello!');
     Assert::same($mc->get("bar"), "Memcached...");
 
-    $items = array(
+    $mc->setMulti(array(
         'key1' => 'value1',
         'key2' => 'value2',
         'key3' => 'value3'
-    );
-    $mc->setMulti($items);
+    ));
+
+    Assert::false($mc->get("not-exists"));
 }
 
 echo "ok";

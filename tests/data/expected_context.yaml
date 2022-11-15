@@ -454,7 +454,7 @@ segmentItems:
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
         spans:
-          - operationName: "Predis\\Connection\\AbstractConnection->AUTH"
+          - operationName: "Predis\\Connection\\AbstractConnection->executeCommand(Predis\\Command\\Redis\\AUTH)"
             parentSpanId: 0
             spanId: 1
             spanLayer: Cache
@@ -466,9 +466,9 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - { key: db.type, value: redis }
-              - { key: redis.command, value: AUTH password }
-          - operationName: "Predis\\Connection\\AbstractConnection->SET"
+              - { key: cache.type, value: redis }
+              - { key: cache.cmd, value: AUTH }
+          - operationName: "Predis\\Connection\\AbstractConnection->executeCommand(Predis\\Command\\Redis\\SET)"
             parentSpanId: 0
             spanId: 2
             spanLayer: Cache
@@ -480,9 +480,11 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - { key: db.type, value: redis }
-              - { key: redis.command, value: SET foo bar }
-          - operationName: "Predis\\Connection\\AbstractConnection->GET"
+              - { key: cache.type, value: redis }
+              - { key: cache.cmd, value: SET }
+              - { key: cache.op, value: write }
+              - { key: cache.key, value: foo }
+          - operationName: "Predis\\Connection\\AbstractConnection->executeCommand(Predis\\Command\\Redis\\GET)"
             parentSpanId: 0
             spanId: 3
             spanLayer: Cache
@@ -494,9 +496,11 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - { key: db.type, value: redis }
-              - { key: redis.command, value: GET foo }
-          - operationName: "Predis\\Connection\\AbstractConnection->GET"
+              - { key: cache.type, value: redis }
+              - { key: cache.cmd, value: GET }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: foo }
+          - operationName: "Predis\\Connection\\AbstractConnection->executeCommand(Predis\\Command\\Redis\\GET)"
             parentSpanId: 0
             spanId: 4
             spanLayer: Cache
@@ -508,8 +512,10 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - { key: db.type, value: redis }
-              - { key: redis.command, value: GET not-exists }
+              - { key: cache.type, value: redis }
+              - { key: cache.cmd, value: GET }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: not-exists }
           - operationName: GET:/predis.php
             parentSpanId: -1
             spanId: 0
@@ -578,7 +584,7 @@ segmentItems:
               - {key: http.status_code, value: '200'}
       - segmentId: 'not null'
         spans:
-          - operationName: Memcached->addServer
+          - operationName: Memcached->set
             parentSpanId: 0
             spanId: 1
             spanLayer: Cache
@@ -587,11 +593,13 @@ segmentItems:
             componentId: 20
             isError: false
             spanType: Exit
-            peer: ""
+            peer: 127.0.0.1:11211
             skipAnalysis: false
             tags:
-              - { key: db.type, value: memcached }
-              - { key: memcached.command, value: addServer 127.0.0.1 11211 }
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: set }
+              - { key: cache.op, value: write }
+              - { key: cache.key, value: foo }
           - operationName: Memcached->set
             parentSpanId: 0
             spanId: 2
@@ -604,9 +612,11 @@ segmentItems:
             peer: 127.0.0.1:11211
             skipAnalysis: false
             tags:
-              - { key: db.type, value: memcached }
-              - { key: memcached.command, value: set foo Hello! }
-          - operationName: Memcached->set
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: set }
+              - { key: cache.op, value: write }
+              - { key: cache.key, value: bar }
+          - operationName: Memcached->get
             parentSpanId: 0
             spanId: 3
             spanLayer: Cache
@@ -618,8 +628,10 @@ segmentItems:
             peer: 127.0.0.1:11211
             skipAnalysis: false
             tags:
-              - { key: db.type, value: memcached }
-              - { key: memcached.command, value: set bar Memcached... }
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: get }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: foo }
           - operationName: Memcached->get
             parentSpanId: 0
             spanId: 4
@@ -632,25 +644,13 @@ segmentItems:
             peer: 127.0.0.1:11211
             skipAnalysis: false
             tags:
-              - { key: db.type, value: memcached }
-              - { key: memcached.command, value: get foo }
-          - operationName: Memcached->get
-            parentSpanId: 0
-            spanId: 5
-            spanLayer: Cache
-            startTime: gt 0
-            endTime: gt 0
-            componentId: 20
-            isError: false
-            spanType: Exit
-            peer: 127.0.0.1:11211
-            skipAnalysis: false
-            tags:
-              - { key: db.type, value: memcached }
-              - { key: memcached.command, value: get bar }
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: get }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: bar }
           - operationName: Memcached->setMulti
             parentSpanId: 0
-            spanId: 6
+            spanId: 5
             spanLayer: Cache
             startTime: gt 0
             endTime: gt 0
@@ -660,12 +660,29 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: db.type, value: memcached }
-              - {
-                  key: memcached.command,
-                  value:
-                    'setMulti {"key1":"value1","key2":"value2","key3":"value3"}',
-                }
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: set }
+              - { key: cache.op, value: write }
+          - operationName: Memcached->get
+            parentSpanId: 0
+            spanId: 6
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: true
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: get }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: not-exists }
+            logs:
+              - logEvent:
+                  - { key: ResultCode, value: "16" }
+                  - { key: ResultMessage, value: NOT FOUND }
           - operationName: GET:/memcached.php
             parentSpanId: -1
             spanId: 0
@@ -697,7 +714,7 @@ segmentItems:
             tags:
               - key: cache.type
                 value: redis
-          - operationName: Redis->mset
+          - operationName: Redis->auth
             parentSpanId: 0
             spanId: 2
             spanLayer: Cache
@@ -709,13 +726,9 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - key: cache.type
-                value: redis
-              - key: cache.cmd
-                value: mset
-              - key: cache.op
-                value: write
-          - operationName: Redis->get
+              - { key: cache.type, value: redis }
+              - { key: cache.cmd, value: AUTH }
+          - operationName: Redis->mset
             parentSpanId: 0
             spanId: 3
             spanLayer: Cache
@@ -727,14 +740,9 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - key: cache.type
-                value: redis
-              - key: cache.cmd
-                value: get
-              - key: cache.op
-                value: read
-              - key: cache.key
-                value: key0
+              - { key: cache.type, value: redis }
+              - { key: cache.cmd, value: MSET }
+              - { key: cache.op, value: write }
           - operationName: Redis->get
             parentSpanId: 0
             spanId: 4
@@ -747,14 +755,26 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - key: cache.type
-                value: redis
-              - key: cache.cmd
-                value: get
-              - key: cache.op
-                value: read
-              - key: cache.key
-                value: key1
+              - { key: cache.type, value: redis }
+              - { key: cache.cmd, value: GET }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: key0 }
+          - operationName: Redis->get
+            parentSpanId: 0
+            spanId: 5
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 7
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:6379
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: redis }
+              - { key: cache.cmd, value: GET }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: key1 }
           - operationName: GET:/redis.succ.php
             parentSpanId: -1
             spanId: 0
@@ -784,8 +804,7 @@ segmentItems:
             peer: "127.0.0.1:6379"
             skipAnalysis: false
             tags:
-              - key: cache.type
-                value: redis
+              - { key: cache.type, value: redis }
           - operationName: Redis->set
             parentSpanId: 0
             spanId: 2
@@ -798,14 +817,10 @@ segmentItems:
             peer: 127.0.0.1:6379
             skipAnalysis: false
             tags:
-              - key: cache.type
-                value: redis
-              - key: cache.cmd
-                value: set
-              - key: cache.op
-                value: write
-              - key: cache.key
-                value: foo
+              - { key: cache.type, value: redis }
+              - { key: cache.cmd, value: SET }
+              - { key: cache.op, value: write }
+              - { key: cache.key, value: foo }
             logs:
               - logEvent:
                   - { key: Exception Class, value: RedisException }

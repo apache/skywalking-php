@@ -18,8 +18,31 @@
 //! Virtual Cache
 //!
 //! https://skywalking.apache.org/docs/main/next/en/setup/service-agent/virtual-cache/
+//!
+//! Virtual Database
+//!
+//! https://skywalking.apache.org/docs/main/next/en/setup/service-agent/virtual-database/
+
+use std::fmt::Display;
 
 pub const TAG_CACHE_TYPE: &str = "cache.type";
 pub const TAG_CACHE_OP: &str = "cache.op";
 pub const TAG_CACHE_CMD: &str = "cache.cmd";
 pub const TAG_CACHE_KEY: &str = "cache.key";
+
+pub enum CacheOp {
+    Read,
+    Write,
+}
+
+impl Display for CacheOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Read => write!(f, "read"),
+            Self::Write => write!(f, "write"),
+        }
+    }
+}
+
+pub const TAG_DB_STATEMENT: &str = "db.statement";
+pub const TAG_DB_TYPE: &str = "db.type";
