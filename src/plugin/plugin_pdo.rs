@@ -19,6 +19,7 @@ use crate::{
     context::RequestContext,
     exception_frame::ExceptionFrame,
     execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
+    tag::{TAG_DB_STATEMENT, TAG_DB_TYPE},
 };
 use anyhow::Context;
 use dashmap::DashMap;
@@ -120,7 +121,7 @@ impl PdoPlugin {
 
                 if execute_data.num_args() >= 1 {
                     if let Some(statement) = execute_data.get_parameter(0).as_z_str() {
-                        span.add_tag("db.statement", statement.to_str()?);
+                        span.add_tag(TAG_DB_STATEMENT, statement.to_str()?);
                     }
                 }
 
@@ -146,7 +147,7 @@ impl PdoPlugin {
                 })?;
 
                 if let Some(query) = this.get_property("queryString").as_z_str() {
-                    span.add_tag("db.statement", query.to_str()?);
+                    span.add_tag(TAG_DB_STATEMENT, query.to_str()?);
                 } else {
                     warn!("PDOStatement queryString is empty");
                 }
@@ -256,7 +257,7 @@ fn create_exit_span_with_dsn(
         span.with_span_object_mut(|obj| {
             obj.set_span_layer(SpanLayer::Database);
             obj.component_id = COMPONENT_PHP_PDO_ID;
-            obj.add_tag("db.type", &dsn.db_type);
+            obj.add_tag(TAG_DB_TYPE, &dsn.db_type);
             obj.add_tag("db.data_source", &dsn.data_source);
         });
         Ok(span)

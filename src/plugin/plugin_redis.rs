@@ -13,8 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{any::Any, collections::HashSet};
-
 use super::Plugin;
 use crate::{
     component::COMPONENT_PHP_REDIS_ID,
@@ -32,123 +30,128 @@ use phper::{
     values::{ExecuteData, ZVal},
 };
 use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
+use std::{any::Any, collections::HashMap};
 use tracing::{debug, warn};
 
 static PEER_MAP: Lazy<DashMap<u32, Peer>> = Lazy::new(Default::default);
 
 static FREE_MAP: Lazy<DashMap<u32, sys::zend_object_free_obj_t>> = Lazy::new(Default::default);
 
-static REDIS_READ_COMMANDS: Lazy<HashSet<String>> = Lazy::new(|| {
+static REDIS_READ_MAPPING: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
     [
-        "blPop",
-        "brPop",
-        "get",
-        "getBit",
-        "getKeys",
-        "getMultiple",
-        "getRange",
-        "hExists",
-        "hGet",
-        "hGetAll",
-        "hKeys",
-        "hLen",
-        "hMGet",
-        "hScan",
-        "hStrLen",
-        "hVals",
-        "keys",
-        "lGet",
-        "lGetRange",
-        "lLen",
-        "lRange",
-        "lSize",
-        "mGet",
-        "sContains",
-        "sGetMembers",
-        "sIsMember",
-        "sMembers",
-        "sScan",
-        "sSize",
-        "strLen",
-        "zCount",
-        "zRange",
-        "zRangeByLex",
-        "zRangeByScore",
-        "zScan",
-        "zSize",
+        ("blpop", "BLPOP"),
+        ("brpop", "BRPOP"),
+        ("get", "GET"),
+        ("getbit", "GETBIT"),
+        ("getkeys", "KEYS"),
+        ("getmultiple", "MGET"),
+        ("getrange", "GETRANGE"),
+        ("hexists", "HEXISTS"),
+        ("hget", "HGET"),
+        ("hgetall", "HGETALL"),
+        ("hkeys", "HKEYS"),
+        ("hlen", "HLEN"),
+        ("hmget", "HMGET"),
+        ("hscan", "HSCAN"),
+        ("hstrlen", "HSTRLEN"),
+        ("hvals", "HVALS"),
+        ("keys", "KEYS"),
+        ("lget", "LGET"),
+        ("lgetrange", "LGETRANGE"),
+        ("llen", "LLEN"),
+        ("lrange", "LRANGE"),
+        ("lsize", "LSIZE"),
+        ("mget", "MGET"),
+        ("mget", "MGET"),
+        ("scontains", "SCONTAINS"),
+        ("sgetmembers", "SGETMEMBERS"),
+        ("sismember", "SISMEMBER"),
+        ("smembers", "SMEMBERS"),
+        ("sscan", "SSCAN"),
+        ("ssize", "SSIZE"),
+        ("strlen", "STRLEN"),
+        ("substr", "GETRANGE"),
+        ("zcount", "ZCOUNT"),
+        ("zrange", "ZRANGE"),
+        ("zrangebylex", "ZRANGEBYLEX"),
+        ("zrangebyscore", "ZRANGEBYSCORE"),
+        ("zscan", "ZSCAN"),
+        ("zsize", "ZSIZE"),
     ]
     .into_iter()
-    .map(str::to_ascii_lowercase)
     .collect()
 });
 
-static REDIS_WRITE_COMMANDS: Lazy<HashSet<String>> = Lazy::new(|| {
+static REDIS_WRITE_MAPPING: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
     [
-        "append",
-        "bRPopLPush",
-        "decr",
-        "decrBy",
-        "del",
-        "delete",
-        "hDel",
-        "hIncrBy",
-        "hIncrByFloat",
-        "hMSet",
-        "hSet",
-        "hSetNx",
-        "incr",
-        "incrBy",
-        "incrByFloat",
-        "lInsert",
-        "lPush",
-        "lPushx",
-        "lRem",
-        "lRemove",
-        "lSet",
-        "lTrim",
-        "listTrim",
-        "mSet",
-        "mSetNX",
-        "pSetEx",
-        "rPopLPush",
-        "rPush",
-        "rPushX",
-        "randomKey",
-        "sAdd",
-        "sInter",
-        "sInterStore",
-        "sMove",
-        "sRandMember",
-        "sRem",
-        "sRemove",
-        "set",
-        "setBit",
-        "setEx",
-        "setNx",
-        "setRange",
-        "setTimeout",
-        "sort",
-        "unlink",
-        "zAdd",
-        "zDelete",
-        "zDeleteRangeByRank",
-        "zDeleteRangeByScore",
-        "zIncrBy",
-        "zRem",
-        "zRemRangeByRank",
-        "zRemRangeByScore",
-        "zRemove",
-        "zRemoveRangeByScore",
+        ("append", "APPEND"),
+        ("brpoplpush", "BRPOPLPUSH"),
+        ("decr", "DECR"),
+        ("decrby", "DECRBY"),
+        ("del", "DEL"),
+        ("delete", "DEL"),
+        ("hdel", "HDEL"),
+        ("hincrby", "HINCRBY"),
+        ("hincrbyfloat", "HINCRBYFLOAT"),
+        ("hmset", "HMSET"),
+        ("hset", "HSET"),
+        ("hsetnx", "HSETNX"),
+        ("incr", "INCR"),
+        ("incrby", "INCRBY"),
+        ("incrbyfloat", "INCRBYFLOAT"),
+        ("linsert", "LINSERT"),
+        ("lpush", "LPUSH"),
+        ("lpushx", "LPUSHX"),
+        ("lrem", "LREM"),
+        ("lremove", "LREMOVE"),
+        ("lset", "LSET"),
+        ("ltrim", "LTRIM"),
+        ("listtrim", "LISTTRIM"),
+        ("mset", "MSET"),
+        ("msetnx", "MSETNX"),
+        ("psetex", "PSETEX"),
+        ("rpoplpush", "RPOPLPUSH"),
+        ("rpush", "RPUSH"),
+        ("rpushx", "RPUSHX"),
+        ("randomkey", "RANDOMKEY"),
+        ("sadd", "SADD"),
+        ("sinter", "SINTER"),
+        ("sinterstore", "SINTERSTORE"),
+        ("smove", "SMOVE"),
+        ("srandmember", "SRANDMEMBER"),
+        ("srem", "SREM"),
+        ("sremove", "SREMOVE"),
+        ("set", "SET"),
+        ("setbit", "SETBIT"),
+        ("setex", "SETEX"),
+        ("setnx", "SETNX"),
+        ("setrange", "SETRANGE"),
+        ("settimeout", "SETTIMEOUT"),
+        ("sort", "SORT"),
+        ("unlink", "UNLINK"),
+        ("zadd", "ZADD"),
+        ("zdelete", "ZDELETE"),
+        ("zdeleterangebyrank", "ZDELETERANGEBYRANK"),
+        ("zdeleterangebyscore", "ZDELETERANGEBYSCORE"),
+        ("zincrby", "ZINCRBY"),
+        ("zrem", "ZREM"),
+        ("zremrangebyrank", "ZREMRANGEBYRANK"),
+        ("zremrangebyscore", "ZREMRANGEBYSCORE"),
+        ("zremove", "ZREMOVE"),
+        ("zremoverangebyscore", "ZREMOVERANGEBYSCORE"),
     ]
     .into_iter()
-    .map(str::to_ascii_lowercase)
     .collect()
 });
 
-static REDIS_ALL_COMMANDS: Lazy<HashSet<String>> = Lazy::new(|| {
-    let mut commands = HashSet::new();
-    commands.extend(REDIS_READ_COMMANDS.iter().map(Clone::clone));
-    commands.extend(REDIS_WRITE_COMMANDS.iter().map(Clone::clone));
+static REDIS_OTHER_MAPPING: Lazy<HashMap<&str, &str>> =
+    Lazy::new(|| [("auth", "AUTH")].into_iter().collect());
+
+static REDIS_ALL_MAPPING: Lazy<HashMap<&str, &str>> = Lazy::new(|| {
+    let mut commands = HashMap::with_capacity(REDIS_READ_MAPPING.len() + REDIS_WRITE_MAPPING.len());
+    commands.extend(REDIS_READ_MAPPING.iter());
+    commands.extend(REDIS_WRITE_MAPPING.iter());
+    commands.extend(REDIS_OTHER_MAPPING.iter());
     commands
 });
 
@@ -177,7 +180,7 @@ impl Plugin for RedisPlugin {
                 Some(self.hook_redis_connect(class_name, function_name))
             }
             (Some(class_name @ "Redis"), f)
-                if REDIS_ALL_COMMANDS.contains(&f.to_ascii_lowercase()) =>
+                if REDIS_ALL_MAPPING.contains_key(&*f.to_ascii_lowercase()) =>
             {
                 Some(self.hook_redis_methods(class_name, function_name))
             }
@@ -283,17 +286,21 @@ impl RedisPlugin {
                     .map(|r| r.value().addr.clone())
                     .unwrap_or_default();
 
-                let key = execute_data
-                    .get_parameter(0)
-                    .as_z_str()
-                    .and_then(|s| s.to_str().ok());
-                let op = if REDIS_READ_COMMANDS.contains(&function_name.to_ascii_lowercase()) {
-                    "read"
+                let function_name_key = &*function_name.to_ascii_lowercase();
+
+                let op = if REDIS_READ_MAPPING.contains_key(function_name_key) {
+                    Some("read")
+                } else if REDIS_WRITE_MAPPING.contains_key(function_name_key) {
+                    Some("write")
                 } else {
-                    "write"
+                    None
                 };
 
-                debug!(handle, function_name, key, op, "call redis command");
+                let key = op
+                    .and_then(|_| execute_data.get_parameter(0).as_z_str())
+                    .and_then(|s| s.to_str().ok());
+
+                debug!(handle, cmd = function_name, key, op, "call redis command");
 
                 let mut span = RequestContext::try_with_global_ctx(request_id, |ctx| {
                     Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &peer))
@@ -303,8 +310,13 @@ impl RedisPlugin {
                     span.set_span_layer(SpanLayer::Cache);
                     span.component_id = COMPONENT_PHP_REDIS_ID;
                     span.add_tag(TAG_CACHE_TYPE, "redis");
-                    span.add_tag(TAG_CACHE_CMD, function_name);
-                    span.add_tag(TAG_CACHE_OP, op);
+                    span.add_tag(
+                        TAG_CACHE_CMD,
+                        REDIS_ALL_MAPPING.get(function_name_key).unwrap(),
+                    );
+                    if let Some(op) = op {
+                        span.add_tag(TAG_CACHE_OP, op);
+                    }
                     if let Some(key) = key {
                         span.add_tag(TAG_CACHE_KEY, key)
                     }
