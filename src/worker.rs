@@ -13,16 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    cmp::Ordering, error::Error, io, num::NonZeroUsize, path::Path, process::exit,
-    thread::available_parallelism, time::Duration,
+use crate::{
+    channel, module::SOCKET_FILE_PATH, util::change_permission, SKYWALKING_AGENT_SERVER_ADDR,
+    SKYWALKING_AGENT_WORKER_THREADS,
 };
-
-use once_cell::sync::OnceCell;
+use once_cell::sync::{Lazy, OnceCell};
 use phper::ini::Ini;
 use skywalking::reporter::{
     grpc::{ColletcItemConsume, GrpcReporter},
     CollectItem,
+};
+use std::{
+    cmp::Ordering, error::Error, fs, io, num::NonZeroUsize, process::exit,
+    thread::available_parallelism, time::Duration,
 };
 use tokio::{
     net::UnixListener,
@@ -38,19 +41,14 @@ use tonic::{
 };
 use tracing::{debug, error, info, warn};
 
-use crate::{channel, SKYWALKING_AGENT_SERVER_ADDR, SKYWALKING_AGENT_WORKER_THREADS};
-
 static WORKER_PID: OnceCell<libc::pid_t> = OnceCell::new();
 
-pub fn init_worker<P>(worker_addr: P)
-where
-    P: AsRef<Path>,
-{
+pub fn init_worker() {
     let server_addr = Ini::get::<String>(SKYWALKING_AGENT_SERVER_ADDR).unwrap_or_default();
     let worker_threads = worker_threads();
 
     unsafe {
-        // TODO Shutdown previous worker before fork if threre is a PHP-FPM reload
+        // TODO Shutdown previous worker before fork if there is a PHP-FPM reload
         // operation.
         // TODO Chagne the worker process name.
 
@@ -61,7 +59,7 @@ where
             }
             Ordering::Equal => {
                 let rt = new_tokio_runtime(worker_threads);
-                rt.block_on(start_worker(worker_addr, server_addr));
+                rt.block_on(start_worker(server_addr));
                 exit(0);
             }
             Ordering::Greater => {
@@ -97,10 +95,7 @@ fn new_tokio_runtime(worker_threads: usize) -> Runtime {
         .unwrap()
 }
 
-async fn start_worker<P>(worker_addr: P, server_addr: String)
-where
-    P: AsRef<Path>,
-{
+async fn start_worker(server_addr: String) {
     debug!("Starting worker...");
 
     // Graceful shutdown signal, put it on the top of program.
@@ -112,17 +107,18 @@ where
         }
     };
 
-    let worker_addr = worker_addr.as_ref();
+    let socket_file = SOCKET_FILE_PATH.as_str();
 
     let fut = async move {
-        debug!(?worker_addr, "Bind unix stream");
-        let listener = match UnixListener::bind(worker_addr) {
+        debug!(socket_file, "Bind unix stream");
+        let listener = match UnixListener::bind(socket_file) {
             Ok(listener) => listener,
             Err(err) => {
                 error!(?err, "Bind failed");
                 return;
             }
         };
+        change_permission(socket_file, 0o777);
 
         let (tx, rx) = mpsc::channel::<Result<CollectItem, Box<dyn Error + Send>>>(255);
         tokio::spawn(async move {
@@ -197,6 +193,10 @@ where
         _ = sig.recv() => {}
         _ = fut => {}
     }
+
+    info!("Start to shutdown skywalking grpc reporter");
+
+    worker_exit();
 }
 
 #[tracing::instrument(skip_all)]
@@ -234,5 +234,19 @@ impl ColletcItemConsume for Consumer {
             .try_recv()
             .map(|result| result.map(Some))
             .unwrap_or(Ok(None))
+    }
+}
+
+fn worker_exit() {
+    match Lazy::get(&SOCKET_FILE_PATH) {
+        Some(socket_file) => {
+            info!(socket_file, "Remove socket file");
+            if let Err(err) = fs::remove_file(socket_file) {
+                error!(?err, "Remove socket file failed");
+            }
+        }
+        None => {
+            warn!("Socket file not created");
+        }
     }
 }

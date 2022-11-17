@@ -27,13 +27,8 @@ use skywalking::{
     common::random_generator::RandomGenerator,
     trace::tracer::{self, Tracer},
 };
-use std::{
-    fs::{self, File},
-    path::Path,
-    str::FromStr,
-    time::SystemTime,
-};
-use tracing::{debug, error, info, metadata::LevelFilter};
+use std::{env, path::Path, str::FromStr, time::SystemTime};
+use tracing::{info, metadata::LevelFilter};
 use tracing_subscriber::FmtSubscriber;
 
 pub static SERVICE_NAME: Lazy<String> =
@@ -45,12 +40,17 @@ pub static SERVICE_INSTANCE: Lazy<String> =
 pub static SKYWALKING_VERSION: Lazy<i64> =
     Lazy::new(|| Ini::get::<i64>(SKYWALKING_AGENT_SKYWALKING_VERSION).unwrap_or_default());
 
-static SOCKET_FILE_PATH: Lazy<String> = Lazy::new(|| {
+pub static SOCKET_FILE_PATH: Lazy<String> = Lazy::new(|| {
     let dur = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .expect("Get timestamp failed")
         .as_micros();
-    format!("{}_{:x}.sock", env!("CARGO_CRATE_NAME"), dur)
+    format!(
+        "{}/{}_{:x}.sock",
+        env::temp_dir().display(),
+        env!("CARGO_CRATE_NAME"),
+        dur
+    )
 });
 
 pub fn init(_module: ModuleContext) -> bool {
@@ -68,27 +68,13 @@ pub fn init(_module: ModuleContext) -> bool {
         service_instance, skywalking_version, "Starting skywalking agent"
     );
 
-    match File::create(&*SOCKET_FILE_PATH) {
-        Ok(f) => {
-            drop(f);
-        }
-        Err(err) => {
-            error!(?err, "Create socket file failed");
-            return true;
-        }
-    }
-    change_permission(&SOCKET_FILE_PATH, 0o777);
-
-    let worker_addr = &*SOCKET_FILE_PATH;
-
-    debug!(?worker_addr, "Temporary Socket file created");
-
-    init_worker(worker_addr.clone());
+    Lazy::force(&SOCKET_FILE_PATH);
+    init_worker();
 
     tracer::set_global_tracer(Tracer::new(
         service_name,
         service_instance,
-        Reporter::new(worker_addr),
+        Reporter::new(SOCKET_FILE_PATH.as_str()),
     ));
 
     register_execute_functions();
@@ -98,7 +84,7 @@ pub fn init(_module: ModuleContext) -> bool {
 
 pub fn shutdown(_module: ModuleContext) -> bool {
     shutdown_worker();
-    _ = fs::remove_file(&*SOCKET_FILE_PATH);
+
     true
 }
 
@@ -150,13 +136,4 @@ fn is_enable() -> bool {
     }
 
     false
-}
-
-fn change_permission(f: &str, mode: u32) {
-    let mut path = Vec::with_capacity(f.len() + 1);
-    path.extend_from_slice(f.as_bytes());
-    path.push(0);
-    unsafe {
-        libc::chmod(path.as_ptr().cast(), mode);
-    }
 }
