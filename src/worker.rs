@@ -44,7 +44,7 @@ static WORKER_PID: OnceCell<libc::pid_t> = OnceCell::new();
 
 pub fn init_worker<P>(worker_addr: P)
 where
-    P: AsRef<Path> + tracing::Value,
+    P: AsRef<Path>,
 {
     let server_addr = Ini::get::<String>(SKYWALKING_AGENT_SERVER_ADDR).unwrap_or_default();
     let worker_threads = worker_threads();
@@ -99,7 +99,7 @@ fn new_tokio_runtime(worker_threads: usize) -> Runtime {
 
 async fn start_worker<P>(worker_addr: P, server_addr: String)
 where
-    P: AsRef<Path> + tracing::Value,
+    P: AsRef<Path>,
 {
     debug!("Starting worker...");
 
@@ -112,8 +112,10 @@ where
         }
     };
 
+    let worker_addr = worker_addr.as_ref();
+
     let fut = async move {
-        debug!(worker_addr, "Bind");
+        debug!(?worker_addr, "Bind unix stream");
         let listener = match UnixListener::bind(worker_addr) {
             Ok(listener) => listener,
             Err(err) => {
