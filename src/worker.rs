@@ -71,6 +71,7 @@ pub fn init_worker() {
 
 pub fn shutdown_worker() {
     if let Some(pid) = WORKER_PID.get() {
+        debug!(pid, "Start to shutdown worker");
         unsafe {
             libc::kill(*pid, libc::SIGTERM);
         }
@@ -99,10 +100,17 @@ async fn start_worker(server_addr: String) {
     debug!("Starting worker...");
 
     // Graceful shutdown signal, put it on the top of program.
-    let mut sig = match signal(SignalKind::terminate()) {
+    let mut sig_term = match signal(SignalKind::terminate()) {
         Ok(signal) => signal,
         Err(err) => {
             error!(?err, "Signal terminate failed");
+            return;
+        }
+    };
+    let mut sig_int = match signal(SignalKind::interrupt()) {
+        Ok(signal) => signal,
+        Err(err) => {
+            error!(?err, "Signal interrupt failed");
             return;
         }
     };
@@ -190,7 +198,8 @@ async fn start_worker(server_addr: String) {
 
     // TODO Do graceful shutdown, and wait 10s then force quit.
     select! {
-        _ = sig.recv() => {}
+        _ = sig_term.recv() => {}
+        _ = sig_int.recv() => {}
         _ = fut => {}
     }
 
