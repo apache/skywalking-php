@@ -183,7 +183,7 @@ pub fn json_encode_values(values: &[ZVal]) -> serde_json::Result<String> {
     serde_json::to_string(&json_value)
 }
 
-pub fn change_permission(f: &str, mode: u32) {
+pub fn change_permission(f: &str, mode: libc::mode_t) {
     let mut path = Vec::with_capacity(f.len() + 1);
     path.extend_from_slice(f.as_bytes());
     path.push(0);
