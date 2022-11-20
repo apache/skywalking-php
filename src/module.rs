@@ -27,9 +27,8 @@ use skywalking::{
     common::random_generator::RandomGenerator,
     trace::tracer::{self, Tracer},
 };
-use std::{path::Path, str::FromStr};
-
-use tracing::{error, info, metadata::LevelFilter};
+use std::{env, path::Path, str::FromStr, time::SystemTime};
+use tracing::{info, metadata::LevelFilter};
 use tracing_subscriber::FmtSubscriber;
 
 pub static SERVICE_NAME: Lazy<String> =
@@ -40,6 +39,19 @@ pub static SERVICE_INSTANCE: Lazy<String> =
 
 pub static SKYWALKING_VERSION: Lazy<i64> =
     Lazy::new(|| Ini::get::<i64>(SKYWALKING_AGENT_SKYWALKING_VERSION).unwrap_or_default());
+
+pub static SOCKET_FILE_PATH: Lazy<String> = Lazy::new(|| {
+    let dur = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .expect("Get timestamp failed")
+        .as_micros();
+    format!(
+        "{}/{}_{:x}.sock",
+        env::temp_dir().display(),
+        env!("CARGO_CRATE_NAME"),
+        dur
+    )
+});
 
 pub fn init(_module: ModuleContext) -> bool {
     if !is_enable() {
@@ -56,28 +68,13 @@ pub fn init(_module: ModuleContext) -> bool {
         service_instance, skywalking_version, "Starting skywalking agent"
     );
 
-    let worker_addr = {
-        match tempfile::NamedTempFile::new() {
-            Err(e) => {
-                error!("Create named temporary file failed: {}", e);
-                return true;
-            }
-            Ok(f) => match f.into_temp_path().to_str() {
-                None => {
-                    error!("Yields a &str slice from the Path failed.");
-                    return true;
-                }
-                Some(s) => s.to_string(),
-            },
-        }
-    };
-
-    init_worker(&worker_addr);
+    Lazy::force(&SOCKET_FILE_PATH);
+    init_worker();
 
     tracer::set_global_tracer(Tracer::new(
         service_name,
         service_instance,
-        Reporter::new(worker_addr),
+        Reporter::new(SOCKET_FILE_PATH.as_str()),
     ));
 
     register_execute_functions();
