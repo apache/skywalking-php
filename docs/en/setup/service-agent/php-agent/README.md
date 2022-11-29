@@ -7,9 +7,9 @@
 ## Requirements
 
 - GCC
-- Rustc
+- Rustc 1.56+
 - Cargo
-- Libclang
+- Libclang 9.0+
 - Make
 - Protoc
 
