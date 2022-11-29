@@ -8,6 +8,8 @@
 /tests/php/vendor/
 
 /skywalking_agent-*.tgz
+/skywalking_agent-*.tgz.asc
+/skywalking_agent-*.tgz.sha512
 /package.xml
 /.vagrant
 
