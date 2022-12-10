@@ -63,7 +63,7 @@ jobs:
           - php: "8.1"
             swoole: "5.0.0"
           - php: "8.2"
-             swoole: "5.0.0"
+            swoole: "5.0.0"
 
     runs-on: ${{ matrix.os }}
     steps:
