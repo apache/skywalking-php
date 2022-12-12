@@ -2003,6 +2003,7 @@ dependencies = [
  "serde_json",
  "skywalking",
  "systemstat",
+ "thiserror",
  "tokio",
  "tokio-stream",
  "tonic",

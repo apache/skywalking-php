@@ -18,13 +18,13 @@ use crate::{
     SKYWALKING_AGENT_WORKER_THREADS,
 };
 use once_cell::sync::{Lazy, OnceCell};
-use phper::ini::Ini;
+use phper::ini::ini_get;
 use skywalking::reporter::{
     grpc::{ColletcItemConsume, GrpcReporter},
     CollectItem,
 };
 use std::{
-    cmp::Ordering, error::Error, fs, io, num::NonZeroUsize, process::exit,
+    cmp::Ordering, error::Error, ffi::CStr, fs, io, num::NonZeroUsize, process::exit,
     thread::available_parallelism, time::Duration,
 };
 use tokio::{
@@ -44,7 +44,10 @@ use tracing::{debug, error, info, warn};
 static WORKER_PID: OnceCell<libc::pid_t> = OnceCell::new();
 
 pub fn init_worker() {
-    let server_addr = Ini::get::<String>(SKYWALKING_AGENT_SERVER_ADDR).unwrap_or_default();
+    let server_addr = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SERVER_ADDR)
+        .and_then(|s| s.to_str().ok())
+        .unwrap_or_default()
+        .to_owned();
     let worker_threads = worker_threads();
 
     unsafe {
@@ -79,7 +82,7 @@ pub fn shutdown_worker() {
 }
 
 fn worker_threads() -> usize {
-    let worker_threads = Ini::get::<i64>(SKYWALKING_AGENT_WORKER_THREADS).unwrap_or(0);
+    let worker_threads = ini_get::<i64>(SKYWALKING_AGENT_WORKER_THREADS);
     if worker_threads <= 0 {
         available_parallelism().map(NonZeroUsize::get).unwrap_or(1)
     } else {

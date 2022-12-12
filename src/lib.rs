@@ -20,7 +20,7 @@
 mod channel;
 mod component;
 mod context;
-mod exception_frame;
+mod errors;
 mod execute;
 mod module;
 mod plugin;
@@ -29,11 +29,9 @@ mod tag;
 mod util;
 mod worker;
 
-use phper::{
-    ini::{Ini, Policy},
-    modules::Module,
-    php_get_module,
-};
+use phper::{ini::Policy, modules::Module, php_get_module};
+
+pub use errors::{Error, Result};
 
 /// Enable agent and report or not.
 const SKYWALKING_AGENT_ENABLE: &str = "skywalking_agent.enable";
@@ -65,25 +63,25 @@ pub fn get_module() -> Module {
     );
 
     // Register skywalking ini.
-    Ini::add(SKYWALKING_AGENT_ENABLE, false, Policy::System);
-    Ini::add(SKYWALKING_AGENT_SKYWALKING_VERSION, 8i64, Policy::System);
-    Ini::add(
+    module.add_ini(SKYWALKING_AGENT_ENABLE, false, Policy::System);
+    module.add_ini(SKYWALKING_AGENT_SKYWALKING_VERSION, 8i64, Policy::System);
+    module.add_ini(
         SKYWALKING_AGENT_SERVER_ADDR,
         "http://127.0.0.1:11800".to_string(),
         Policy::System,
     );
-    Ini::add(
+    module.add_ini(
         SKYWALKING_AGENT_SERVICE_NAME,
         "hello-skywalking".to_string(),
         Policy::System,
     );
-    Ini::add(SKYWALKING_AGENT_WORKER_THREADS, 0i64, Policy::System);
-    Ini::add(
+    module.add_ini(SKYWALKING_AGENT_WORKER_THREADS, 0i64, Policy::System);
+    module.add_ini(
         SKYWALKING_AGENT_LOG_LEVEL,
         "OFF".to_string(),
         Policy::System,
     );
-    Ini::add(
+    module.add_ini(
         SKYWALKING_AGENT_LOG_FILE,
         "/tmp/skywalking-agent.log".to_string(),
         Policy::System,
@@ -100,7 +98,6 @@ pub fn get_module() -> Module {
     module.add_function(
         "skywalking_hack_swoole_on_request_please_do_not_use",
         request::skywalking_hack_swoole_on_request,
-        vec![],
     );
 
     module

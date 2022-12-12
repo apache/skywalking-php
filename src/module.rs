@@ -22,23 +22,27 @@ use crate::{
     SKYWALKING_AGENT_SERVICE_NAME, SKYWALKING_AGENT_SKYWALKING_VERSION,
 };
 use once_cell::sync::Lazy;
-use phper::{arrays::ZArr, ini::Ini, modules::ModuleContext, sys};
+use phper::{arrays::ZArr, ini::ini_get, modules::ModuleContext, sys};
 use skywalking::{
     common::random_generator::RandomGenerator,
     trace::tracer::{self, Tracer},
 };
-use std::{env, path::Path, str::FromStr, time::SystemTime};
+use std::{borrow::ToOwned, env, ffi::CStr, path::Path, str::FromStr, time::SystemTime};
 use tracing::{info, metadata::LevelFilter};
 use tracing_subscriber::FmtSubscriber;
 
-pub static SERVICE_NAME: Lazy<String> =
-    Lazy::new(|| Ini::get::<String>(SKYWALKING_AGENT_SERVICE_NAME).unwrap_or_default());
+pub static SERVICE_NAME: Lazy<String> = Lazy::new(|| {
+    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SERVICE_NAME)
+        .and_then(|s| s.to_str().ok())
+        .map(ToOwned::to_owned)
+        .unwrap_or_default()
+});
 
 pub static SERVICE_INSTANCE: Lazy<String> =
     Lazy::new(|| RandomGenerator::generate() + "@" + &IPS[0]);
 
 pub static SKYWALKING_VERSION: Lazy<i64> =
-    Lazy::new(|| Ini::get::<i64>(SKYWALKING_AGENT_SKYWALKING_VERSION).unwrap_or_default());
+    Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_SKYWALKING_VERSION));
 
 pub static SOCKET_FILE_PATH: Lazy<String> = Lazy::new(|| {
     let dur = SystemTime::now()
@@ -89,11 +93,14 @@ pub fn shutdown(_module: ModuleContext) -> bool {
 }
 
 fn init_logger() {
-    let log_level =
-        Ini::get::<String>(SKYWALKING_AGENT_LOG_LEVEL).unwrap_or_else(|| "OFF".to_string());
+    let log_level = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_LOG_LEVEL)
+        .and_then(|s| s.to_str().ok())
+        .unwrap_or_else(|| "OFF");
     let log_level = log_level.trim();
 
-    let log_file = Ini::get::<String>(SKYWALKING_AGENT_LOG_FILE).unwrap_or_default();
+    let log_file = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_LOG_FILE)
+        .and_then(|s| s.to_str().ok())
+        .unwrap_or_default();
     let log_file = log_file.trim();
 
     if !log_file.is_empty() {
@@ -121,7 +128,7 @@ fn get_module_registry() -> &'static ZArr {
 }
 
 fn is_enable() -> bool {
-    if !Ini::get::<bool>(SKYWALKING_AGENT_ENABLE).unwrap_or_default() {
+    if !ini_get::<bool>(SKYWALKING_AGENT_ENABLE) {
         return false;
     }
 

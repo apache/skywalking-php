@@ -19,7 +19,6 @@ use super::Plugin;
 use crate::{
     component::COMPONENT_PHP_MEMCACHED_ID,
     context::RequestContext,
-    exception_frame::ExceptionFrame,
     execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook},
     tag::{CacheOp, TAG_CACHE_CMD, TAG_CACHE_KEY, TAG_CACHE_OP, TAG_CACHE_TYPE},
 };
@@ -305,7 +304,7 @@ impl MemcachedPlugin {
 #[instrument(skip_all)]
 fn after_hook(
     _: Option<i64>, span: Box<dyn Any>, execute_data: &mut ExecuteData, return_value: &mut ZVal,
-) -> anyhow::Result<()> {
+) -> crate::Result<()> {
     let mut span = span.downcast::<Span>().expect("Downcast to Span failed");
     if let Some(b) = return_value.as_bool() {
         if !b {
@@ -366,10 +365,7 @@ fn create_exit_span<'a>(
 
 fn get_peer(this: &mut ZObj, key: ZVal) -> String {
     let f = || {
-        let info = {
-            let _e = ExceptionFrame::new();
-            this.call(&"getServerByKey".to_ascii_lowercase(), [key])?
-        };
+        let info = this.call(&"getServerByKey".to_ascii_lowercase(), [key])?;
         let info = info.as_z_arr().context("Server isn't array")?;
         let host = info
             .get("host")
@@ -382,7 +378,7 @@ fn get_peer(this: &mut ZObj, key: ZVal) -> String {
             .context("Server port not exists")?
             .as_long()
             .context("Server port isn't long")?;
-        Ok::<_, anyhow::Error>(format!("{}:{}", host, port))
+        Ok::<_, crate::Error>(format!("{}:{}", host, port))
     };
     f().unwrap_or_else(|err| {
         warn!(?err, "Get peer failed");

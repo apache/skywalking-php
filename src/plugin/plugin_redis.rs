@@ -357,7 +357,7 @@ unsafe extern "C" fn redis_dtor(object: *mut sys::zend_object) {
 fn after_hook(
     _request_id: Option<i64>, span: Box<dyn Any>, _execute_data: &mut ExecuteData,
     _return_value: &mut ZVal,
-) -> anyhow::Result<()> {
+) -> crate::Result<()> {
     let mut span = span.downcast::<Span>().unwrap();
 
     let ex = unsafe { ZObj::try_from_mut_ptr(eg!(exception)) };
