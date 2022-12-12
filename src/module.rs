@@ -95,7 +95,7 @@ pub fn shutdown(_module: ModuleContext) -> bool {
 fn init_logger() {
     let log_level = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_LOG_LEVEL)
         .and_then(|s| s.to_str().ok())
-        .unwrap_or_else(|| "OFF");
+        .unwrap_or("OFF");
     let log_level = log_level.trim();
 
     let log_file = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_LOG_FILE)
