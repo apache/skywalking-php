@@ -114,8 +114,7 @@ impl CurlPlugin {
                 let cid = Self::get_resource_id(execute_data)?;
 
                 let ch = execute_data.get_parameter(0);
-                let result =
-                    call("curl_getinfo", &mut [ch.clone()]).context("Call curl_get_info failed")?;
+                let result = call("curl_getinfo", &mut [ch.clone()])?;
                 let result = result.as_z_arr().context("result isn't array")?;
 
                 let url = result
@@ -128,7 +127,7 @@ impl CurlPlugin {
                     url.insert_str(0, "http://");
                 }
 
-                let url: Url = url.parse()?;
+                let url: Url = url.parse().context("parse url")?;
                 if url.scheme() != "http" && url.scheme() != "https" {
                     return Ok(Box::new(()));
                 }
@@ -173,8 +172,7 @@ impl CurlPlugin {
                     call(
                         "curl_setopt",
                         &mut [ch.clone(), ZVal::from(CURLOPT_HTTPHEADER), val],
-                    )
-                    .context("Call curl_setopt")?;
+                    )?;
                 }
 
                 Ok(Box::new(span))
@@ -183,8 +181,7 @@ impl CurlPlugin {
                 let mut span = span.downcast::<Span>().unwrap();
 
                 let ch = execute_data.get_parameter(0);
-                let result =
-                    call("curl_getinfo", &mut [ch.clone()]).context("Call curl_get_info")?;
+                let result = call("curl_getinfo", &mut [ch.clone()])?;
                 let response = result.as_z_arr().context("response in not arr")?;
                 let http_code = response
                     .get("http_code")
@@ -192,8 +189,7 @@ impl CurlPlugin {
                     .context("Call curl_getinfo, http_code is null")?;
                 span.add_tag("status_code", &*http_code.to_string());
                 if http_code == 0 {
-                    let result =
-                        call("curl_error", &mut [ch.clone()]).context("Call curl_get_info")?;
+                    let result = call("curl_error", &mut [ch.clone()])?;
                     let curl_error = result
                         .as_z_str()
                         .context("curl_error is not string")?

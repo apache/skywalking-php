@@ -194,12 +194,10 @@ impl PredisPlugin {
                     .map(ToOwned::to_owned)
                     .unwrap_or_default();
 
-                let id = command.call("getid", []).context("call getId failed")?;
+                let id = command.call("getid", [])?;
                 let cmd = id.expect_z_str()?.to_str()?.to_ascii_uppercase();
 
-                let mut arguments = command
-                    .call("getarguments", [])
-                    .context("call getArguments failed")?;
+                let mut arguments = command.call("getarguments", [])?;
                 let arguments = arguments.expect_mut_z_arr()?;
 
                 let op = if REDIS_READ_COMMANDS.contains(&*cmd) {

@@ -13,28 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use phper::sys;
-use std::marker;
+use std::{result, str::Utf8Error};
 
-pub struct ExceptionFrame {
-    phantom: marker::PhantomData<isize>,
+pub type Result<T> = result::Result<T, Error>;
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error(transparent)]
+    PHPer(#[from] phper::Error),
+
+    #[error(transparent)]
+    Anyhow(#[from] anyhow::Error),
 }
 
-impl ExceptionFrame {
-    pub fn new() -> Self {
-        unsafe {
-            sys::zend_exception_save();
-        }
-        ExceptionFrame {
-            phantom: marker::PhantomData,
-        }
-    }
-}
-
-impl Drop for ExceptionFrame {
-    fn drop(&mut self) {
-        unsafe {
-            sys::zend_exception_restore();
-        }
+impl From<Utf8Error> for Error {
+    fn from(e: Utf8Error) -> Self {
+        Self::Anyhow(e.into())
     }
 }

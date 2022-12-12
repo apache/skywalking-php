@@ -17,7 +17,7 @@ use crate::{
     component::COMPONENT_PHP_ID,
     context::RequestContext,
     module::SKYWALKING_VERSION,
-    util::{catch_unwind_anyhow, get_sapi_module_name, z_val_to_string},
+    util::{catch_unwind_result, get_sapi_module_name, z_val_to_string},
 };
 use anyhow::{anyhow, Context};
 use dashmap::DashMap;
@@ -34,7 +34,7 @@ use tracing::{error, instrument, trace, warn};
 #[instrument(skip_all)]
 pub fn init(_module: ModuleContext) -> bool {
     if get_sapi_module_name().to_bytes() == b"fpm-fcgi" {
-        if let Err(err) = catch_unwind_anyhow(request_init_for_fpm) {
+        if let Err(err) = catch_unwind_result(request_init_for_fpm) {
             error!(mode = "fpm", ?err, "request init failed");
         }
     }
@@ -44,14 +44,14 @@ pub fn init(_module: ModuleContext) -> bool {
 #[instrument(skip_all)]
 pub fn shutdown(_module: ModuleContext) -> bool {
     if get_sapi_module_name().to_bytes() == b"fpm-fcgi" {
-        if let Err(err) = catch_unwind_anyhow(request_shutdown_for_fpm) {
+        if let Err(err) = catch_unwind_result(request_shutdown_for_fpm) {
             error!(mode = "fpm", ?err, "request shutdown failed");
         }
     }
     true
 }
 
-fn request_init_for_fpm() -> anyhow::Result<()> {
+fn request_init_for_fpm() -> crate::Result<()> {
     jit_initialization();
 
     let server = get_page_request_server()?;
@@ -63,7 +63,7 @@ fn request_init_for_fpm() -> anyhow::Result<()> {
     create_request_context(None, header.as_deref(), &method, &uri)
 }
 
-fn request_shutdown_for_fpm() -> anyhow::Result<()> {
+fn request_shutdown_for_fpm() -> crate::Result<()> {
     let status_code = unsafe { sg!(sapi_headers).http_response_code };
 
     finish_request_context(None, status_code)
@@ -75,7 +75,7 @@ fn jit_initialization() {
         let jit_initialization: u8 = pg!(auto_globals_jit).into();
         if jit_initialization != 0 {
             let mut server = "_SERVER".to_string();
-            sys::zend_is_auto_global_str(server.as_mut_ptr().cast(), server.len() as sys::size_t);
+            sys::zend_is_auto_global_str(server.as_mut_ptr().cast(), server.len());
         }
     }
 }
@@ -138,7 +138,7 @@ pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) {
     }
     let f = unsafe { ZVal::from_mut_ptr(f) };
 
-    let result = catch_unwind_anyhow(AssertUnwindSafe(|| request_init_for_swoole(&mut args[0])));
+    let result = catch_unwind_result(AssertUnwindSafe(|| request_init_for_swoole(&mut args[0])));
     if let Err(err) = &result {
         error!(mode = "swoole", ?err, "request init failed");
     }
@@ -152,7 +152,7 @@ pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) {
     }
 
     if result.is_ok() {
-        if let Err(err) = catch_unwind_anyhow(AssertUnwindSafe(move || {
+        if let Err(err) = catch_unwind_result(AssertUnwindSafe(move || {
             request_shutdown_for_swoole(&mut args[1])
         })) {
             error!(mode = "swoole", ?err, "request shutdown failed");
@@ -160,7 +160,7 @@ pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) {
     }
 }
 
-fn request_init_for_swoole(request: &mut ZVal) -> anyhow::Result<()> {
+fn request_init_for_swoole(request: &mut ZVal) -> crate::Result<()> {
     let request = request
         .as_mut_z_obj()
         .context("swoole request isn't object")?;
@@ -189,7 +189,7 @@ fn request_init_for_swoole(request: &mut ZVal) -> anyhow::Result<()> {
     create_request_context(Some(fd), header.as_deref(), &method, &uri)
 }
 
-fn request_shutdown_for_swoole(response: &mut ZVal) -> anyhow::Result<()> {
+fn request_shutdown_for_swoole(response: &mut ZVal) -> crate::Result<()> {
     let response = response
         .as_mut_z_obj()
         .context("swoole response isn't object")?;
@@ -236,7 +236,7 @@ fn get_swoole_request_method(server: &ZArr) -> String {
 
 fn create_request_context(
     request_id: Option<i64>, header: Option<&str>, method: &str, uri: &str,
-) -> anyhow::Result<()> {
+) -> crate::Result<()> {
     let propagation = header
         .map(decode_propagation)
         .transpose()
@@ -268,7 +268,7 @@ fn create_request_context(
     Ok(())
 }
 
-fn finish_request_context(request_id: Option<i64>, status_code: i32) -> anyhow::Result<()> {
+fn finish_request_context(request_id: Option<i64>, status_code: i32) -> crate::Result<()> {
     let RequestContext {
         tracing_context,
         mut entry_span,

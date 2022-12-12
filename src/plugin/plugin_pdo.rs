@@ -17,7 +17,6 @@ use super::Plugin;
 use crate::{
     component::COMPONENT_PHP_PDO_ID,
     context::RequestContext,
-    exception_frame::ExceptionFrame,
     execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
     tag::{TAG_DB_STATEMENT, TAG_DB_TYPE},
 };
@@ -190,7 +189,7 @@ unsafe extern "C" fn dtor(object: *mut sys::zend_object) {
 
 fn after_hook(
     _: Option<i64>, span: Box<dyn Any>, execute_data: &mut ExecuteData, return_value: &mut ZVal,
-) -> anyhow::Result<()> {
+) -> crate::Result<()> {
     if let Some(b) = return_value.as_bool() {
         if !b {
             return after_hook_when_false(
@@ -207,8 +206,7 @@ fn after_hook(
     Ok(())
 }
 
-fn after_hook_when_false(this: &mut ZObj, span: &mut Span) -> anyhow::Result<()> {
-    let _e = ExceptionFrame::new();
+fn after_hook_when_false(this: &mut ZObj, span: &mut Span) -> crate::Result<()> {
     let info = this.call("errorInfo", [])?;
     let info = info.as_z_arr().context("errorInfo isn't array")?;
 
@@ -233,7 +231,7 @@ fn after_hook_when_false(this: &mut ZObj, span: &mut Span) -> anyhow::Result<()>
     Ok(())
 }
 
-fn after_hook_when_pdo_statement(pdo: &mut ZObj, pdo_statement: &mut ZObj) -> anyhow::Result<()> {
+fn after_hook_when_pdo_statement(pdo: &mut ZObj, pdo_statement: &mut ZObj) -> crate::Result<()> {
     let dsn = DSN_MAP
         .get(&pdo.handle())
         .map(|r| r.value().clone())

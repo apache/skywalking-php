@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{plugin::select_plugin, request::IS_SWOOLE, util::catch_unwind_anyhow};
+use crate::{plugin::select_plugin, request::IS_SWOOLE, util::catch_unwind_result};
 use anyhow::{bail, Context};
 use phper::{
     objects::ZObj,
@@ -25,10 +25,10 @@ use std::{any::Any, panic::AssertUnwindSafe, ptr::null_mut, sync::atomic::Orderi
 use tracing::{error, trace};
 
 pub type BeforeExecuteHook =
-    dyn FnOnce(Option<i64>, &mut ExecuteData) -> anyhow::Result<Box<dyn Any>>;
+    dyn FnOnce(Option<i64>, &mut ExecuteData) -> crate::Result<Box<dyn Any>>;
 
 pub type AfterExecuteHook =
-    dyn FnOnce(Option<i64>, Box<dyn Any>, &mut ExecuteData, &mut ZVal) -> anyhow::Result<()>;
+    dyn FnOnce(Option<i64>, Box<dyn Any>, &mut ExecuteData, &mut ZVal) -> crate::Result<()>;
 
 pub trait Noop {
     fn noop() -> Self;
@@ -37,7 +37,7 @@ pub trait Noop {
 impl Noop for Box<BeforeExecuteHook> {
     #[inline]
     fn noop() -> Self {
-        fn f(_: Option<i64>, _: &mut ExecuteData) -> anyhow::Result<Box<dyn Any>> {
+        fn f(_: Option<i64>, _: &mut ExecuteData) -> crate::Result<Box<dyn Any>> {
             Ok(Box::new(()))
         }
         Box::new(f)
@@ -49,7 +49,7 @@ impl Noop for Box<AfterExecuteHook> {
     fn noop() -> Self {
         fn f(
             _: Option<i64>, _: Box<dyn Any>, _: &mut ExecuteData, _: &mut ZVal,
-        ) -> anyhow::Result<()> {
+        ) -> crate::Result<()> {
             Ok(())
         }
         Box::new(f)
@@ -125,7 +125,7 @@ unsafe extern "C" fn execute_internal(
         "execute_internal infer request id"
     );
 
-    let result = catch_unwind_anyhow(AssertUnwindSafe(|| before(request_id, execute_data)));
+    let result = catch_unwind_result(AssertUnwindSafe(|| before(request_id, execute_data)));
     if let Err(err) = &result {
         error!(?err, "before execute internal");
     }
@@ -134,7 +134,7 @@ unsafe extern "C" fn execute_internal(
 
     // If before hook return error, don't execute the after hook.
     if let Ok(data) = result {
-        if let Err(err) = catch_unwind_anyhow(AssertUnwindSafe(|| {
+        if let Err(err) = catch_unwind_result(AssertUnwindSafe(|| {
             after(request_id, data, execute_data, return_value)
         })) {
             error!(?err, "after execute internal");
@@ -199,7 +199,7 @@ unsafe extern "C" fn execute_ex(execute_data: *mut sys::zend_execute_data) {
         "execute_ex infer request id"
     );
 
-    let result = catch_unwind_anyhow(AssertUnwindSafe(|| before(request_id, execute_data)));
+    let result = catch_unwind_result(AssertUnwindSafe(|| before(request_id, execute_data)));
     if let Err(err) = &result {
         error!(?err, "before execute ex");
     }
@@ -215,7 +215,7 @@ unsafe extern "C" fn execute_ex(execute_data: *mut sys::zend_execute_data) {
                 return;
             }
         };
-        if let Err(err) = catch_unwind_anyhow(AssertUnwindSafe(|| {
+        if let Err(err) = catch_unwind_result(AssertUnwindSafe(|| {
             after(request_id, data, execute_data, return_value)
         })) {
             error!(?err, "after execute ex");

@@ -50,7 +50,7 @@ jobs:
           - ubuntu-20.04
           - macos-12
         version:
-          - php: "8.1"
+          - php: "8.2"
             swoole: "5.0.0"
 
     runs-on: ${{ matrix.os }}
