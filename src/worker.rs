@@ -153,7 +153,7 @@ async fn start_worker(server_addr: String) {
                                     Ok(i) => Ok(i),
                                 };
 
-                                if let Err(err) = tx.send(r).await {
+                                if let Err(err) = tx.try_send(r) {
                                     error!(?err, "Send failed");
                                     return;
                                 }
