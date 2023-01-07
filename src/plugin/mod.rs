@@ -27,14 +27,14 @@ use once_cell::sync::Lazy;
 // Register plugins here.
 static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
     vec![
-        Box::new(plugin_curl::CurlPlugin::default()),
-        Box::new(plugin_pdo::PdoPlugin::default()),
-        Box::new(plugin_mysqli::MySQLImprovedPlugin::default()),
-        Box::new(plugin_swoole::SwooleServerPlugin::default()),
-        Box::new(plugin_swoole::SwooleHttpResponsePlugin::default()),
-        Box::new(plugin_predis::PredisPlugin::default()),
-        Box::new(plugin_memcached::MemcachedPlugin::default()),
-        Box::new(plugin_redis::RedisPlugin::default()),
+        Box::<plugin_curl::CurlPlugin>::default(),
+        Box::<plugin_pdo::PdoPlugin>::default(),
+        Box::<plugin_mysqli::MySQLImprovedPlugin>::default(),
+        Box::<plugin_swoole::SwooleServerPlugin>::default(),
+        Box::<plugin_swoole::SwooleHttpResponsePlugin>::default(),
+        Box::<plugin_predis::PredisPlugin>::default(),
+        Box::<plugin_memcached::MemcachedPlugin>::default(),
+        Box::<plugin_redis::RedisPlugin>::default(),
     ]
 });
 
