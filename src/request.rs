@@ -22,33 +22,31 @@ use crate::{
 use anyhow::{anyhow, Context};
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
-use phper::{arrays::ZArr, eg, modules::ModuleContext, pg, sg, sys, values::ZVal};
+use phper::{arrays::ZArr, eg, pg, sg, sys, values::ZVal};
 use skywalking::trace::{propagation::decoder::decode_propagation, tracer};
 use std::{
     panic::AssertUnwindSafe,
     ptr::null_mut,
-    sync::atomic::{AtomicBool, AtomicPtr, Ordering},
+    sync::atomic::{AtomicBool, AtomicPtr, Ordering}, convert::Infallible,
 };
 use tracing::{error, instrument, trace, warn};
 
 #[instrument(skip_all)]
-pub fn init(_module: ModuleContext) -> bool {
+pub fn init() {
     if get_sapi_module_name().to_bytes() == b"fpm-fcgi" {
         if let Err(err) = catch_unwind_result(request_init_for_fpm) {
             error!(mode = "fpm", ?err, "request init failed");
         }
     }
-    true
 }
 
 #[instrument(skip_all)]
-pub fn shutdown(_module: ModuleContext) -> bool {
+pub fn shutdown() {
     if get_sapi_module_name().to_bytes() == b"fpm-fcgi" {
         if let Err(err) = catch_unwind_result(request_shutdown_for_fpm) {
             error!(mode = "fpm", ?err, "request shutdown failed");
         }
     }
-    true
 }
 
 fn request_init_for_fpm() -> crate::Result<()> {
@@ -130,11 +128,11 @@ pub static IS_SWOOLE: AtomicBool = AtomicBool::new(false);
 
 /// The function is used by swoole plugin, to surround the callback of on
 /// request.
-pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) {
+pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) -> Result<(), Infallible> {
     let f = ORI_SWOOLE_ON_REQUEST.load(Ordering::Relaxed);
     if f.is_null() {
         error!("Origin swoole on request handler is null");
-        return;
+        return Ok(());
     }
     let f = unsafe { ZVal::from_mut_ptr(f) };
 
@@ -158,6 +156,8 @@ pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) {
             error!(mode = "swoole", ?err, "request shutdown failed");
         }
     }
+
+    Ok(())
 }
 
 fn request_init_for_swoole(request: &mut ZVal) -> crate::Result<()> {

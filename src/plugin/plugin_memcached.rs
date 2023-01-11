@@ -348,7 +348,7 @@ fn create_exit_span<'a>(
             obj.component_id = COMPONENT_PHP_MEMCACHED_ID;
             obj.add_tag(TAG_CACHE_TYPE, "memcache");
 
-            if let Some(cmd) = &tag_info.cmd {
+            if let Some(cmd) = tag_info.cmd {
                 obj.add_tag(TAG_CACHE_CMD, cmd);
             }
             if let Some(op) = &tag_info.op {
