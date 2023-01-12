@@ -29,6 +29,8 @@ env:
   RUST_BACKTRACE: "1"
   RUSTFLAGS: "-D warnings"
   LLVM_CONFIG_PATH: llvm-config-10
+  RUST_STABLE_TOOLCHAIN: "1.65"
+  RUST_NIGHTLY_TOOLCHAIN: "nightly-2023-01-11"
 
 jobs:
   required:
@@ -109,10 +111,10 @@ jobs:
           [[ `php-fpm --version` == PHP\ ${{ matrix.version.php }}.* ]] || exit 1;
           [[ `php-config --version` == ${{ matrix.version.php }}.* ]] || exit 1;
 
-      - name: Install Rust Stable
+      - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           override: true
           components: clippy
 
@@ -130,14 +132,14 @@ jobs:
       - name: Cargo clippy
         uses: actions-rs/cargo@v1
         with:
-          toolchain: stable
+          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: clippy
           args: --release --workspace
 
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
-          toolchain: stable
+          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: build
           args: --release --workspace
 
@@ -155,7 +157,7 @@ jobs:
       - name: Cargo test
         uses: actions-rs/cargo@v1
         with:
-          toolchain: stable
+          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: test
           args: --release --workspace
 
@@ -182,13 +184,13 @@ jobs:
       - name: Install Rust Nightly
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_NIGHTLY_TOOLCHAIN }}
           override: true
           components: rustfmt
 
       - name: Cargo fmt
         uses: actions-rs/cargo@v1
         with:
-          toolchain: nightly
+          toolchain: ${{ env.RUST_NIGHTLY_TOOLCHAIN }}
           command: fmt
           args: --all -- --check

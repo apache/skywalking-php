@@ -20,7 +20,7 @@ use crate::{
 use once_cell::sync::{Lazy, OnceCell};
 use phper::ini::ini_get;
 use skywalking::reporter::{
-    grpc::{ColletcItemConsume, GrpcReporter},
+    grpc::{CollectItemConsume, GrpcReporter},
     CollectItem,
 };
 use std::{
@@ -191,7 +191,7 @@ async fn start_worker(server_addr: String) {
             //     sig.recv().await;
             //     info!("Shutdown signal received");
             // })
-            .with_staus_handle(|status| {
+            .with_status_handle(|status| {
                 warn!(?status, "Collect failed");
             })
             .spawn();
@@ -234,7 +234,7 @@ async fn connect(endpoint: Endpoint) -> Channel {
 struct Consumer(mpsc::Receiver<Result<CollectItem, Box<dyn Error + Send>>>);
 
 #[async_trait]
-impl ColletcItemConsume for Consumer {
+impl CollectItemConsume for Consumer {
     async fn consume(&mut self) -> Result<Option<CollectItem>, Box<dyn Error + Send>> {
         self.0
             .recv()

@@ -22,7 +22,7 @@ use crate::{
     SKYWALKING_AGENT_SERVICE_NAME, SKYWALKING_AGENT_SKYWALKING_VERSION,
 };
 use once_cell::sync::Lazy;
-use phper::{arrays::ZArr, ini::ini_get, modules::ModuleContext, sys};
+use phper::{arrays::ZArr, ini::ini_get, sys};
 use skywalking::{
     common::random_generator::RandomGenerator,
     trace::tracer::{self, Tracer},
@@ -57,9 +57,9 @@ pub static SOCKET_FILE_PATH: Lazy<String> = Lazy::new(|| {
     )
 });
 
-pub fn init(_module: ModuleContext) -> bool {
+pub fn init() {
     if !is_enable() {
-        return true;
+        return;
     }
 
     init_logger();
@@ -82,14 +82,10 @@ pub fn init(_module: ModuleContext) -> bool {
     ));
 
     register_execute_functions();
-
-    true
 }
 
-pub fn shutdown(_module: ModuleContext) -> bool {
+pub fn shutdown() {
     shutdown_worker();
-
-    true
 }
 
 fn init_logger() {

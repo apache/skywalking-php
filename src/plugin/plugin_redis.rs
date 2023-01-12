@@ -312,7 +312,7 @@ impl RedisPlugin {
                     span.add_tag(TAG_CACHE_TYPE, "redis");
                     span.add_tag(
                         TAG_CACHE_CMD,
-                        REDIS_ALL_MAPPING.get(function_name_key).unwrap(),
+                        *REDIS_ALL_MAPPING.get(function_name_key).unwrap(),
                     );
                     if let Some(op) = op {
                         span.add_tag(TAG_CACHE_OP, op);
