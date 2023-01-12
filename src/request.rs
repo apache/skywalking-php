@@ -25,9 +25,10 @@ use once_cell::sync::Lazy;
 use phper::{arrays::ZArr, eg, pg, sg, sys, values::ZVal};
 use skywalking::trace::{propagation::decoder::decode_propagation, tracer};
 use std::{
+    convert::Infallible,
     panic::AssertUnwindSafe,
     ptr::null_mut,
-    sync::atomic::{AtomicBool, AtomicPtr, Ordering}, convert::Infallible,
+    sync::atomic::{AtomicBool, AtomicPtr, Ordering},
 };
 use tracing::{error, instrument, trace, warn};
 
