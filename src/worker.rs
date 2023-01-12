@@ -17,7 +17,7 @@ use crate::{
     channel, module::SOCKET_FILE_PATH, util::change_permission, SKYWALKING_AGENT_SERVER_ADDR,
     SKYWALKING_AGENT_WORKER_THREADS,
 };
-use once_cell::sync::{Lazy, OnceCell};
+use once_cell::sync::Lazy;
 use phper::ini::ini_get;
 use skywalking::reporter::{
     grpc::{CollectItemConsume, GrpcReporter},
@@ -41,8 +41,6 @@ use tonic::{
 };
 use tracing::{debug, error, info, warn};
 
-static WORKER_PID: OnceCell<libc::pid_t> = OnceCell::new();
-
 pub fn init_worker() {
     let server_addr = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SERVER_ADDR)
         .and_then(|s| s.to_str().ok())
@@ -61,22 +59,15 @@ pub fn init_worker() {
                 error!("fork failed");
             }
             Ordering::Equal => {
+                // Ensure worker process exits when master process exists.
+                #[cfg(target_os = "linux")]
+                libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGTERM);
+
                 let rt = new_tokio_runtime(worker_threads);
                 rt.block_on(start_worker(server_addr));
                 exit(0);
             }
-            Ordering::Greater => {
-                WORKER_PID.set(pid).unwrap();
-            }
-        }
-    }
-}
-
-pub fn shutdown_worker() {
-    if let Some(pid) = WORKER_PID.get() {
-        debug!(pid, "Start to shutdown worker");
-        unsafe {
-            libc::kill(*pid, libc::SIGTERM);
+            Ordering::Greater => {}
         }
     }
 }
