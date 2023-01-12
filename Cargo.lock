@@ -1423,9 +1423,9 @@ dependencies = [
 
 [[package]]
 name = "phper"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6282df2a6f48e4d60dca853f6fe48c2062fcaed9adba870e22ef7431d1897a45"
+checksum = "d5cb40cd004cf222434703239b49d07b2bf0f632af9701553b6b9c16c9b05fc3"
 dependencies = [
  "derive_more",
  "indexmap",
@@ -1439,9 +1439,9 @@ dependencies = [
 
 [[package]]
 name = "phper-alloc"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3dfd8d29e6bc89dec7132fc9cda4ff334368a887c460c95b992260a7a3ab3c4"
+checksum = "5cbb7c06346db332579f4e8d15a46b4bde5130d6c564c4ca94213b2d49ab9348"
 dependencies = [
  "phper-build",
  "phper-sys",
@@ -1449,18 +1449,18 @@ dependencies = [
 
 [[package]]
 name = "phper-build"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe68c32ea18225f2c5e07201dc9e2e46a85839d17da083f5213a833d34863fe9"
+checksum = "90c22104ab577270b22a9774c5b358401b164bd193caf28e297bce8840c08c36"
 dependencies = [
  "phper-sys",
 ]
 
 [[package]]
 name = "phper-macros"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfb4c012e014cca9995c46c5be85bcb61ece5ef8eaadad0b3e78718a802cd609"
+checksum = "7b29fc223f3fb43b69dda7263faf91d553f449af8117ae418f23bf9d280ed61a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1469,9 +1469,9 @@ dependencies = [
 
 [[package]]
 name = "phper-sys"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e49a94efd943b0a4bdb71ec2157d42429a35f349c3c275f47f10678a3a0288fc"
+checksum = "041c00aa64e0bff7048033a0e425417367258c0a6e42f5db594d327d49090d5e"
 dependencies = [
  "bindgen",
  "cc",
