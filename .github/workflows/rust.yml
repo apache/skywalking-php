@@ -114,7 +114,7 @@ jobs:
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ env.HELLO_WORLD_ENABLED }}
+          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           override: true
           components: clippy
 
@@ -132,14 +132,14 @@ jobs:
       - name: Cargo clippy
         uses: actions-rs/cargo@v1
         with:
-          toolchain: ${{ env.HELLO_WORLD_ENABLED }}
+          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: clippy
           args: --release --workspace
 
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
-          toolchain: ${{ env.HELLO_WORLD_ENABLED }}
+          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: build
           args: --release --workspace
 
@@ -157,7 +157,7 @@ jobs:
       - name: Cargo test
         uses: actions-rs/cargo@v1
         with:
-          toolchain: ${{ env.HELLO_WORLD_ENABLED }}
+          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: test
           args: --release --workspace
 
