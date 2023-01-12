@@ -1,8 +1,8 @@
 # Setup PHP Agent
 
-1. Agent is available for PHP 7.2 - 8.x
-2. Build from source
-3. Configure php.ini
+1. Agent is available for PHP 7.2 - 8.x.
+2. Build from source.
+3. Configure `php.ini`.
 
 ## Requirements
 
@@ -15,8 +15,21 @@
 
 For Debian-base OS:
 
-```shell script
-sudo apt install gcc make cargo libclang protobuf-compiler
+```shell
+sudo apt install gcc make llvm-dev libclang-dev clang protobuf-compiler
+```
+
+### Install Rust globally
+
+*Refer to <https://forge.rust-lang.org/infra/other-installation-methods.html#standalone-installers>.*
+
+For linux x86_64 user:
+
+```shell
+wget https://static.rust-lang.org/dist/rust-1.65.0-x86_64-unknown-linux-gnu.tar.gz
+tar zxvf rust-1.65.0-x86_64-unknown-linux-gnu.tar.gz
+cd rust-1.65.0-x86_64-unknown-linux-gnu
+./install.sh
 ```
 
 ## Install
