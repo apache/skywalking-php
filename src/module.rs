@@ -17,7 +17,7 @@ use crate::{
     channel::Reporter,
     execute::register_execute_functions,
     util::{get_sapi_module_name, IPS},
-    worker::{init_worker, shutdown_worker},
+    worker::init_worker,
     SKYWALKING_AGENT_ENABLE, SKYWALKING_AGENT_LOG_FILE, SKYWALKING_AGENT_LOG_LEVEL,
     SKYWALKING_AGENT_SERVICE_NAME, SKYWALKING_AGENT_SKYWALKING_VERSION,
 };
@@ -84,9 +84,7 @@ pub fn init() {
     register_execute_functions();
 }
 
-pub fn shutdown() {
-    shutdown_worker();
-}
+pub fn shutdown() {}
 
 fn init_logger() {
     let log_level = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_LOG_LEVEL)
