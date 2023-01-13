@@ -143,18 +143,47 @@ jobs:
           command: build
           args: --release --workspace
 
+      - name: Composer install
+        run: composer install --working-dir=tests/php
+
+      # Build mixture for cargo test.
       - name: Docker compose
         if: matrix.os == 'ubuntu-20.04'
         run: docker compose up -d
 
+      # Build mixture for cargo test.
       - name: Vagrant up for docker compose
         if: matrix.os == 'macos-12'
         run: vagrant up
 
-      - name: Composer install
-        run: composer install --working-dir=tests/php
-
+      # Try cargo test.
       - name: Cargo test
+        id: cargo-test-step
+        uses: actions-rs/cargo@v1
+        with:
+          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
+          command: test
+          args: --release --workspace
+        continue-on-error: true
+
+      # Rebuild the mixture when cargo test failed.
+      - name: Docker compose restart
+        if: matrix.os == 'ubuntu-20.04' && steps.cargo-test-step.outcome != 'success'
+        run: docker compose restart
+
+      # Rebuild the mixture when cargo test failed.
+      - name: Vagrant reload for docker compose
+        if: matrix.os == 'macos-12' && steps.cargo-test-step.outcome != 'success'
+        run: vagrant reload
+
+      # Delay before retry.
+      - name: Delay
+        if: steps.cargo-test-step.outcome != 'success'
+        run: sleep 20
+
+      # Retry cargo test.
+      - name: Cargo test
+        if: steps.cargo-test-step.outcome != 'success'
         uses: actions-rs/cargo@v1
         with:
           toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
