@@ -20,14 +20,12 @@ brew install php
 
 ## Install Rust Environment
 
-Install Rust 1.65.0+ globally.
+Install Rust 1.65.0+.
 
 For Linux user:
 
 ```shell
-curl https://sh.rustup.rs -sSf | sudo sh -s -- --no-modify-path
-sudo ln -s /root/.cargo/bin/rustup /usr/local/bin/rustup
-sudo ln -s /root/.cargo/bin/cargo /usr/local/bin/cargo
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
 For MacOS user:
@@ -41,7 +39,7 @@ brew install rust
 For Debian user:
 
 ```shell
-sudo apt install gcc make libclang protobuf-compiler
+sudo apt install gcc make llvm-dev libclang-dev clang protobuf-compiler
 ```
 
 For MacOS user:
