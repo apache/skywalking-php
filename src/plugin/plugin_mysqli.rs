@@ -22,19 +22,24 @@ use crate::{
 use anyhow::Context;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
+use phper::{objects::ZObj, sys};
 use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
 use tracing::debug;
 
 static MYSQL_MAP: Lazy<DashMap<u32, MySQLInfo>> = Lazy::new(Default::default);
 
+static DTOR_MAP: Lazy<DashMap<u32, sys::zend_object_dtor_obj_t>> = Lazy::new(Default::default);
+
 #[derive(Default, Clone)]
 pub struct MySQLImprovedPlugin;
 
 impl Plugin for MySQLImprovedPlugin {
+    #[inline]
     fn class_names(&self) -> Option<&'static [&'static str]> {
         Some(&["mysqli"])
     }
 
+    #[inline]
     fn function_name_prefix(&self) -> Option<&'static str> {
         None
     }
@@ -58,6 +63,8 @@ impl MySQLImprovedPlugin {
             Box::new(|_, execute_data| {
                 let this = get_this_mut(execute_data)?;
                 let handle = this.handle();
+                hack_dtor(this, Some(mysqli_dtor));
+
                 let mut info: MySQLInfo = MySQLInfo {
                     hostname: "127.0.0.1".to_string(),
                     port: 3306,
@@ -98,7 +105,7 @@ impl MySQLImprovedPlugin {
                 let this = get_this_mut(execute_data)?;
                 let handle = this.handle();
 
-                debug!(handle, function_name, "call mysql method");
+                debug!(handle, function_name, "call mysqli method");
 
                 let mut span = with_info(handle, |info| {
                     create_mysqli_exit_span(request_id, "mysqli", &function_name, info)
@@ -144,4 +151,28 @@ fn with_info<T>(handle: u32, f: impl FnOnce(&MySQLInfo) -> anyhow::Result<T>) ->
 struct MySQLInfo {
     hostname: String,
     port: i64,
+}
+
+fn hack_dtor(this: &mut ZObj, new_dtor: sys::zend_object_dtor_obj_t) {
+    let handle = this.handle();
+
+    unsafe {
+        let ori_dtor = (*(*this.as_mut_ptr()).handlers).dtor_obj;
+        DTOR_MAP.insert(handle, ori_dtor);
+        (*((*this.as_mut_ptr()).handlers as *mut sys::zend_object_handlers)).dtor_obj = new_dtor;
+    }
+}
+
+unsafe extern "C" fn mysqli_dtor(object: *mut sys::zend_object) {
+    debug!("call mysqli dtor");
+    dtor(object);
+}
+
+unsafe extern "C" fn dtor(object: *mut sys::zend_object) {
+    let handle = ZObj::from_ptr(object).handle();
+
+    MYSQL_MAP.remove(&handle);
+    if let Some((_, Some(dtor))) = DTOR_MAP.remove(&handle) {
+        dtor(object);
+    }
 }
