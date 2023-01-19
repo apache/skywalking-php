@@ -28,7 +28,7 @@ use skywalking::{
     trace::tracer::{self, Tracer},
 };
 use std::{borrow::ToOwned, env, ffi::CStr, path::Path, str::FromStr, time::SystemTime};
-use tracing::{info, metadata::LevelFilter};
+use tracing::{error, info, metadata::LevelFilter};
 use tracing_subscriber::FmtSubscriber;
 
 pub static SERVICE_NAME: Lazy<String> = Lazy::new(|| {
@@ -71,6 +71,15 @@ pub fn init() {
         service_name,
         service_instance, skywalking_version, "Starting skywalking agent"
     );
+
+    // Skywalking version check
+    if *skywalking_version < 8 {
+        error!(
+            skywalking_version,
+            "The skywalking agent only supports versions after skywalking 8"
+        );
+        return;
+    }
 
     Lazy::force(&SOCKET_FILE_PATH);
     init_worker();
