@@ -17,9 +17,14 @@ use anyhow::anyhow;
 use once_cell::sync::OnceCell;
 use skywalking::reporter::{CollectItem, Report};
 use std::{
-    io::Write, mem::size_of, ops::DerefMut, os::unix::net::UnixStream, path::Path, sync::Mutex,
+    io::Write,
+    mem::size_of,
+    ops::DerefMut,
+    os::unix::net::UnixStream,
+    path::{Path, PathBuf},
+    sync::Mutex,
 };
-use tokio::io::AsyncReadExt;
+use tokio::{io::AsyncReadExt, sync::mpsc};
 use tracing::error;
 
 fn channel_send<T>(data: CollectItem, mut sender: T) -> anyhow::Result<()>
@@ -47,15 +52,15 @@ pub async fn channel_receive(receiver: &mut tokio::net::UnixStream) -> anyhow::R
     Ok(item)
 }
 
-pub struct Reporter<T: AsRef<Path>> {
-    worker_addr: T,
+pub struct Reporter {
+    worker_addr: PathBuf,
     stream: OnceCell<Mutex<UnixStream>>,
 }
 
-impl<T: AsRef<Path>> Reporter<T> {
-    pub fn new(worker_addr: T) -> Self {
+impl Reporter {
+    pub fn new(worker_addr: impl AsRef<Path>) -> Self {
         Self {
-            worker_addr,
+            worker_addr: worker_addr.as_ref().to_path_buf(),
             stream: OnceCell::new(),
         }
     }
@@ -71,10 +76,20 @@ impl<T: AsRef<Path>> Reporter<T> {
     }
 }
 
-impl<T: AsRef<Path>> Report for Reporter<T> {
+impl Report for Reporter {
     fn report(&self, item: CollectItem) {
         if let Err(err) = self.try_report(item) {
             error!(?err, "channel send failed");
+        }
+    }
+}
+
+pub struct TxReporter(pub mpsc::Sender<CollectItem>);
+
+impl Report for TxReporter {
+    fn report(&self, item: CollectItem) {
+        if let Err(err) = self.0.try_send(item) {
+            error!(?err, "Send collect item failed");
         }
     }
 }
