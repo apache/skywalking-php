@@ -54,6 +54,9 @@ const SKYWALKING_AGENT_LOG_LEVEL: &str = "skywalking_agent.log_level";
 /// Log file of skywalking agent.
 const SKYWALKING_AGENT_LOG_FILE: &str = "skywalking_agent.log_file";
 
+/// Skywalking agent runtime directory.
+const SKYWALKING_AGENT_RUNTIME_DIR: &str = "skywalking_agent.runtime_dir";
+
 #[php_get_module]
 pub fn get_module() -> Module {
     let mut module = Module::new(
@@ -84,6 +87,11 @@ pub fn get_module() -> Module {
     module.add_ini(
         SKYWALKING_AGENT_LOG_FILE,
         "/tmp/skywalking-agent.log".to_string(),
+        Policy::System,
+    );
+    module.add_ini(
+        SKYWALKING_AGENT_RUNTIME_DIR,
+        "/tmp/skywalking-agent".to_string(),
         Policy::System,
     );
 

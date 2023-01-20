@@ -14,12 +14,13 @@
 // limitations under the License.
 
 use anyhow::anyhow;
-use chrono::Local;
 use once_cell::sync::Lazy;
 use phper::{sys, values::ZVal};
 use std::{
     ffi::CStr,
+    os::unix::prelude::OsStrExt,
     panic::{catch_unwind, UnwindSafe},
+    path::Path,
 };
 use systemstat::{IpAddr, Platform, System};
 
@@ -59,33 +60,6 @@ pub static IPS: Lazy<Vec<String>> = Lazy::new(|| {
         .unwrap_or_else(|| vec!["127.0.0.1".to_owned()])
 });
 
-// TODO Maybe report_instance_properties used.
-#[allow(dead_code)]
-pub static HOST_NAME: Lazy<String> = Lazy::new(|| {
-    hostname::get()
-        .ok()
-        .and_then(|hostname| hostname.into_string().ok())
-        .unwrap_or_else(|| "unknown".to_string())
-});
-
-// TODO Maybe report_instance_properties used.
-#[allow(dead_code)]
-pub const OS_NAME: &str = if cfg!(target_os = "linux") {
-    "Linux"
-} else if cfg!(target_os = "windows") {
-    "Windows"
-} else if cfg!(target_os = "macos") {
-    "Macos"
-} else {
-    "Unknown"
-};
-
-// TODO Maybe report_instance_properties used.
-#[allow(dead_code)]
-pub fn current_formatted_time() -> String {
-    Local::now().format("%Y-%m-%d %H:%M:%S").to_string()
-}
-
 pub fn z_val_to_string(zv: &ZVal) -> Option<String> {
     zv.as_z_str()
         .and_then(|zs| zs.to_str().ok())
@@ -113,10 +87,11 @@ pub fn get_sapi_module_name() -> &'static CStr {
     unsafe { CStr::from_ptr(sys::sapi_module.name) }
 }
 
-pub fn change_permission(f: &str, mode: libc::mode_t) {
+pub fn change_permission(f: impl AsRef<Path>, mode: libc::mode_t) {
+    let f = f.as_ref().as_os_str().as_bytes();
     let mut path = Vec::with_capacity(f.len() + 1);
-    path.extend_from_slice(f.as_bytes());
-    path.push(0);
+    path.extend_from_slice(f);
+    path.push(b'\0');
     unsafe {
         libc::chmod(path.as_ptr().cast(), mode);
     }

@@ -114,10 +114,10 @@ async fn start_worker(server_addr: String) -> anyhow::Result<()> {
     let mut sig_term = signal(SignalKind::terminate())?;
     let mut sig_int = signal(SignalKind::interrupt())?;
 
-    let socket_file = SOCKET_FILE_PATH.as_str();
+    let socket_file = &*SOCKET_FILE_PATH;
 
     let fut = async move {
-        debug!(socket_file, "Bind unix stream");
+        debug!(?socket_file, "Bind unix stream");
         let listener = UnixListener::bind(socket_file)?;
         change_permission(socket_file, 0o777);
 
@@ -242,7 +242,7 @@ impl Drop for WorkerExitGuard {
     fn drop(&mut self) {
         match Lazy::get(&SOCKET_FILE_PATH) {
             Some(socket_file) => {
-                info!(socket_file, "Remove socket file");
+                info!(?socket_file, "Remove socket file");
                 if let Err(err) = fs::remove_file(socket_file) {
                     error!(?err, "Remove socket file failed");
                 }
