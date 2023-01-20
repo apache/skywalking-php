@@ -19,7 +19,8 @@ use crate::{
     util::{get_sapi_module_name, IPS},
     worker::init_worker,
     SKYWALKING_AGENT_ENABLE, SKYWALKING_AGENT_LOG_FILE, SKYWALKING_AGENT_LOG_LEVEL,
-    SKYWALKING_AGENT_SERVICE_NAME, SKYWALKING_AGENT_SKYWALKING_VERSION,
+    SKYWALKING_AGENT_RUNTIME_DIR, SKYWALKING_AGENT_SERVICE_NAME,
+    SKYWALKING_AGENT_SKYWALKING_VERSION,
 };
 use once_cell::sync::Lazy;
 use phper::{arrays::ZArr, ini::ini_get, sys};
@@ -27,7 +28,15 @@ use skywalking::{
     common::random_generator::RandomGenerator,
     trace::tracer::{self, Tracer},
 };
-use std::{borrow::ToOwned, env, ffi::CStr, path::Path, str::FromStr, time::SystemTime};
+use std::{
+    borrow::ToOwned,
+    ffi::{CStr, OsStr},
+    fs,
+    os::unix::prelude::OsStrExt,
+    path::{Path, PathBuf},
+    str::FromStr,
+    time::SystemTime,
+};
 use tracing::{error, info, metadata::LevelFilter};
 use tracing_subscriber::FmtSubscriber;
 
@@ -44,17 +53,25 @@ pub static SERVICE_INSTANCE: Lazy<String> =
 pub static SKYWALKING_VERSION: Lazy<i64> =
     Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_SKYWALKING_VERSION));
 
-pub static SOCKET_FILE_PATH: Lazy<String> = Lazy::new(|| {
+pub static RUNTIME_DIR: Lazy<Option<PathBuf>> = Lazy::new(|| {
+    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_RUNTIME_DIR).map(|dir| {
+        let mut path = PathBuf::new();
+        path.push(OsStr::from_bytes(dir.to_bytes()));
+        path
+    })
+});
+
+pub static SOCKET_FILE_PATH: Lazy<PathBuf> = Lazy::new(|| {
+    let mut dir = RUNTIME_DIR.as_ref().unwrap().clone();
+
     let dur = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .expect("Get timestamp failed")
         .as_micros();
-    format!(
-        "{}/{}_{:x}.sock",
-        env::temp_dir().display(),
-        env!("CARGO_CRATE_NAME"),
-        dur
-    )
+
+    dir.push(format!("{:x}.sock", dur));
+
+    dir
 });
 
 pub fn init() {
@@ -81,13 +98,26 @@ pub fn init() {
         return;
     }
 
+    match &*RUNTIME_DIR {
+        Some(dir) => {
+            if let Err(err) = fs::create_dir_all(dir) {
+                error!(?err, "Create runtime directory failed");
+                return;
+            }
+        }
+        None => {
+            error!("The skywalking agent runtime directory must not be empty");
+            return;
+        }
+    }
+
     Lazy::force(&SOCKET_FILE_PATH);
     init_worker();
 
     tracer::set_global_tracer(Tracer::new(
         service_name,
         service_instance,
-        Reporter::new(SOCKET_FILE_PATH.as_str()),
+        Reporter::new(&*SOCKET_FILE_PATH),
     ));
 
     register_execute_functions();
