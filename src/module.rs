@@ -53,16 +53,19 @@ pub static SERVICE_INSTANCE: Lazy<String> =
 pub static SKYWALKING_VERSION: Lazy<i64> =
     Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_SKYWALKING_VERSION));
 
-pub static RUNTIME_DIR: Lazy<Option<PathBuf>> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_RUNTIME_DIR).map(|dir| {
-        let mut path = PathBuf::new();
-        path.push(OsStr::from_bytes(dir.to_bytes()));
-        path
-    })
+pub static RUNTIME_DIR: Lazy<PathBuf> = Lazy::new(|| {
+    let mut path = PathBuf::new();
+    if let Some(dir) = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_RUNTIME_DIR) {
+        let dir = dir.to_bytes();
+        if !dir.is_empty() {
+            path.push(OsStr::from_bytes(dir));
+        }
+    }
+    path
 });
 
 pub static SOCKET_FILE_PATH: Lazy<PathBuf> = Lazy::new(|| {
-    let mut dir = RUNTIME_DIR.as_ref().unwrap().clone();
+    let mut dir = RUNTIME_DIR.clone();
 
     let dur = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
@@ -98,17 +101,13 @@ pub fn init() {
         return;
     }
 
-    match &*RUNTIME_DIR {
-        Some(dir) => {
-            if let Err(err) = fs::create_dir_all(dir) {
-                error!(?err, "Create runtime directory failed");
-                return;
-            }
-        }
-        None => {
-            error!("The skywalking agent runtime directory must not be empty");
-            return;
-        }
+    if RUNTIME_DIR.as_os_str().is_empty() {
+        error!("The skywalking agent runtime directory must not be empty");
+        return;
+    }
+    if let Err(err) = fs::create_dir_all(&*RUNTIME_DIR) {
+        error!(?err, "Create runtime directory failed");
+        return;
     }
 
     Lazy::force(&SOCKET_FILE_PATH);
