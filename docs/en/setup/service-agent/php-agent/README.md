@@ -76,8 +76,10 @@ skywalking_agent.service_name = hello-skywalking
 ; Skywalking version.
 skywalking_agent.skywalking_version = 8
 
-; Skywalking worker threads, 0 will auto set as the cpu core size,
-; default is 0.
+; Skywalking authentication token, let it empty if the backend isn't enabled.
+; skywalking_agent.authentication =
+
+; Skywalking worker threads, 0 will auto set as the cpu core size, default is 0.
 ; skywalking_agent.worker_threads = 3
 
 ; Skywalking agent runtime directory, default is /tmp/skywalking-agent.

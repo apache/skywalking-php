@@ -15,7 +15,7 @@
 
 use crate::{
     channel::{self, TxReporter},
-    module::{SERVICE_INSTANCE, SERVICE_NAME, SOCKET_FILE_PATH},
+    module::{AUTHENTICATION, SERVICE_INSTANCE, SERVICE_NAME, SOCKET_FILE_PATH},
     util::change_permission,
     SKYWALKING_AGENT_SERVER_ADDR, SKYWALKING_AGENT_WORKER_THREADS,
 };
@@ -171,7 +171,11 @@ async fn start_worker(server_addr: String) -> anyhow::Result<()> {
 
         report_properties_and_keep_alive(TxReporter(tx_));
 
-        let reporter = GrpcReporter::new_with_pc(channel, (), Consumer(rx));
+        let mut reporter = GrpcReporter::new_with_pc(channel, (), Consumer(rx));
+
+        if !AUTHENTICATION.is_empty() {
+            reporter = reporter.with_authentication(&*AUTHENTICATION);
+        }
 
         info!("Worker is ready...");
 
