@@ -18,8 +18,8 @@ use crate::{
     execute::register_execute_functions,
     util::{get_sapi_module_name, IPS},
     worker::init_worker,
-    SKYWALKING_AGENT_ENABLE, SKYWALKING_AGENT_LOG_FILE, SKYWALKING_AGENT_LOG_LEVEL,
-    SKYWALKING_AGENT_RUNTIME_DIR, SKYWALKING_AGENT_SERVICE_NAME,
+    SKYWALKING_AGENT_AUTHENTICATION, SKYWALKING_AGENT_ENABLE, SKYWALKING_AGENT_LOG_FILE,
+    SKYWALKING_AGENT_LOG_LEVEL, SKYWALKING_AGENT_RUNTIME_DIR, SKYWALKING_AGENT_SERVICE_NAME,
     SKYWALKING_AGENT_SKYWALKING_VERSION,
 };
 use once_cell::sync::Lazy;
@@ -77,6 +77,13 @@ pub static SOCKET_FILE_PATH: Lazy<PathBuf> = Lazy::new(|| {
     dir
 });
 
+pub static AUTHENTICATION: Lazy<String> = Lazy::new(|| {
+    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_AUTHENTICATION)
+        .and_then(|s| s.to_str().ok())
+        .map(ToOwned::to_owned)
+        .unwrap_or_default()
+});
+
 pub fn init() {
     if !is_enable() {
         return;
@@ -87,9 +94,10 @@ pub fn init() {
     let service_name = Lazy::force(&SERVICE_NAME);
     let service_instance = Lazy::force(&SERVICE_INSTANCE);
     let skywalking_version = Lazy::force(&SKYWALKING_VERSION);
+    let authentication = Lazy::force(&AUTHENTICATION);
     info!(
         service_name,
-        service_instance, skywalking_version, "Starting skywalking agent"
+        service_instance, skywalking_version, authentication, "Starting skywalking agent"
     );
 
     // Skywalking version check
