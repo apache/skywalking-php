@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-fn_args_layout = "Compressed"
+fn_params_layout = "Compressed"
 format_code_in_doc_comments = true
 format_macro_bodies = true
 format_macro_matchers = true

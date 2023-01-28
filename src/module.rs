@@ -18,9 +18,11 @@ use crate::{
     execute::register_execute_functions,
     util::{get_sapi_module_name, IPS},
     worker::init_worker,
-    SKYWALKING_AGENT_AUTHENTICATION, SKYWALKING_AGENT_ENABLE, SKYWALKING_AGENT_LOG_FILE,
-    SKYWALKING_AGENT_LOG_LEVEL, SKYWALKING_AGENT_RUNTIME_DIR, SKYWALKING_AGENT_SERVICE_NAME,
-    SKYWALKING_AGENT_SKYWALKING_VERSION,
+    SKYWALKING_AGENT_AUTHENTICATION, SKYWALKING_AGENT_ENABLE, SKYWALKING_AGENT_ENABLE_TLS,
+    SKYWALKING_AGENT_LOG_FILE, SKYWALKING_AGENT_LOG_LEVEL, SKYWALKING_AGENT_RUNTIME_DIR,
+    SKYWALKING_AGENT_SERVICE_NAME, SKYWALKING_AGENT_SKYWALKING_VERSION,
+    SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH, SKYWALKING_AGENT_SSL_KEY_PATH,
+    SKYWALKING_AGENT_SSL_TRUSTED_CA_PATH,
 };
 use once_cell::sync::Lazy;
 use phper::{arrays::ZArr, ini::ini_get, sys};
@@ -37,7 +39,7 @@ use std::{
     str::FromStr,
     time::SystemTime,
 };
-use tracing::{error, info, metadata::LevelFilter};
+use tracing::{debug, error, info, metadata::LevelFilter};
 use tracing_subscriber::FmtSubscriber;
 
 pub static SERVICE_NAME: Lazy<String> = Lazy::new(|| {
@@ -84,6 +86,29 @@ pub static AUTHENTICATION: Lazy<String> = Lazy::new(|| {
         .unwrap_or_default()
 });
 
+pub static ENABLE_TLS: Lazy<bool> = Lazy::new(|| ini_get::<bool>(SKYWALKING_AGENT_ENABLE_TLS));
+
+pub static SSL_TRUSTED_CA_PATH: Lazy<String> = Lazy::new(|| {
+    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SSL_TRUSTED_CA_PATH)
+        .and_then(|s| s.to_str().ok())
+        .map(ToOwned::to_owned)
+        .unwrap_or_default()
+});
+
+pub static SSL_KEY_PATH: Lazy<String> = Lazy::new(|| {
+    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SSL_KEY_PATH)
+        .and_then(|s| s.to_str().ok())
+        .map(ToOwned::to_owned)
+        .unwrap_or_default()
+});
+
+pub static SSL_CERT_CHAIN_PATH: Lazy<String> = Lazy::new(|| {
+    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH)
+        .and_then(|s| s.to_str().ok())
+        .map(ToOwned::to_owned)
+        .unwrap_or_default()
+});
+
 pub fn init() {
     if !is_enable() {
         return;
@@ -91,6 +116,7 @@ pub fn init() {
 
     init_logger();
 
+    // Skywalking agent info.
     let service_name = Lazy::force(&SERVICE_NAME);
     let service_instance = Lazy::force(&SERVICE_INSTANCE);
     let skywalking_version = Lazy::force(&SKYWALKING_VERSION);
@@ -100,7 +126,7 @@ pub fn init() {
         service_instance, skywalking_version, authentication, "Starting skywalking agent"
     );
 
-    // Skywalking version check
+    // Skywalking version check.
     if *skywalking_version < 8 {
         error!(
             skywalking_version,
@@ -109,6 +135,17 @@ pub fn init() {
         return;
     }
 
+    // Initialize TLS if enabled.
+    let enable_tls = Lazy::force(&ENABLE_TLS);
+    let ssl_trusted_ca_path = Lazy::force(&SSL_TRUSTED_CA_PATH);
+    let ssl_key_path = Lazy::force(&SSL_KEY_PATH);
+    let ssl_cert_chain_path = Lazy::force(&SSL_CERT_CHAIN_PATH);
+    debug!(
+        enable_tls,
+        ssl_trusted_ca_path, ssl_key_path, ssl_cert_chain_path, "Skywalking TLS info"
+    );
+
+    // Initialize runtime directory.
     if RUNTIME_DIR.as_os_str().is_empty() {
         error!("The skywalking agent runtime directory must not be empty");
         return;
@@ -118,6 +155,7 @@ pub fn init() {
         return;
     }
 
+    // Initialize Agent worker.
     Lazy::force(&SOCKET_FILE_PATH);
     init_worker();
 
@@ -127,6 +165,7 @@ pub fn init() {
         Reporter::new(&*SOCKET_FILE_PATH),
     ));
 
+    // Hook functions.
     register_execute_functions();
 }
 
