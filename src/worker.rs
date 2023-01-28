@@ -34,7 +34,7 @@ use skywalking::{
 };
 use std::{
     cmp::Ordering, error::Error, ffi::CStr, fs, io, marker::PhantomData, num::NonZeroUsize,
-    process::exit, thread::available_parallelism, time::Duration,
+    process::exit, sync::Arc, thread::available_parallelism, time::Duration,
 };
 use tokio::{
     net::UnixListener,
@@ -42,7 +42,7 @@ use tokio::{
     select,
     signal::unix::{signal, SignalKind},
     sync::mpsc::{self, error::TrySendError},
-    time::sleep,
+    time::{self, sleep},
 };
 use tonic::{
     async_trait,
@@ -297,18 +297,41 @@ impl Drop for WorkerExitGuard {
     }
 }
 
+/// The period in which the agent report a heartbeat to the backend.
+const HEARTBEAT_PERIOD: u64 = 30;
+
+/// The agent sends the instance properties to the backend every
+/// `collector.heartbeat_period * collector.properties_report_period_factor`
+/// seconds
+const PROPERTIES_REPORT_PERIOD_FACTOR: u64 = 10;
+
 fn report_properties_and_keep_alive(reporter: TxReporter) {
-    let manager = Manager::new(&*SERVICE_NAME, &*SERVICE_INSTANCE, reporter);
+    let manager = Arc::new(Manager::new(&*SERVICE_NAME, &*SERVICE_INSTANCE, reporter));
+    let manager_ = manager.clone();
 
-    let mut props = Properties::new();
-    props.insert_os_info();
-    props.update(Properties::KEY_LANGUAGE, "php");
-    props.update(Properties::KEY_PROCESS_NO, unsafe {
-        libc::getppid().to_string()
+    // TODO Refactor report instance properties and keep alive like skywalking-java.
+    //
+    // In skywalking-java, when properties_report_period reached, report the
+    // instance properties without keep alive. However, this needs to change the
+    // api of skywalking-rust, so wait for the next version of skywalking-rust.
+    tokio::spawn(async move {
+        let mut ticker = time::interval(Duration::from_secs(
+            HEARTBEAT_PERIOD * PROPERTIES_REPORT_PERIOD_FACTOR,
+        ));
+        loop {
+            ticker.tick().await;
+
+            let mut props = Properties::new();
+            props.insert_os_info();
+            props.update(Properties::KEY_LANGUAGE, "php");
+            props.update(Properties::KEY_PROCESS_NO, unsafe {
+                libc::getppid().to_string()
+            });
+            debug!(?props, "Report instance properties");
+
+            manager_.report_properties(props);
+        }
     });
-    debug!(?props, "Report instance properties");
 
-    manager.report_properties(props);
-
-    manager.keep_alive(Duration::from_secs(10));
+    manager.keep_alive(Duration::from_secs(HEARTBEAT_PERIOD));
 }
