@@ -271,10 +271,7 @@ fn setup_php_fpm(index: usize, fpm_addr: &str) -> Child {
             index
         ),
         "-d",
-        &format!(
-            "skywalking_agent.server_addr=http://{}",
-            COLLECTOR_GRPC_ADDRESS
-        ),
+        &format!("skywalking_agent.server_addr={}", COLLECTOR_GRPC_ADDRESS),
         "-d",
         &format!("skywalking_agent.log_level={}", PROCESS_LOG_LEVEL),
         "-d",
@@ -313,10 +310,7 @@ fn setup_php_swoole(index: usize) -> Child {
             index
         ),
         "-d",
-        &format!(
-            "skywalking_agent.server_addr=http://{}",
-            COLLECTOR_GRPC_ADDRESS
-        ),
+        &format!("skywalking_agent.server_addr={}", COLLECTOR_GRPC_ADDRESS),
         "-d",
         &format!("skywalking_agent.log_level={}", PROCESS_LOG_LEVEL),
         "-d",

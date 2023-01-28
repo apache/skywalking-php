@@ -68,7 +68,7 @@ skywalking_agent.log_file = /tmp/skywalking-agent.log
 skywalking_agent.log_level = INFO
 
 ; Address of skywalking oap server.
-skywalking_agent.server_addr = http://0.0.0.0:11800
+skywalking_agent.server_addr = 127.0.0.1:11800
 
 ; Application service name.
 skywalking_agent.service_name = hello-skywalking
@@ -84,4 +84,16 @@ skywalking_agent.skywalking_version = 8
 
 ; Skywalking agent runtime directory, default is /tmp/skywalking-agent.
 ; skywalking_agent.runtime_dir = /tmp/skywalking-agent
+
+; Wether to enable tls for gPRC, default is false.
+; skywalking_agent.enable_tls = Off
+
+; The gRPC SSL trusted ca file.
+; skywalking_agent.ssl_trusted_ca_path =
+
+; The private key file. Enable mTLS when ssl_key_path and ssl_cert_chain_path exist.
+; skywalking_agent.ssl_key_path =
+
+; The certificate file. Enable mTLS when ssl_key_path and ssl_cert_chain_path exist.
+; skywalking_agent.ssl_cert_chain_path =
 ```

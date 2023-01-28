@@ -60,6 +60,20 @@ const SKYWALKING_AGENT_RUNTIME_DIR: &str = "skywalking_agent.runtime_dir";
 /// Skywalking agent authentication token.
 const SKYWALKING_AGENT_AUTHENTICATION: &str = "skywalking_agent.authentication";
 
+/// Wether to enable tls for gPRC.
+const SKYWALKING_AGENT_ENABLE_TLS: &str = "skywalking_agent.enable_tls";
+
+/// The gRPC SSL trusted ca file.
+const SKYWALKING_AGENT_SSL_TRUSTED_CA_PATH: &str = "skywalking_agent.ssl_trusted_ca_path";
+
+/// The private key file. Enable mTLS when ssl_key_path and ssl_cert_chain_path
+/// exist.
+const SKYWALKING_AGENT_SSL_KEY_PATH: &str = "skywalking_agent.ssl_key_path";
+
+/// The certificate file. Enable mTLS when ssl_key_path and ssl_cert_chain_path
+/// exist.
+const SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH: &str = "skywalking_agent.ssl_cert_chain_path";
+
 #[php_get_module]
 pub fn get_module() -> Module {
     let mut module = Module::new(
@@ -73,7 +87,7 @@ pub fn get_module() -> Module {
     module.add_ini(SKYWALKING_AGENT_SKYWALKING_VERSION, 8i64, Policy::System);
     module.add_ini(
         SKYWALKING_AGENT_SERVER_ADDR,
-        "http://127.0.0.1:11800".to_string(),
+        "127.0.0.1:11800".to_string(),
         Policy::System,
     );
     module.add_ini(
@@ -99,6 +113,22 @@ pub fn get_module() -> Module {
     );
     module.add_ini(
         SKYWALKING_AGENT_AUTHENTICATION,
+        "".to_string(),
+        Policy::System,
+    );
+    module.add_ini(SKYWALKING_AGENT_ENABLE_TLS, false, Policy::System);
+    module.add_ini(
+        SKYWALKING_AGENT_SSL_TRUSTED_CA_PATH,
+        "".to_string(),
+        Policy::System,
+    );
+    module.add_ini(
+        SKYWALKING_AGENT_SSL_KEY_PATH,
+        "".to_string(),
+        Policy::System,
+    );
+    module.add_ini(
+        SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH,
         "".to_string(),
         Policy::System,
     );

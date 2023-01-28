@@ -15,7 +15,10 @@
 
 use crate::{
     channel::{self, TxReporter},
-    module::{AUTHENTICATION, SERVICE_INSTANCE, SERVICE_NAME, SOCKET_FILE_PATH},
+    module::{
+        AUTHENTICATION, ENABLE_TLS, SERVICE_INSTANCE, SERVICE_NAME, SOCKET_FILE_PATH,
+        SSL_CERT_CHAIN_PATH, SSL_KEY_PATH, SSL_TRUSTED_CA_PATH,
+    },
     util::change_permission,
     SKYWALKING_AGENT_SERVER_ADDR, SKYWALKING_AGENT_WORKER_THREADS,
 };
@@ -43,7 +46,7 @@ use tokio::{
 };
 use tonic::{
     async_trait,
-    transport::{Channel, Endpoint},
+    transport::{Certificate, Channel, ClientTlsConfig, Endpoint, Identity},
 };
 use tracing::{debug, error, info, warn};
 
@@ -166,7 +169,7 @@ async fn start_worker(server_addr: String) -> anyhow::Result<()> {
             }
         });
 
-        let endpoint = Endpoint::from_shared(server_addr)?;
+        let endpoint = create_endpoint(&server_addr).await?;
         let channel = connect(endpoint).await;
 
         report_properties_and_keep_alive(TxReporter(tx_));
@@ -206,6 +209,42 @@ async fn start_worker(server_addr: String) -> anyhow::Result<()> {
     info!("Start to shutdown skywalking grpc reporter");
 
     Ok(())
+}
+
+async fn create_endpoint(server_addr: &str) -> anyhow::Result<Endpoint> {
+    let scheme = if *ENABLE_TLS { "https" } else { "http" };
+
+    let url = format!("{}://{}", scheme, server_addr);
+    debug!(url, "Create Endpoint");
+    let mut endpoint = Endpoint::from_shared(url)?;
+
+    if *ENABLE_TLS {
+        let domain_name = server_addr.split(':').next().unwrap_or_default();
+        debug!(domain_name, "Configure TLS domain");
+        let mut tls = ClientTlsConfig::new().domain_name(domain_name);
+
+        let ssl_trusted_ca_path = SSL_TRUSTED_CA_PATH.as_str();
+        if !ssl_trusted_ca_path.is_empty() {
+            debug!(ssl_trusted_ca_path, "Configure TLS CA");
+            let ca_cert = tokio::fs::read(&*SSL_TRUSTED_CA_PATH).await?;
+            let ca_cert = Certificate::from_pem(ca_cert);
+            tls = tls.ca_certificate(ca_cert);
+        }
+
+        let ssl_key_path = SSL_KEY_PATH.as_str();
+        let ssl_cert_chain_path = SSL_CERT_CHAIN_PATH.as_str();
+        if !ssl_key_path.is_empty() && !ssl_cert_chain_path.is_empty() {
+            debug!(ssl_trusted_ca_path, "Configure mTLS");
+            let client_cert = tokio::fs::read(&*SSL_CERT_CHAIN_PATH).await?;
+            let client_key = tokio::fs::read(&*SSL_KEY_PATH).await?;
+            let client_identity = Identity::from_pem(client_cert, client_key);
+            tls = tls.identity(client_identity);
+        }
+
+        endpoint = endpoint.tls_config(tls)?;
+    }
+
+    Ok(endpoint)
 }
 
 #[tracing::instrument(skip_all)]
