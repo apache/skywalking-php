@@ -96,4 +96,11 @@ skywalking_agent.skywalking_version = 8
 
 ; The certificate file. Enable mTLS when ssl_key_path and ssl_cert_chain_path exist.
 ; skywalking_agent.ssl_cert_chain_path =
+
+; Agent heartbeat report period. Unit, second. Default is 30.
+; skywalking_agent.heartbeat_period = 30
+
+; The agent sends the instance properties to the backend every
+; heartbeat_period * properties_report_period_factor seconds. Default is 10.
+; skywalking_agent.properties_report_period_factor = 10
 ```
