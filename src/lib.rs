@@ -74,6 +74,14 @@ const SKYWALKING_AGENT_SSL_KEY_PATH: &str = "skywalking_agent.ssl_key_path";
 /// exist.
 const SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH: &str = "skywalking_agent.ssl_cert_chain_path";
 
+/// Agent heartbeat report period. Unit, second.
+const SKYWALKING_AGENT_HEARTBEAT_PERIOD: &str = "skywalking_agent.heartbeat_period";
+
+/// The agent sends the instance properties to the backend every
+/// heartbeat_period * properties_report_period_factor seconds.
+const SKYWALKING_AGENT_PROPERTIES_REPORT_PERIOD_FACTOR: &str =
+    "skywalking_agent.properties_report_period_factor";
+
 #[php_get_module]
 pub fn get_module() -> Module {
     let mut module = Module::new(
@@ -130,6 +138,12 @@ pub fn get_module() -> Module {
     module.add_ini(
         SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH,
         "".to_string(),
+        Policy::System,
+    );
+    module.add_ini(SKYWALKING_AGENT_HEARTBEAT_PERIOD, 30i64, Policy::System);
+    module.add_ini(
+        SKYWALKING_AGENT_PROPERTIES_REPORT_PERIOD_FACTOR,
+        10i64,
         Policy::System,
     );
 

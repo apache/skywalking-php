@@ -19,7 +19,8 @@ use crate::{
     util::{get_sapi_module_name, IPS},
     worker::init_worker,
     SKYWALKING_AGENT_AUTHENTICATION, SKYWALKING_AGENT_ENABLE, SKYWALKING_AGENT_ENABLE_TLS,
-    SKYWALKING_AGENT_LOG_FILE, SKYWALKING_AGENT_LOG_LEVEL, SKYWALKING_AGENT_RUNTIME_DIR,
+    SKYWALKING_AGENT_HEARTBEAT_PERIOD, SKYWALKING_AGENT_LOG_FILE, SKYWALKING_AGENT_LOG_LEVEL,
+    SKYWALKING_AGENT_PROPERTIES_REPORT_PERIOD_FACTOR, SKYWALKING_AGENT_RUNTIME_DIR,
     SKYWALKING_AGENT_SERVICE_NAME, SKYWALKING_AGENT_SKYWALKING_VERSION,
     SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH, SKYWALKING_AGENT_SSL_KEY_PATH,
     SKYWALKING_AGENT_SSL_TRUSTED_CA_PATH,
@@ -109,6 +110,12 @@ pub static SSL_CERT_CHAIN_PATH: Lazy<String> = Lazy::new(|| {
         .unwrap_or_default()
 });
 
+pub static HEARTBEAT_PERIOD: Lazy<i64> =
+    Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_HEARTBEAT_PERIOD));
+
+pub static PROPERTIES_REPORT_PERIOD_FACTOR: Lazy<i64> =
+    Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_PROPERTIES_REPORT_PERIOD_FACTOR));
+
 pub fn init() {
     if !is_enable() {
         return;
@@ -121,9 +128,16 @@ pub fn init() {
     let service_instance = Lazy::force(&SERVICE_INSTANCE);
     let skywalking_version = Lazy::force(&SKYWALKING_VERSION);
     let authentication = Lazy::force(&AUTHENTICATION);
+    let heartbeat_period = Lazy::force(&HEARTBEAT_PERIOD);
+    let properties_report_period_factor = Lazy::force(&PROPERTIES_REPORT_PERIOD_FACTOR);
     info!(
         service_name,
-        service_instance, skywalking_version, authentication, "Starting skywalking agent"
+        service_instance,
+        skywalking_version,
+        authentication,
+        heartbeat_period,
+        properties_report_period_factor,
+        "Starting skywalking agent"
     );
 
     // Skywalking version check.

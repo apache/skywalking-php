@@ -16,8 +16,9 @@
 use crate::{
     channel::{self, TxReporter},
     module::{
-        AUTHENTICATION, ENABLE_TLS, SERVICE_INSTANCE, SERVICE_NAME, SOCKET_FILE_PATH,
-        SSL_CERT_CHAIN_PATH, SSL_KEY_PATH, SSL_TRUSTED_CA_PATH,
+        AUTHENTICATION, ENABLE_TLS, HEARTBEAT_PERIOD, PROPERTIES_REPORT_PERIOD_FACTOR,
+        SERVICE_INSTANCE, SERVICE_NAME, SOCKET_FILE_PATH, SSL_CERT_CHAIN_PATH, SSL_KEY_PATH,
+        SSL_TRUSTED_CA_PATH,
     },
     util::change_permission,
     SKYWALKING_AGENT_SERVER_ADDR, SKYWALKING_AGENT_WORKER_THREADS,
@@ -297,14 +298,6 @@ impl Drop for WorkerExitGuard {
     }
 }
 
-/// The period in which the agent report a heartbeat to the backend.
-const HEARTBEAT_PERIOD: u64 = 30;
-
-/// The agent sends the instance properties to the backend every
-/// `collector.heartbeat_period * collector.properties_report_period_factor`
-/// seconds
-const PROPERTIES_REPORT_PERIOD_FACTOR: u64 = 10;
-
 fn report_properties_and_keep_alive(reporter: TxReporter) {
     let manager = Arc::new(Manager::new(&*SERVICE_NAME, &*SERVICE_INSTANCE, reporter));
     let manager_ = manager.clone();
@@ -315,9 +308,12 @@ fn report_properties_and_keep_alive(reporter: TxReporter) {
     // instance properties without keep alive. However, this needs to change the
     // api of skywalking-rust, so wait for the next version of skywalking-rust.
     tokio::spawn(async move {
-        let mut ticker = time::interval(Duration::from_secs(
-            HEARTBEAT_PERIOD * PROPERTIES_REPORT_PERIOD_FACTOR,
-        ));
+        let period = *HEARTBEAT_PERIOD * *PROPERTIES_REPORT_PERIOD_FACTOR;
+        if period <= 0 {
+            return;
+        }
+
+        let mut ticker = time::interval(Duration::from_secs(period as u64));
         loop {
             ticker.tick().await;
 
@@ -333,5 +329,7 @@ fn report_properties_and_keep_alive(reporter: TxReporter) {
         }
     });
 
-    manager.keep_alive(Duration::from_secs(HEARTBEAT_PERIOD));
+    if *HEARTBEAT_PERIOD <= 0 {
+        manager.keep_alive(Duration::from_secs(*HEARTBEAT_PERIOD as u64));
+    }
 }
