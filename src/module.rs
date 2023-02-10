@@ -25,6 +25,7 @@ use crate::{
     SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH, SKYWALKING_AGENT_SSL_KEY_PATH,
     SKYWALKING_AGENT_SSL_TRUSTED_CA_PATH,
 };
+use anyhow::bail;
 use once_cell::sync::Lazy;
 use phper::{arrays::ZArr, ini::ini_get, sys};
 use skywalking::{
@@ -34,7 +35,7 @@ use skywalking::{
 use std::{
     borrow::ToOwned,
     ffi::{CStr, OsStr},
-    fs,
+    fs::{self, OpenOptions},
     os::unix::prelude::OsStrExt,
     path::{Path, PathBuf},
     str::FromStr,
@@ -121,7 +122,8 @@ pub fn init() {
         return;
     }
 
-    init_logger();
+    // Ignore error when init logger failed.
+    _ = try_init_logger();
 
     // Skywalking agent info.
     let service_name = Lazy::force(&SERVICE_NAME);
@@ -185,7 +187,7 @@ pub fn init() {
 
 pub fn shutdown() {}
 
-fn init_logger() {
+fn try_init_logger() -> anyhow::Result<()> {
     let log_level = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_LOG_LEVEL)
         .and_then(|s| s.to_str().ok())
         .unwrap_or("OFF");
@@ -196,24 +198,32 @@ fn init_logger() {
         .unwrap_or_default();
     let log_file = log_file.trim();
 
-    if !log_file.is_empty() {
-        if let Ok(log_level) = LevelFilter::from_str(log_level) {
-            let log_file = Path::new(log_file);
-            if let Some(dir) = log_file.parent() {
-                if let Some(file_name) = log_file.file_name() {
-                    let file_appender = tracing_appender::rolling::never(dir, file_name);
-                    let subscriber = FmtSubscriber::builder()
-                        .with_max_level(log_level)
-                        .with_ansi(false)
-                        .with_writer(file_appender)
-                        .finish();
-
-                    tracing::subscriber::set_global_default(subscriber)
-                        .expect("setting default subscriber failed");
-                }
-            }
-        }
+    if log_file.is_empty() {
+        bail!("SKYWALKING_AGENT_LOG_FILE is empty");
     }
+
+    let log_level = LevelFilter::from_str(log_level)?;
+
+    let path = Path::new(log_file);
+
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
+    let mut open_options = OpenOptions::new();
+    open_options.append(true).create(true);
+
+    let file = open_options.open(path)?;
+
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(log_level)
+        .with_ansi(false)
+        .with_writer(file)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber)?;
+
+    Ok(())
 }
 
 fn get_module_registry() -> &'static ZArr {
