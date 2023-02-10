@@ -122,8 +122,9 @@ pub fn init() {
         return;
     }
 
-    // Ignore error when init logger failed.
-    _ = try_init_logger();
+    if let Err(err) = try_init_logger() {
+        eprintln!("skywalking_agent: initialize logger failed: {}", err);
+    }
 
     // Skywalking agent info.
     let service_name = Lazy::force(&SERVICE_NAME);
@@ -193,16 +194,18 @@ fn try_init_logger() -> anyhow::Result<()> {
         .unwrap_or("OFF");
     let log_level = log_level.trim();
 
+    let log_level = LevelFilter::from_str(log_level)?;
+    if log_level == LevelFilter::OFF {
+        return Ok(());
+    }
+
     let log_file = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_LOG_FILE)
         .and_then(|s| s.to_str().ok())
         .unwrap_or_default();
     let log_file = log_file.trim();
-
     if log_file.is_empty() {
-        bail!("SKYWALKING_AGENT_LOG_FILE is empty");
+        bail!("log file cant't be empty when log enabled");
     }
-
-    let log_level = LevelFilter::from_str(log_level)?;
 
     let path = Path::new(log_file);
 
