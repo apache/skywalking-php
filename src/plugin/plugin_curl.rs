@@ -74,12 +74,10 @@ impl CurlPlugin {
                 validate_num_args(execute_data, 3)?;
 
                 let cid = Self::get_resource_id(execute_data)?;
-
                 let options = execute_data.get_parameter(1).as_long();
 
                 if options == Some(SKY_CURLOPT_HTTPHEADER) {
-                    let value = execute_data.get_parameter(2);
-                    *value = CURLOPT_HTTPHEADER.into();
+                    *execute_data.get_parameter(1) = CURLOPT_HTTPHEADER.into();
                 } else if options == Some(CURLOPT_HTTPHEADER) {
                     let value = execute_data.get_parameter(2);
                     if value.get_type_info().is_array() {
