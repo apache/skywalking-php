@@ -32,6 +32,10 @@ use url::Url;
 
 static CURLOPT_HTTPHEADER: c_long = 10023;
 
+/// Prevent calling `curl_setopt` inside this plugin sets headers, the hook of
+/// `curl_setopt` is repeatedly called.
+static SKY_CURLOPT_HTTPHEADER: c_long = 9923;
+
 thread_local! {
     static CURL_HEADERS: RefCell<HashMap<i64, ZVal>> = Default::default();
 }
@@ -71,8 +75,12 @@ impl CurlPlugin {
 
                 let cid = Self::get_resource_id(execute_data)?;
 
-                if matches!(execute_data.get_parameter(1).as_long(), Some(n) if n == CURLOPT_HTTPHEADER)
-                {
+                let options = execute_data.get_parameter(1).as_long();
+
+                if options == Some(SKY_CURLOPT_HTTPHEADER) {
+                    let value = execute_data.get_parameter(2);
+                    *value = CURLOPT_HTTPHEADER.into();
+                } else if options == Some(CURLOPT_HTTPHEADER) {
                     let value = execute_data.get_parameter(2);
                     if value.get_type_info().is_array() {
                         CURL_HEADERS
@@ -171,7 +179,7 @@ impl CurlPlugin {
                     let ch = execute_data.get_parameter(0);
                     call(
                         "curl_setopt",
-                        &mut [ch.clone(), ZVal::from(CURLOPT_HTTPHEADER), val],
+                        &mut [ch.clone(), ZVal::from(SKY_CURLOPT_HTTPHEADER), val],
                     )?;
                 }
 
