@@ -48,9 +48,9 @@ your package.
 > export RELEASE_VERSION=x.y.z
 
 ## The package should be signed by your Apache committer mail.
-> gpg --armor --detach-sig skywalking_agent-{$RELEASE_VERSION}.tgz
+> gpg --armor --detach-sig skywalking_agent-$RELEASE_VERSION.tgz
 
-> shasum -a 512 skywalking_agent-{$RELEASE_VERSION}.tgz > skywalking_agent-{$RELEASE_VERSION}.tgz.sha512
+> shasum -a 512 skywalking_agent-$RELEASE_VERSION.tgz > skywalking_agent-$RELEASE_VERSION.tgz.sha512
 ```
 
 After these, the source tar with its signed asc and sha512 are ready.
@@ -66,7 +66,7 @@ After these, the source tar with its signed asc and sha512 are ready.
 Call a vote in `dev@skywalking.apache.org`
 
 ```
-Mail title: [VOTE] Release Apache SkyWalking version PHP x.y.z
+Mail title: [VOTE] Release Apache SkyWalking PHP version x.y.z
 
 Mail content:
 Hi All,

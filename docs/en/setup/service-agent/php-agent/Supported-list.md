@@ -7,7 +7,7 @@ The following plugins provide the distributed tracing capability.
 * PHP-FPM
 * CLI under [Swoole](https://www.swoole.com/)
 
-## Support PHP extension
+## Supported PHP extension
 
 * [cURL](https://www.php.net/manual/en/book.curl.php#book.curl)
 * [PDO](https://www.php.net/manual/en/book.pdo.php)
@@ -15,6 +15,6 @@ The following plugins provide the distributed tracing capability.
 * [Memcached](https://www.php.net/manual/en/book.memcached.php)
 * [phpredis](https://github.com/phpredis/phpredis)
 
-## Support PHP library
+## Supported PHP library
 
 * [predis](https://github.com/predis/predis)
