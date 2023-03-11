@@ -13,26 +13,58 @@
 - Make
 - Protoc
 
-For Debian-base OS:
+## Install dependencies
+
+### For Debian-base OS
 
 ```shell
-sudo apt install gcc make llvm-dev libclang-dev clang protobuf-compiler
+sudo apt install gcc make llvm-13-dev libclang-13-dev protobuf-c-compiler
 ```
 
-### Install Rust globally
-
-*Refer to <https://forge.rust-lang.org/infra/other-installation-methods.html#standalone-installers>.*
-
-For linux x86_64 user:
+### For Alpine Linux
 
 ```shell
-wget https://static.rust-lang.org/dist/rust-1.65.0-x86_64-unknown-linux-gnu.tar.gz
-tar zxvf rust-1.65.0-x86_64-unknown-linux-gnu.tar.gz
-cd rust-1.65.0-x86_64-unknown-linux-gnu
-./install.sh
+apk add gcc make musl-dev llvm15-dev clang15-dev protobuf-c-compiler
 ```
+
+## Install Rust globally
+
+The officially recommended way to install Rust is via [`rustup`](https://www.rust-lang.org/tools/install).
+
+But because the source code toolchain is override by `rust-toolchain.toml`,
+so if you don't need multi version Rust, we recommend to install Rust by these
+way:
+
+1. Install through OS package manager (The Rust version in the source must be >= 1.65).
+
+2. Through [standalone installers](https://forge.rust-lang.org/infra/other-installation-methods.html#standalone-installers).
+
+   For linux x86_64 user:
+
+   ```shell
+   wget https://static.rust-lang.org/dist/rust-1.65.0-x86_64-unknown-linux-gnu.tar.gz
+   tar zxvf rust-1.65.0-x86_64-unknown-linux-gnu.tar.gz
+   cd rust-1.65.0-x86_64-unknown-linux-gnu
+   ./install.sh
+   ```
+
+3. Through `rustup` but set `default-toolchain` to none.
+
+   ```shell
+   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none
+   ```
 
 ## Install
+
+> If you compile `skywalking_agent` in Alpine Linux, you have to disable `crt-static`, otherwise
+> the problem will be throw: "the libclang shared library at /usr/lib/libclang.so.15.0.7 could not
+> be opened: Dynamic loading not supported".
+>
+> You can disable `crt-static` by environment variable:
+>
+> ```shell
+> export RUSTFLAGS="-C target-feature=-crt-static"
+> ```
 
 ### Install from pecl.net
 
@@ -40,7 +72,7 @@ cd rust-1.65.0-x86_64-unknown-linux-gnu
 pecl install skywalking_agent
 ```
 
-### install from the source codes
+### Install from the source codes
 
 ```shell script
 git clone --recursive https://github.com/apache/skywalking-php.git
@@ -52,7 +84,9 @@ make
 make install
 ```
 
-## Configure php.ini
+## Configure
+
+Configure skywalking agent in your `php.ini`.
 
 ```ini
 [skywalking_agent]
@@ -72,35 +106,6 @@ skywalking_agent.server_addr = 127.0.0.1:11800
 
 ; Application service name.
 skywalking_agent.service_name = hello-skywalking
-
-; Skywalking version.
-skywalking_agent.skywalking_version = 8
-
-; Skywalking authentication token, let it empty if the backend isn't enabled.
-; skywalking_agent.authentication =
-
-; Skywalking worker threads, 0 will auto set as the cpu core size, default is 0.
-; skywalking_agent.worker_threads = 3
-
-; Skywalking agent runtime directory, default is /tmp/skywalking-agent.
-; skywalking_agent.runtime_dir = /tmp/skywalking-agent
-
-; Wether to enable tls for gPRC, default is false.
-; skywalking_agent.enable_tls = Off
-
-; The gRPC SSL trusted ca file.
-; skywalking_agent.ssl_trusted_ca_path =
-
-; The private key file. Enable mTLS when ssl_key_path and ssl_cert_chain_path exist.
-; skywalking_agent.ssl_key_path =
-
-; The certificate file. Enable mTLS when ssl_key_path and ssl_cert_chain_path exist.
-; skywalking_agent.ssl_cert_chain_path =
-
-; Agent heartbeat report period. Unit, second. Default is 30.
-; skywalking_agent.heartbeat_period = 30
-
-; The agent sends the instance properties to the backend every
-; heartbeat_period * properties_report_period_factor seconds. Default is 10.
-; skywalking_agent.properties_report_period_factor = 10
 ```
+
+Refer to the Configuration section for more configuration items.

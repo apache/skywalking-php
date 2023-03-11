@@ -14,12 +14,18 @@
 # limitations under the License.
 
 catalog:
-  - name: "PHP Agent Setup"
-    path: "/en/setup/service-agent/php-agent/readme"
+  - name: "Get Started"
+    catalog:
+      - name: "PHP Agent Setup"
+        path: "/en/setup/service-agent/php-agent/readme"
   - name: "Plugins"
     catalog:
       - name: "Supported SAPI, extension and library"
         path: "/en/setup/service-agent/php-agent/Supported-list"
+  - name: "Configuration"
+    catalog:
+      - name: "INI Settings"
+        path: "/en/configuration/ini-settings"
   - name: "Contribution"
     catalog:
       - name: "Compiling Guidance"
