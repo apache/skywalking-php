@@ -260,11 +260,11 @@ impl RedisPlugin {
                     Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &addr))
                 })?;
 
-                span.with_span_object_mut(|span| {
-                    span.set_span_layer(SpanLayer::Cache);
-                    span.component_id = COMPONENT_PHP_REDIS_ID;
-                    span.add_tag(TAG_CACHE_TYPE, "redis");
-                });
+                let mut span_object = span.span_object_mut();
+                span_object.set_span_layer(SpanLayer::Cache);
+                span_object.component_id = COMPONENT_PHP_REDIS_ID;
+                span_object.add_tag(TAG_CACHE_TYPE, "redis");
+                drop(span_object);
 
                 Ok(Box::new(span))
             }),
@@ -306,21 +306,21 @@ impl RedisPlugin {
                     Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &peer))
                 })?;
 
-                span.with_span_object_mut(|span| {
-                    span.set_span_layer(SpanLayer::Cache);
-                    span.component_id = COMPONENT_PHP_REDIS_ID;
-                    span.add_tag(TAG_CACHE_TYPE, "redis");
-                    span.add_tag(
-                        TAG_CACHE_CMD,
-                        *REDIS_ALL_MAPPING.get(function_name_key).unwrap(),
-                    );
-                    if let Some(op) = op {
-                        span.add_tag(TAG_CACHE_OP, op);
-                    }
-                    if let Some(key) = key {
-                        span.add_tag(TAG_CACHE_KEY, key)
-                    }
-                });
+                let mut span_object = span.span_object_mut();
+                span_object.set_span_layer(SpanLayer::Cache);
+                span_object.component_id = COMPONENT_PHP_REDIS_ID;
+                span_object.add_tag(TAG_CACHE_TYPE, "redis");
+                span_object.add_tag(
+                    TAG_CACHE_CMD,
+                    *REDIS_ALL_MAPPING.get(function_name_key).unwrap(),
+                );
+                if let Some(op) = op {
+                    span_object.add_tag(TAG_CACHE_OP, op);
+                }
+                if let Some(key) = key {
+                    span_object.add_tag(TAG_CACHE_KEY, key)
+                }
+                drop(span_object);
 
                 Ok(Box::new(span))
             }),
@@ -362,22 +362,21 @@ fn after_hook(
 
     let ex = unsafe { ZObj::try_from_mut_ptr(eg!(exception)) };
     if let Some(ex) = ex {
-        span.with_span_object_mut(|span| {
-            span.is_error = true;
+        let mut span_object = span.span_object_mut();
+        span_object.is_error = true;
 
-            let mut logs = Vec::new();
-            if let Ok(class_name) = ex.get_class().get_name().to_str() {
-                logs.push(("Exception Class", class_name.to_owned()));
+        let mut logs = Vec::new();
+        if let Ok(class_name) = ex.get_class().get_name().to_str() {
+            logs.push(("Exception Class", class_name.to_owned()));
+        }
+        if let Some(message) = ex.get_property("message").as_z_str() {
+            if let Ok(message) = message.to_str() {
+                logs.push(("Exception Message", message.to_owned()));
             }
-            if let Some(message) = ex.get_property("message").as_z_str() {
-                if let Ok(message) = message.to_str() {
-                    logs.push(("Exception Message", message.to_owned()));
-                }
-            }
-            if !logs.is_empty() {
-                span.add_log(logs);
-            }
-        });
+        }
+        if !logs.is_empty() {
+            span_object.add_log(logs);
+        }
     }
 
     Ok(())

@@ -252,11 +252,12 @@ fn create_request_context(
         Some(propagation) => ctx.create_entry_span_with_propagation(&operation_name, &propagation),
         None => ctx.create_entry_span(&operation_name),
     };
-    span.with_span_object_mut(|span| {
-        span.component_id = COMPONENT_PHP_ID;
-        span.add_tag("url", uri);
-        span.add_tag("http.method", method);
-    });
+
+    let mut span_object = span.span_object_mut();
+    span_object.component_id = COMPONENT_PHP_ID;
+    span_object.add_tag("url", uri);
+    span_object.add_tag("http.method", method);
+    drop(span_object);
 
     RequestContext::set_global(
         request_id,
@@ -277,7 +278,7 @@ fn finish_request_context(request_id: Option<i64>, status_code: i32) -> crate::R
 
     entry_span.add_tag("http.status_code", &status_code.to_string());
     if status_code >= 400 {
-        entry_span.with_span_object_mut(|span| span.is_error = true);
+        entry_span.span_object_mut().is_error = true;
     }
 
     drop(entry_span);

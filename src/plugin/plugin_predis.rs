@@ -222,18 +222,18 @@ impl PredisPlugin {
                     ))
                 })?;
 
-                span.with_span_object_mut(|span| {
-                    span.set_span_layer(SpanLayer::Cache);
-                    span.component_id = COMPONENT_PHP_PREDIS_ID;
-                    span.add_tag(TAG_CACHE_TYPE, "redis");
-                    span.add_tag(TAG_CACHE_CMD, cmd);
-                    if let Some(op) = op {
-                        span.add_tag(TAG_CACHE_OP, op);
-                    };
-                    if let Some(key) = key {
-                        span.add_tag(TAG_CACHE_KEY, key)
-                    }
-                });
+                let mut span_object = span.span_object_mut();
+                span_object.set_span_layer(SpanLayer::Cache);
+                span_object.component_id = COMPONENT_PHP_PREDIS_ID;
+                span_object.add_tag(TAG_CACHE_TYPE, "redis");
+                span_object.add_tag(TAG_CACHE_CMD, cmd);
+                if let Some(op) = op {
+                    span_object.add_tag(TAG_CACHE_OP, op);
+                };
+                if let Some(key) = key {
+                    span_object.add_tag(TAG_CACHE_KEY, key)
+                }
+                drop(span_object);
 
                 Ok(Box::new(span))
             }),
@@ -242,7 +242,7 @@ impl PredisPlugin {
 
                 let typ = return_value.get_type_info();
                 if typ.is_null() || typ.is_false() {
-                    span.with_span_object_mut(|span| span.is_error = true);
+                    span.span_object_mut().is_error = true;
                 }
 
                 Ok(())
