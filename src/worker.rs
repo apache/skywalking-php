@@ -35,7 +35,7 @@ use skywalking::{
 };
 use std::{
     cmp::Ordering, error::Error, ffi::CStr, fs, io, marker::PhantomData, num::NonZeroUsize,
-    process::exit, sync::Arc, thread::available_parallelism, time::Duration,
+    process::exit, thread::available_parallelism, time::Duration,
 };
 use tokio::{
     net::UnixListener,
@@ -43,7 +43,7 @@ use tokio::{
     select,
     signal::unix::{signal, SignalKind},
     sync::mpsc::{self, error::TrySendError},
-    time::{self, sleep},
+    time::sleep,
 };
 use tonic::{
     async_trait,
