@@ -308,9 +308,7 @@ fn after_hook(
     let mut span = span.downcast::<Span>().expect("Downcast to Span failed");
     if let Some(b) = return_value.as_bool() {
         if !b {
-            span.with_span_object_mut(|span| {
-                span.is_error = true;
-            });
+            span.span_object_mut().is_error = true;
 
             let this = get_this_mut(execute_data)?;
             let code = this.call(&"getResultCode".to_ascii_lowercase(), [])?;
@@ -343,21 +341,20 @@ fn create_exit_span<'a>(
         let mut span =
             ctx.create_exit_span(&format!("{}->{}", class_name, function_name), remote_peer);
 
-        span.with_span_object_mut(|obj| {
-            obj.set_span_layer(SpanLayer::Cache);
-            obj.component_id = COMPONENT_PHP_MEMCACHED_ID;
-            obj.add_tag(TAG_CACHE_TYPE, "memcache");
-
-            if let Some(cmd) = tag_info.cmd {
-                obj.add_tag(TAG_CACHE_CMD, cmd);
-            }
-            if let Some(op) = &tag_info.op {
-                obj.add_tag(TAG_CACHE_OP, op.to_string());
-            };
-            if let Some(key) = key {
-                obj.add_tag(TAG_CACHE_KEY, key)
-            }
-        });
+        let mut span_object = span.span_object_mut();
+        span_object.set_span_layer(SpanLayer::Cache);
+        span_object.component_id = COMPONENT_PHP_MEMCACHED_ID;
+        span_object.add_tag(TAG_CACHE_TYPE, "memcache");
+        if let Some(cmd) = tag_info.cmd {
+            span_object.add_tag(TAG_CACHE_CMD, cmd);
+        }
+        if let Some(op) = &tag_info.op {
+            span_object.add_tag(TAG_CACHE_OP, op.to_string());
+        };
+        if let Some(key) = key {
+            span_object.add_tag(TAG_CACHE_KEY, key)
+        }
+        drop(span_object);
 
         Ok(span)
     })

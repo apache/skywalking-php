@@ -223,10 +223,9 @@ fn after_hook_when_false(this: &mut ZObj, span: &mut Span) -> crate::Result<()> 
     };
     let error = get_error_info_item(info, 2)?.expect_z_str()?.to_str()?;
 
-    span.with_span_object_mut(|span| {
-        span.is_error = true;
-        span.add_log([("SQLSTATE", state), ("Error Code", code), ("Error", error)]);
-    });
+    let mut span_object = span.span_object_mut();
+    span_object.is_error = true;
+    span_object.add_log([("SQLSTATE", state), ("Error Code", code), ("Error", error)]);
 
     Ok(())
 }
@@ -252,12 +251,14 @@ fn create_exit_span_with_dsn(
     RequestContext::try_with_global_ctx(request_id, |ctx| {
         let mut span =
             ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &dsn.peer);
-        span.with_span_object_mut(|obj| {
-            obj.set_span_layer(SpanLayer::Database);
-            obj.component_id = COMPONENT_PHP_PDO_ID;
-            obj.add_tag(TAG_DB_TYPE, &dsn.db_type);
-            obj.add_tag("db.data_source", &dsn.data_source);
-        });
+
+        let mut span_object = span.span_object_mut();
+        span_object.set_span_layer(SpanLayer::Database);
+        span_object.component_id = COMPONENT_PHP_PDO_ID;
+        span_object.add_tag(TAG_DB_TYPE, &dsn.db_type);
+        span_object.add_tag("db.data_source", &dsn.data_source);
+        drop(span_object);
+
         Ok(span)
     })
 }

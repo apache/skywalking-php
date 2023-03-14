@@ -132,11 +132,13 @@ fn create_mysqli_exit_span(
             &format!("{}->{}", class_name, function_name),
             &format!("{}:{}", info.hostname, info.port),
         );
-        span.with_span_object_mut(|obj| {
-            obj.set_span_layer(SpanLayer::Database);
-            obj.component_id = COMPONENT_PHP_MYSQLI_ID;
-            obj.add_tag("db.type", "mysql");
-        });
+
+        let mut span_object = span.span_object_mut();
+        span_object.set_span_layer(SpanLayer::Database);
+        span_object.component_id = COMPONENT_PHP_MYSQLI_ID;
+        span_object.add_tag("db.type", "mysql");
+        drop(span_object);
+
         Ok(span)
     })
 }

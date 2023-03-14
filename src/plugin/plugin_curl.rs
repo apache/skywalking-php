@@ -158,10 +158,10 @@ impl CurlPlugin {
                     Ok(ctx.create_exit_span(url.path(), peer))
                 })?;
 
-                span.with_span_object_mut(|span| {
-                    span.component_id = COMPONENT_PHP_CURL_ID;
-                    span.add_tag("url", raw_url);
-                });
+                let mut span_object = span.span_object_mut();
+                span_object.component_id = COMPONENT_PHP_CURL_ID;
+                span_object.add_tag("url", raw_url);
+                drop(span_object);
 
                 let sw_header = RequestContext::try_with_global_ctx(request_id, |ctx| {
                     Ok(encode_propagation(ctx, url.path(), peer))
@@ -200,14 +200,13 @@ impl CurlPlugin {
                         .as_z_str()
                         .context("curl_error is not string")?
                         .to_str()?;
-                    span.with_span_object_mut(|span| {
-                        span.is_error = true;
-                        span.add_log(vec![("CURL_ERROR", curl_error)]);
-                    });
+                    let mut span_object = span.span_object_mut();
+                    span_object.is_error = true;
+                    span_object.add_log(vec![("CURL_ERROR", curl_error)]);
                 } else if http_code >= 400 {
-                    span.with_span_object_mut(|span| span.is_error = true);
+                    span.span_object_mut().is_error = true;
                 } else {
-                    span.with_span_object_mut(|span| span.is_error = false);
+                    span.span_object_mut().is_error = false;
                 }
 
                 Ok(())
