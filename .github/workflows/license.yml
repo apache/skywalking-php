@@ -43,10 +43,9 @@ jobs:
       - name: Check Dependencies Licenses Summary
         run: |
           go install github.com/apache/skywalking-eyes/cmd/license-eye@d299844e334855087f18ae1fe3c81ae8d22bc282
-          license-eye dependency resolve --summary ./dist-material/LICENSE.tpl -c .github/licenserc.yaml || exit 1
+          license-eye dependency resolve --summary ./dist-material/LICENSE.tpl -c .licenserc.yaml || exit 1
           if [ ! -z "$(git diff -U0 ./dist-material/LICENSE)" ]; then
             echo "LICENSE file is not updated correctly"
             git diff -U0 ./dist-material/LICENSE
             exit 1
           fi
-
