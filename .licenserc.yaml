@@ -31,6 +31,7 @@ header:
     - 'NOTICE'
     - 'config.m4'
     - 'vendor'
+    - 'dist-material'
 
   comment: on-failure
 
