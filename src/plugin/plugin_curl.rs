@@ -20,24 +20,58 @@ use crate::{
     execute::{validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
 };
 use anyhow::Context;
+use dashmap::{DashMap, DashSet};
+use once_cell::sync::Lazy;
 use phper::{
     arrays::{InsertKey, ZArray},
     functions::call,
     values::{ExecuteData, ZVal},
 };
 use skywalking::trace::{propagation::encoder::encode_propagation, span::Span};
-use std::{cell::RefCell, collections::HashMap, os::raw::c_long};
-use tracing::debug;
+use std::{
+    any::Any,
+    cell::RefCell,
+    collections::{HashMap, HashSet},
+    os::raw::c_long, mem::{swap, replace},
+};
+use tracing::{debug, error};
 use url::Url;
 
-static CURLOPT_HTTPHEADER: c_long = 10023;
+const CURLM_OK: i64 = 0;
+
+const CURLOPT_HTTPHEADER: c_long = 10023;
 
 /// Prevent calling `curl_setopt` inside this plugin sets headers, the hook of
 /// `curl_setopt` is repeatedly called.
-static SKY_CURLOPT_HTTPHEADER: c_long = 9923;
+const SKY_CURLOPT_HTTPHEADER: c_long = 9923;
 
 thread_local! {
     static CURL_HEADERS: RefCell<HashMap<i64, ZVal>> = Default::default();
+    static CURL_MULTI_INFO_MAP: RefCell<HashMap<i64, CurlMultiInfo>> = Default::default();
+}
+
+struct CurlInfo {
+    cid: i64,
+    raw_url: String,
+    url: Url,
+    peer: String,
+    is_http: bool,
+}
+
+#[derive(Default)]
+struct CurlMultiInfo {
+    exec_spans: Option<Vec<Span>>,
+    curl_handles: HashMap<i64, ZVal>,
+}
+
+impl CurlMultiInfo {
+    fn insert_curl_handle(&mut self, id: i64, handle: ZVal) {
+        self.curl_handles.insert(id, handle);
+    }
+
+    fn remove_curl_handle(&mut self, id: i64) {
+        self.curl_handles.remove(&id);
+    }
 }
 
 #[derive(Default, Clone)]
@@ -62,6 +96,12 @@ impl Plugin for CurlPlugin {
             "curl_setopt_array" => Some(self.hook_curl_setopt_array()),
             "curl_exec" => Some(self.hook_curl_exec()),
             "curl_close" => Some(self.hook_curl_close()),
+
+            "curl_multi_add_handle" => Some(self.hook_curl_multi_add_handle()),
+            "curl_multi_remove_handle" => Some(self.hook_curl_multi_remove_handle()),
+            "curl_multi_exec" => Some(self.hook_curl_multi_exec()),
+            "curl_multi_close" => Some(self.hook_curl_multi_close()),
+
             _ => None,
         }
     }
@@ -118,67 +158,14 @@ impl CurlPlugin {
                 validate_num_args(execute_data, 1)?;
 
                 let cid = Self::get_resource_id(execute_data)?;
-
                 let ch = execute_data.get_parameter(0);
-                let result = call("curl_getinfo", &mut [ch.clone()])?;
-                let result = result.as_z_arr().context("result isn't array")?;
 
-                let url = result
-                    .get("url")
-                    .context("Get url from curl_get_info result failed")?;
-                let raw_url = url.as_z_str().context("url isn't string")?.to_str()?;
-                let mut url = raw_url.to_string();
+                let info = Self::get_curl_info(cid, ch.clone())?;
 
-                if !url.contains("://") {
-                    url.insert_str(0, "http://");
-                }
+                let span = Self::create_exit_span(request_id, &info)?;
 
-                let url: Url = url.parse().context("parse url")?;
-                if url.scheme() != "http" && url.scheme() != "https" {
-                    return Ok(Box::new(()));
-                }
-
-                debug!("curl_getinfo get url: {}", &url);
-
-                let host = match url.host_str() {
-                    Some(host) => host,
-                    None => return Ok(Box::new(())),
-                };
-                let port = match url.port() {
-                    Some(port) => port,
-                    None => match url.scheme() {
-                        "http" => 80,
-                        "https" => 443,
-                        _ => 0,
-                    },
-                };
-                let peer = &format!("{host}:{port}");
-
-                let mut span = RequestContext::try_with_global_ctx(request_id, |ctx| {
-                    Ok(ctx.create_exit_span(url.path(), peer))
-                })?;
-
-                let mut span_object = span.span_object_mut();
-                span_object.component_id = COMPONENT_PHP_CURL_ID;
-                span_object.add_tag("url", raw_url);
-                drop(span_object);
-
-                let sw_header = RequestContext::try_with_global_ctx(request_id, |ctx| {
-                    Ok(encode_propagation(ctx, url.path(), peer))
-                })?;
-                let mut val = CURL_HEADERS
-                    .with(|headers| headers.borrow_mut().remove(&cid))
-                    .unwrap_or_else(|| ZVal::from(ZArray::new()));
-                if let Some(arr) = val.as_mut_z_arr() {
-                    arr.insert(
-                        InsertKey::NextIndex,
-                        ZVal::from(format!("sw8: {}", sw_header)),
-                    );
-                    let ch = execute_data.get_parameter(0);
-                    call(
-                        "curl_setopt",
-                        &mut [ch.clone(), ZVal::from(SKY_CURLOPT_HTTPHEADER), val],
-                    )?;
+                if info.is_http {
+                    Self::inject_sw_header(request_id, ch.clone(), &info)?;
                 }
 
                 Ok(Box::new(span))
@@ -229,12 +216,232 @@ impl CurlPlugin {
         )
     }
 
+    fn hook_curl_multi_add_handle(&self) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
+        (
+            Box::new(|_, execute_data| {
+                validate_num_args(execute_data, 2)?;
+
+                let multi_id = Self::get_resource_id(execute_data)?;
+                let ch = execute_data.get_parameter(1);
+                let cid = Self::get_handle_id(ch)?;
+
+                CURL_MULTI_INFO_MAP.with(|map| {
+                    map.borrow_mut()
+                        .entry(multi_id)
+                        .or_default()
+                        .insert_curl_handle(cid, ch.clone());
+                });
+
+                Ok(Box::new(()))
+            }),
+            Noop::noop(),
+        )
+    }
+
+    fn hook_curl_multi_remove_handle(&self) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
+        (
+            Box::new(|_, execute_data| {
+                validate_num_args(execute_data, 2)?;
+
+                let multi_id = Self::get_resource_id(execute_data)?;
+                let ch = execute_data.get_parameter(1);
+                let cid = Self::get_handle_id(ch)?;
+
+                CURL_MULTI_INFO_MAP.with(|map| {
+                    map.borrow_mut()
+                        .entry(multi_id)
+                        .or_default()
+                        .remove_curl_handle(cid);
+                });
+
+                Ok(Box::new(()))
+            }),
+            Noop::noop(),
+        )
+    }
+
+    fn hook_curl_multi_exec(&self) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
+        (
+            Box::new(|request_id, execute_data| {
+                validate_num_args(execute_data, 1)?;
+
+                let multi_id = Self::get_resource_id(execute_data)?;
+
+                let is_exec = CURL_MULTI_INFO_MAP.with(|map| {
+                    let mut map = map.borrow_mut();
+                    let Some(multi_info) = map.get_mut(&multi_id) else {
+                        return Ok(false);
+                    };
+                    if multi_info.curl_handles.is_empty() {
+                        return Ok(false);
+                    }
+                    if multi_info.exec_spans.is_some() {
+                        return Ok(true);
+                    }
+
+                    let mut spans = Vec::new();
+                    for (cid, ch) in &multi_info.curl_handles {
+                        let info = Self::get_curl_info(*cid, ch.clone())?;
+
+                        let span = Self::create_exit_span(request_id, &info)?;
+
+                        if info.is_http {
+                            Self::inject_sw_header(request_id, ch.clone(), &info)?;
+                        }
+
+                        spans.push(span);
+                    }
+
+                    // skywalking-rust can't create same level span at one time, so modify parent span id by hand.
+                    if let [head_span, tail_span @ .. ] = spans.as_mut_slice() {
+                        let parent_span_id = head_span.span_object().parent_span_id;
+                        for span in tail_span {
+                            span.span_object_mut().parent_span_id = parent_span_id;
+                        }
+                    }
+
+                    multi_info.exec_spans = Some(spans);
+
+                    Ok::<_, crate::Error>(true)
+                })?;
+
+                Ok(Box::new(is_exec))
+            }),
+            Box::new(move |_, is_exec, execute_data, return_value| {
+                let is_exec = is_exec.downcast::<bool>().unwrap();
+                if !*is_exec {
+                    return Ok(());
+                }
+
+                if return_value.as_long() != Some(CURLM_OK) {
+                    return Ok(());
+                }
+
+                let still_running = execute_data.get_parameter(1);
+                if still_running.as_z_ref().map(|r| r.val()).and_then(|val| val.as_long()) != Some(0) {
+                    return Ok(());
+                }
+
+                let multi_id = Self::get_resource_id(execute_data)?;
+
+                CURL_MULTI_INFO_MAP.with(|map| {
+                    let Some(info) = map.borrow_mut().remove(&multi_id) else {
+                        return Ok(());
+                    };
+                    let Some(mut spans) = info.exec_spans else {
+                        return Ok(());
+                    };
+                    loop {
+                        if spans.pop().is_none() {
+                            break;
+                        }
+                    }
+
+                    Ok::<_, crate::Error>(())
+                })?;
+
+                Ok(())
+            }),
+        )
+    }
+
+    fn hook_curl_multi_close(&self) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
+        (
+            Box::new(|_, execute_data| {
+                validate_num_args(execute_data, 1)?;
+
+                let multi_id = Self::get_resource_id(execute_data)?;
+
+                CURL_MULTI_INFO_MAP.with(|map| map.borrow_mut().remove(&multi_id));
+
+                Ok(Box::new(()))
+            }),
+            Noop::noop(),
+        )
+    }
+
     fn get_resource_id(execute_data: &mut ExecuteData) -> anyhow::Result<i64> {
-        // The `curl_init` return object since PHP8.
         let ch = execute_data.get_parameter(0);
+        Self::get_handle_id(ch)
+    }
+
+    fn get_handle_id(ch: &ZVal) -> anyhow::Result<i64> {
+        // The `curl_init` return object since PHP8.
         ch.as_z_res()
             .map(|res| res.handle())
             .or_else(|| ch.as_z_obj().map(|obj| obj.handle().into()))
             .context("Get resource id failed")
+    }
+
+    fn get_curl_info(cid: i64, ch: ZVal) -> crate::Result<CurlInfo> {
+        let result = call("curl_getinfo", &mut [ch])?;
+        let result = result.as_z_arr().context("result isn't array")?;
+
+        let url = result
+            .get("url")
+            .context("Get url from curl_get_info result failed")?;
+        let raw_url = url.as_z_str().context("url isn't string")?.to_str()?;
+        let mut url = raw_url.to_string();
+
+        if !url.contains("://") {
+            url.insert_str(0, "http://");
+        }
+
+        let url: Url = url.parse().context("parse url")?;
+        let is_http = ["http", "https"].contains(&url.scheme());
+
+        debug!("curl_getinfo get url: {}", &url);
+
+        let host = url.host_str().unwrap_or_default();
+        let port = match url.port() {
+            Some(port) => port,
+            None => match url.scheme() {
+                "http" => 80,
+                "https" => 443,
+                _ => 0,
+            },
+        };
+        let peer = format!("{host}:{port}");
+
+        Ok(CurlInfo {
+            cid,
+            raw_url: raw_url.to_string(),
+            url,
+            peer,
+            is_http,
+        })
+    }
+
+    fn inject_sw_header(request_id: Option<i64>, ch: ZVal, info: &CurlInfo) -> crate::Result<()> {
+        let sw_header = RequestContext::try_with_global_ctx(request_id, |ctx| {
+            Ok(encode_propagation(ctx, info.url.path(), &info.peer))
+        })?;
+        let mut val = CURL_HEADERS
+            .with(|headers| headers.borrow_mut().remove(&info.cid))
+            .unwrap_or_else(|| ZVal::from(ZArray::new()));
+        if let Some(arr) = val.as_mut_z_arr() {
+            arr.insert(
+                InsertKey::NextIndex,
+                ZVal::from(format!("sw8: {}", sw_header)),
+            );
+            call(
+                "curl_setopt",
+                &mut [ch, ZVal::from(SKY_CURLOPT_HTTPHEADER), val],
+            )?;
+        }
+        Ok(())
+    }
+
+    fn create_exit_span(request_id: Option<i64>, info: &CurlInfo) -> crate::Result<Span> {
+        let mut span = RequestContext::try_with_global_ctx(request_id, |ctx| {
+            Ok(ctx.create_exit_span(info.url.path(), &info.peer))
+        })?;
+
+        let mut span_object = span.span_object_mut();
+        span_object.component_id = COMPONENT_PHP_CURL_ID;
+        span_object.add_tag("url", &info.raw_url);
+        drop(span_object);
+
+        Ok(span)
     }
 }
