@@ -20,21 +20,14 @@ use crate::{
     execute::{validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
 };
 use anyhow::Context;
-use dashmap::{DashMap, DashSet};
-use once_cell::sync::Lazy;
 use phper::{
     arrays::{InsertKey, ZArray},
     functions::call,
     values::{ExecuteData, ZVal},
 };
 use skywalking::trace::{propagation::encoder::encode_propagation, span::Span};
-use std::{
-    any::Any,
-    cell::RefCell,
-    collections::{HashMap, HashSet},
-    os::raw::c_long, mem::{swap, replace},
-};
-use tracing::{debug, error};
+use std::{cell::RefCell, collections::HashMap, os::raw::c_long};
+use tracing::debug;
 use url::Url;
 
 const CURLM_OK: i64 = 0;
@@ -60,7 +53,7 @@ struct CurlInfo {
 
 #[derive(Default)]
 struct CurlMultiInfo {
-    exec_spans: Option<Vec<Span>>,
+    exec_spans: Option<Vec<(i64, Span)>>,
     curl_handles: HashMap<i64, ZVal>,
 }
 
@@ -174,27 +167,7 @@ impl CurlPlugin {
                 let mut span = span.downcast::<Span>().unwrap();
 
                 let ch = execute_data.get_parameter(0);
-                let result = call("curl_getinfo", &mut [ch.clone()])?;
-                let response = result.as_z_arr().context("response in not arr")?;
-                let http_code = response
-                    .get("http_code")
-                    .and_then(|code| code.as_long())
-                    .context("Call curl_getinfo, http_code is null")?;
-                span.add_tag("status_code", &*http_code.to_string());
-                if http_code == 0 {
-                    let result = call("curl_error", &mut [ch.clone()])?;
-                    let curl_error = result
-                        .as_z_str()
-                        .context("curl_error is not string")?
-                        .to_str()?;
-                    let mut span_object = span.span_object_mut();
-                    span_object.is_error = true;
-                    span_object.add_log(vec![("CURL_ERROR", curl_error)]);
-                } else if http_code >= 400 {
-                    span.span_object_mut().is_error = true;
-                } else {
-                    span.span_object_mut().is_error = false;
-                }
+                Self::finish_exit_span(&mut span, ch)?;
 
                 Ok(())
             }),
@@ -279,7 +252,7 @@ impl CurlPlugin {
                         return Ok(true);
                     }
 
-                    let mut spans = Vec::new();
+                    let mut exec_spans = Vec::new();
                     for (cid, ch) in &multi_info.curl_handles {
                         let info = Self::get_curl_info(*cid, ch.clone())?;
 
@@ -289,18 +262,19 @@ impl CurlPlugin {
                             Self::inject_sw_header(request_id, ch.clone(), &info)?;
                         }
 
-                        spans.push(span);
+                        exec_spans.push((*cid, span));
                     }
 
-                    // skywalking-rust can't create same level span at one time, so modify parent span id by hand.
-                    if let [head_span, tail_span @ .. ] = spans.as_mut_slice() {
+                    // skywalking-rust can't create same level span at one time, so modify parent
+                    // span id by hand.
+                    if let [(_, head_span), tail_span @ ..] = exec_spans.as_mut_slice() {
                         let parent_span_id = head_span.span_object().parent_span_id;
-                        for span in tail_span {
+                        for (_, span) in tail_span {
                             span.span_object_mut().parent_span_id = parent_span_id;
                         }
                     }
 
-                    multi_info.exec_spans = Some(spans);
+                    multi_info.exec_spans = Some(exec_spans);
 
                     Ok::<_, crate::Error>(true)
                 })?;
@@ -318,25 +292,29 @@ impl CurlPlugin {
                 }
 
                 let still_running = execute_data.get_parameter(1);
-                if still_running.as_z_ref().map(|r| r.val()).and_then(|val| val.as_long()) != Some(0) {
+                if still_running
+                    .as_z_ref()
+                    .map(|r| r.val())
+                    .and_then(|val| val.as_long())
+                    != Some(0)
+                {
                     return Ok(());
                 }
 
                 let multi_id = Self::get_resource_id(execute_data)?;
 
                 CURL_MULTI_INFO_MAP.with(|map| {
-                    let Some(info) = map.borrow_mut().remove(&multi_id) else {
+                    let Some(mut info) = map.borrow_mut().remove(&multi_id) else {
                         return Ok(());
                     };
                     let Some(mut spans) = info.exec_spans else {
                         return Ok(());
                     };
                     loop {
-                        if spans.pop().is_none() {
-                            break;
-                        }
+                        let Some((cid, mut span)) = spans.pop() else { break };
+                        let Some(ch) = info.curl_handles.remove(&cid) else  { continue };
+                        Self::finish_exit_span(&mut span, &ch)?;
                     }
-
                     Ok::<_, crate::Error>(())
                 })?;
 
@@ -443,5 +421,30 @@ impl CurlPlugin {
         drop(span_object);
 
         Ok(span)
+    }
+
+    fn finish_exit_span(span: &mut Span, ch: &ZVal) -> crate::Result<()> {
+        let result = call("curl_getinfo", &mut [ch.clone()])?;
+        let response = result.as_z_arr().context("response in not arr")?;
+        let http_code = response
+            .get("http_code")
+            .and_then(|code| code.as_long())
+            .context("Call curl_getinfo, http_code is null")?;
+        span.add_tag("status_code", &*http_code.to_string());
+        if http_code == 0 {
+            let result = call("curl_error", &mut [ch.clone()])?;
+            let curl_error = result
+                .as_z_str()
+                .context("curl_error is not string")?
+                .to_str()?;
+            let mut span_object = span.span_object_mut();
+            span_object.is_error = true;
+            span_object.add_log(vec![("CURL_ERROR", curl_error)]);
+        } else if http_code >= 400 {
+            span.span_object_mut().is_error = true;
+        } else {
+            span.span_object_mut().is_error = false;
+        }
+        Ok(())
     }
 }
