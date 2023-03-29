@@ -16,7 +16,7 @@
 use crate::{
     component::COMPONENT_PHP_ID,
     context::RequestContext,
-    module::SKYWALKING_VERSION,
+    module::{SKYWALKING_VERSION, is_enable},
     util::{catch_unwind_result, get_sapi_module_name, z_val_to_string},
 };
 use anyhow::{anyhow, Context};
@@ -34,6 +34,9 @@ use tracing::{error, instrument, trace, warn};
 
 #[instrument(skip_all)]
 pub fn init() {
+    if !is_enable() {
+        return;
+    }
     if get_sapi_module_name().to_bytes() == b"fpm-fcgi" {
         if let Err(err) = catch_unwind_result(request_init_for_fpm) {
             error!(mode = "fpm", ?err, "request init failed");
@@ -43,6 +46,9 @@ pub fn init() {
 
 #[instrument(skip_all)]
 pub fn shutdown() {
+    if !is_enable() {
+        return;
+    }
     if get_sapi_module_name().to_bytes() == b"fpm-fcgi" {
         if let Err(err) = catch_unwind_result(request_shutdown_for_fpm) {
             error!(mode = "fpm", ?err, "request shutdown failed");

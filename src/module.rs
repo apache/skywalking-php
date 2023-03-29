@@ -186,7 +186,13 @@ pub fn init() {
     register_execute_functions();
 }
 
-pub fn shutdown() {}
+pub fn shutdown() {
+    if !is_enable() {
+        return;
+    }
+
+    info!("Shutdowning skywalking agent");
+}
 
 fn try_init_logger() -> anyhow::Result<()> {
     let log_level = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_LOG_LEVEL)
@@ -233,20 +239,23 @@ fn get_module_registry() -> &'static ZArr {
     unsafe { ZArr::from_ptr(&sys::module_registry) }
 }
 
-fn is_enable() -> bool {
-    if !ini_get::<bool>(SKYWALKING_AGENT_ENABLE) {
-        return false;
-    }
+pub fn is_enable() -> bool {
+    static IS_ENABLE: Lazy<bool> = Lazy::new(|| {
+        if !ini_get::<bool>(SKYWALKING_AGENT_ENABLE) {
+            return false;
+        }
 
-    let sapi = get_sapi_module_name().to_bytes();
+        let sapi = get_sapi_module_name().to_bytes();
 
-    if sapi == b"fpm-fcgi" {
-        return true;
-    }
+        if sapi == b"fpm-fcgi" {
+            return true;
+        }
 
-    if sapi == b"cli" && get_module_registry().exists("swoole") {
-        return true;
-    }
+        if sapi == b"cli" && get_module_registry().exists("swoole") {
+            return true;
+        }
 
-    false
+        false
+    });
+    *IS_ENABLE
 }
