@@ -16,7 +16,7 @@
 use crate::{
     component::COMPONENT_PHP_ID,
     context::RequestContext,
-    module::{SKYWALKING_VERSION, is_enable},
+    module::{is_enable, SKYWALKING_VERSION},
     util::{catch_unwind_result, get_sapi_module_name, z_val_to_string},
 };
 use anyhow::{anyhow, Context};
