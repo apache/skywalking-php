@@ -27,7 +27,7 @@ use phper::{
 };
 use skywalking::trace::{propagation::encoder::encode_propagation, span::Span};
 use std::{cell::RefCell, collections::HashMap, os::raw::c_long};
-use tracing::debug;
+use tracing::{debug, warn};
 use url::Url;
 
 const CURLM_OK: i64 = 0;
@@ -243,8 +243,11 @@ impl CurlPlugin {
                 let is_exec = CURL_MULTI_INFO_MAP.with(|map| {
                     let mut map = map.borrow_mut();
                     let Some(multi_info) = map.get_mut(&multi_id) else {
+                        debug!(multi_id, "curl multi info is missing, maybe hasn't handles");
                         return Ok(false);
                     };
+
+                    debug!(multi_id, "curl multi handles count: {}", multi_info.curl_handles.len());
                     if multi_info.curl_handles.is_empty() {
                         return Ok(false);
                     }
@@ -302,14 +305,19 @@ impl CurlPlugin {
                 }
 
                 let multi_id = Self::get_resource_id(execute_data)?;
+                debug!(multi_id, "curl multi exec has finished");
 
                 CURL_MULTI_INFO_MAP.with(|map| {
                     let Some(mut info) = map.borrow_mut().remove(&multi_id) else {
+                        warn!(multi_id, "curl multi info is missing after finished");
                         return Ok(());
                     };
                     let Some(mut spans) = info.exec_spans else {
+                        warn!(multi_id, "curl multi spans is missing after finished");
                         return Ok(());
                     };
+
+                    debug!(multi_id, "curl multi spans count: {}", spans.len());
                     loop {
                         let Some((cid, mut span)) = spans.pop() else { break };
                         let Some(ch) = info.curl_handles.remove(&cid) else  { continue };

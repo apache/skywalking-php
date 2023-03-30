@@ -31,7 +31,7 @@ async fn e2e() {
     let fixture = common::setup().await;
 
     // TODO Prefer to listen the server ready signal.
-    sleep(Duration::from_secs(3)).await;
+    sleep(Duration::from_secs(5)).await;
 
     let result = catch_unwind(|| {
         task::block_in_place(|| {
@@ -48,6 +48,7 @@ async fn e2e() {
 
 async fn run_e2e() {
     request_fpm_curl().await;
+    request_fpm_curl_multi().await;
     request_fpm_pdo().await;
     request_fpm_predis().await;
     request_fpm_mysqli().await;
@@ -61,6 +62,14 @@ async fn run_e2e() {
 async fn request_fpm_curl() {
     request_common(
         HTTP_CLIENT.get(format!("http://{}/curl.enter.php", PROXY_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_fpm_curl_multi() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/curl-multi.enter.php", PROXY_SERVER_1_ADDRESS)),
         "ok",
     )
     .await;
