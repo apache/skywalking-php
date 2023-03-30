@@ -224,7 +224,7 @@ The text of each license is the standard Apache 2.0 license.
     https://crates.io/crates/prost-types/0.11.6 0.11.6 Apache-2.0
     https://crates.io/crates/scripts/0.0.0 0.0.0 Apache-2.0
     https://crates.io/crates/skywalking/0.6.0 0.6.0 Apache-2.0
-    https://crates.io/crates/skywalking-php/0.4.0 0.4.0 Apache-2.0
+    https://crates.io/crates/skywalking-php/0.5.0-dev 0.5.0-dev Apache-2.0
     https://crates.io/crates/sync_wrapper/0.1.1 0.1.1 Apache-2.0
 
 ========================================================================
