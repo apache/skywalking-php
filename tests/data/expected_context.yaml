@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 12
+    segmentSize: 16
     segments:
       - segmentId: "not null"
         spans:
@@ -242,6 +242,149 @@ segmentItems:
             skipAnalysis: false
             tags:
               - { key: url, value: /curl.enter.php }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+      - segmentId: "not null"
+        spans:
+          - operationName: GET:/not-exists.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: true
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: /not-exists.php }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "404" }
+            refs:
+              - {
+                  parentEndpoint: /not-exists.php,
+                  networkAddress: "127.0.0.1:9011",
+                  refType: CrossProcess,
+                  parentSpanId: 3,
+                  parentTraceSegmentId: "not null",
+                  parentServiceInstance: "not null",
+                  parentService: skywalking-agent-test-1,
+                  traceId: "not null",
+                }
+      - segmentId: "not null"
+        spans:
+          - operationName: POST:/curl.test.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: /curl.test.php }
+              - { key: http.method, value: POST }
+              - { key: http.status_code, value: "200" }
+            refs:
+              - {
+                  parentEndpoint: /curl.test.php,
+                  networkAddress: "127.0.0.1:9011",
+                  refType: CrossProcess,
+                  parentSpanId: 1,
+                  parentTraceSegmentId: "not null",
+                  parentServiceInstance: "not null",
+                  parentService: skywalking-agent-test-1,
+                  traceId: "not null",
+                }
+      - segmentId: "not null"
+        spans:
+          - operationName: POST:/curl.test.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: /curl.test.php }
+              - { key: http.method, value: POST }
+              - { key: http.status_code, value: "200" }
+            refs:
+              - {
+                  parentEndpoint: /curl.test.php,
+                  networkAddress: "127.0.0.1:9011",
+                  refType: CrossProcess,
+                  parentSpanId: 2,
+                  parentTraceSegmentId: "not null",
+                  parentServiceInstance: "not null",
+                  parentService: skywalking-agent-test-1,
+                  traceId: "not null",
+                }
+      - segmentId: "not null"
+        spans:
+          - operationName: /not-exists.php
+            parentSpanId: 0
+            spanId: 3
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8002
+            isError: true
+            spanType: Exit
+            peer: 127.0.0.1:9011
+            skipAnalysis: false
+            tags:
+              - { key: url, value: "http://127.0.0.1:9011/not-exists.php" }
+              - { key: status_code, value: "500" }
+          - operationName: /curl.test.php
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8002
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:9011
+            skipAnalysis: false
+            tags:
+              - { key: url, value: "http://127.0.0.1:9011/curl.test.php" }
+              - { key: status_code, value: "200" }
+          - operationName: /curl.test.php
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8002
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:9011
+            skipAnalysis: false
+            tags:
+              - { key: url, value: "http://127.0.0.1:9011/curl.test.php" }
+              - { key: status_code, value: "200" }
+          - operationName: GET:/curl-multi.enter.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: /curl-multi.enter.php }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
