@@ -36,8 +36,8 @@ segmentItems:
               - { key: http.status_code, value: "200" }
             refs:
               - {
-                  parentEndpoint: /index.php,
-                  networkAddress: "127.0.0.1:9011",
+                  parentEndpoint: "GET:/curl.enter.php",
+                  networkAddress: "",
                   refType: CrossProcess,
                   parentSpanId: 1,
                   parentTraceSegmentId: "not null",
@@ -64,8 +64,8 @@ segmentItems:
               - { key: http.status_code, value: "200" }
             refs:
               - {
-                  parentEndpoint: /curl.test.php,
-                  networkAddress: "127.0.0.1:9011",
+                  parentEndpoint: "GET:/curl.enter.php",
+                  networkAddress: "",
                   refType: CrossProcess,
                   parentSpanId: 2,
                   parentTraceSegmentId: "not null",
@@ -92,8 +92,8 @@ segmentItems:
               - { key: http.status_code, value: "200" }
             refs:
               - {
-                  parentEndpoint: /curl.test.php,
-                  networkAddress: "127.0.0.1:9011",
+                  parentEndpoint: "GET:/curl.enter.php",
+                  networkAddress: "",
                   refType: CrossProcess,
                   parentSpanId: 3,
                   parentTraceSegmentId: "not null",
@@ -120,8 +120,8 @@ segmentItems:
               - { key: http.status_code, value: "404" }
             refs:
               - {
-                  parentEndpoint: /not-exists.php,
-                  networkAddress: "127.0.0.1:9011",
+                  parentEndpoint: "GET:/curl.enter.php",
+                  networkAddress: "",
                   refType: CrossProcess,
                   parentSpanId: 4,
                   parentTraceSegmentId: "not null",
@@ -148,8 +148,8 @@ segmentItems:
               - { key: http.status_code, value: "200" }
             refs:
               - {
-                  parentEndpoint: /index.php,
-                  networkAddress: "127.0.0.1:9011",
+                  parentEndpoint: "GET:/guzzle.php",
+                  networkAddress: "",
                   refType: CrossProcess,
                   parentSpanId: 1,
                   parentTraceSegmentId: "not null",
@@ -263,8 +263,8 @@ segmentItems:
               - { key: http.status_code, value: "404" }
             refs:
               - {
-                  parentEndpoint: /not-exists.php,
-                  networkAddress: "127.0.0.1:9011",
+                  parentEndpoint: "GET:/curl-multi.enter.php",
+                  networkAddress: "",
                   refType: CrossProcess,
                   parentSpanId: 3,
                   parentTraceSegmentId: "not null",
@@ -291,8 +291,8 @@ segmentItems:
               - { key: http.status_code, value: "200" }
             refs:
               - {
-                  parentEndpoint: /curl.test.php,
-                  networkAddress: "127.0.0.1:9011",
+                  parentEndpoint: "GET:/curl-multi.enter.php",
+                  networkAddress: "",
                   refType: CrossProcess,
                   parentSpanId: 1,
                   parentTraceSegmentId: "not null",
@@ -319,8 +319,8 @@ segmentItems:
               - { key: http.status_code, value: "200" }
             refs:
               - {
-                  parentEndpoint: /curl.test.php,
-                  networkAddress: "127.0.0.1:9011",
+                  parentEndpoint: "GET:/curl-multi.enter.php",
+                  networkAddress: "",
                   refType: CrossProcess,
                   parentSpanId: 2,
                   parentTraceSegmentId: "not null",
@@ -1022,8 +1022,8 @@ segmentItems:
               - { key: http.status_code, value: "200" }
             refs:
               - {
-                  parentEndpoint: /guzzle.php,
-                  networkAddress: "127.0.0.1:9012",
+                  parentEndpoint: "GET:/curl.enter.php",
+                  networkAddress: "",
                   refType: CrossProcess,
                   parentSpanId: 5,
                   parentTraceSegmentId: "not null",
@@ -1053,8 +1053,8 @@ segmentItems:
               - { key: http.status_code, value: "200" }
             refs:
               - {
-                  parentEndpoint: /,
-                  networkAddress: "127.0.0.1:9501",
+                  parentEndpoint: "GET:/curl",
+                  networkAddress: "",
                   refType: CrossProcess,
                   parentSpanId: 1,
                   parentTraceSegmentId: "not null",
@@ -1129,8 +1129,8 @@ segmentItems:
               - { key: http.status_code, value: "200" }
             refs:
               - {
-                  parentEndpoint: /,
-                  networkAddress: "127.0.0.1:9502",
+                  parentEndpoint: "GET:/curl",
+                  networkAddress: "",
                   refType: CrossProcess,
                   parentSpanId: 2,
                   parentTraceSegmentId: "not null",
