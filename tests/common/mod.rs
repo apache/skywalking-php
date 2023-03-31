@@ -32,6 +32,8 @@ use std::{
     net::SocketAddr,
     process::{ExitStatus, Stdio},
     sync::Arc,
+    thread,
+    time::Duration,
 };
 use tokio::{
     net::TcpStream,
@@ -283,13 +285,15 @@ fn setup_php_fpm(index: usize, fpm_addr: &str) -> Child {
         "skywalking_agent.worker_threads=3",
     ];
     info!(cmd = args.join(" "), "start command");
-    Command::new(&args[0])
+    let child = Command::new(&args[0])
         .args(&args[1..])
         .stdin(Stdio::null())
         .stdout(File::create("/tmp/fpm-skywalking-stdout.log").unwrap())
         .stderr(File::create("/tmp/fpm-skywalking-stderr.log").unwrap())
         .spawn()
-        .unwrap()
+        .unwrap();
+    thread::sleep(Duration::from_secs(3));
+    child
 }
 
 #[instrument]
@@ -323,13 +327,15 @@ fn setup_php_swoole(index: usize) -> Child {
         &format!("tests/php/swoole/main.{}.php", index),
     ];
     info!(cmd = args.join(" "), "start command");
-    Command::new(&args[0])
+    let child = Command::new(&args[0])
         .args(&args[1..])
         .stdin(Stdio::null())
         .stdout(File::create("/tmp/swoole-skywalking-stdout.log").unwrap())
         .stderr(File::create("/tmp/swoole-skywalking-stderr.log").unwrap())
         .spawn()
-        .unwrap()
+        .unwrap();
+    thread::sleep(Duration::from_secs(3));
+    child
 }
 
 async fn kill_command(mut child: Child) -> io::Result<ExitStatus> {

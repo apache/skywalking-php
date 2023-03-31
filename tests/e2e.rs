@@ -69,7 +69,10 @@ async fn request_fpm_curl() {
 
 async fn request_fpm_curl_multi() {
     request_common(
-        HTTP_CLIENT.get(format!("http://{}/curl-multi.enter.php", PROXY_SERVER_1_ADDRESS)),
+        HTTP_CLIENT.get(format!(
+            "http://{}/curl-multi.enter.php",
+            PROXY_SERVER_1_ADDRESS
+        )),
         "ok",
     )
     .await;

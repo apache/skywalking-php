@@ -255,17 +255,22 @@ impl CurlPlugin {
                         return Ok(true);
                     }
 
-                    let mut exec_spans = Vec::new();
+                    let mut curl_infos = Vec::with_capacity(multi_info.curl_handles.len());
                     for (cid, ch) in &multi_info.curl_handles {
-                        let info = Self::get_curl_info(*cid, ch.clone())?;
+                        curl_infos.push( (*cid, ch.clone(), Self::get_curl_info(*cid, ch.clone())?));
+                    }
+                    curl_infos.sort_by(|(_, _, i1), (_, _, i2)| i1.raw_url.cmp(&i2.raw_url));
 
+                    let mut exec_spans = Vec::with_capacity(curl_infos.len());
+                    for (cid, ch, info) in curl_infos {
                         let span = Self::create_exit_span(request_id, &info)?;
 
                         if info.is_http {
-                            Self::inject_sw_header(request_id, ch.clone(), &info)?;
+                            Self::inject_sw_header(request_id, ch, &info)?;
                         }
 
-                        exec_spans.push((*cid, span));
+                        debug!(multi_id, operation_name = ?&span.span_object().operation_name, "create exit span");
+                        exec_spans.push((cid, span));
                     }
 
                     // skywalking-rust can't create same level span at one time, so modify parent
