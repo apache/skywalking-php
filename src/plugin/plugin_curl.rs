@@ -405,7 +405,7 @@ impl CurlPlugin {
 
     fn inject_sw_header(request_id: Option<i64>, ch: ZVal, info: &CurlInfo) -> crate::Result<()> {
         let sw_header = RequestContext::try_with_global(request_id, |req_ctx| {
-            let span_object = req_ctx.entry_span.span_object();
+            let span_object = req_ctx.get_primary_span().span_object();
             Ok(encode_propagation(
                 &req_ctx.tracing_context,
                 &span_object.operation_name,

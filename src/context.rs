@@ -49,4 +49,9 @@ impl RequestContext {
     ) -> anyhow::Result<T> {
         Self::try_with_global(request_id, |ctx| f(&mut ctx.tracing_context))
     }
+
+    /// Primary endpoint name is used for endpoint dependency.
+    pub fn get_primary_span(&self) -> &Span {
+        &self.entry_span
+    }
 }
