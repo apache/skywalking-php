@@ -31,6 +31,7 @@ use std::{
     sync::atomic::{AtomicBool, AtomicPtr, Ordering},
 };
 use tracing::{error, instrument, trace, warn};
+use url::Url;
 
 #[instrument(skip_all)]
 pub fn init() {
@@ -62,10 +63,10 @@ fn request_init_for_fpm() -> crate::Result<()> {
     let server = get_page_request_server()?;
 
     let header = get_page_request_header(server);
-    let uri = get_page_request_uri(server);
+    let url = get_page_request_url(server)?;
     let method = get_page_request_method(server);
 
-    create_request_context(None, header.as_deref(), &method, &uri)
+    create_request_context(None, header.as_deref(), &method, &url)
 }
 
 fn request_shutdown_for_fpm() -> crate::Result<()> {
@@ -97,13 +98,34 @@ fn get_page_request_header(server: &ZArr) -> Option<String> {
     }
 }
 
-fn get_page_request_uri(server: &ZArr) -> String {
-    server
+fn get_page_request_url(server: &ZArr) -> crate::Result<Url> {
+    let scheme = if [Some("1"), Some("on")]
+        .contains(&server.get("HTTPS").and_then(z_val_to_string).as_deref())
+    {
+        "https"
+    } else {
+        "http"
+    };
+
+    let addr = server
+        .get("HTTP_HOST")
+        .and_then(z_val_to_string)
+        .or_else(|| {
+            server
+                .get("SERVER_PORT")
+                .and_then(z_val_to_string)
+                .map(|port| format!("localhost:{}", port))
+        })
+        .unwrap_or_else(|| "UNKNOWN".to_string());
+
+    let uri = server
         .get("REQUEST_URI")
         .and_then(z_val_to_string)
         .or_else(|| server.get("PHP_SELF").and_then(z_val_to_string))
         .or_else(|| server.get("SCRIPT_NAME").and_then(z_val_to_string))
-        .unwrap_or_else(|| "{unknown}".to_string())
+        .unwrap_or_else(|| "/UNKNOWN".to_string());
+
+    Ok(Url::parse(&format!("{}://{}{}", scheme, addr, uri))?)
 }
 
 fn get_page_request_method(server: &ZArr) -> String {
@@ -168,32 +190,29 @@ pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) -> Result<(), Infall
 }
 
 fn request_init_for_swoole(request: &mut ZVal) -> crate::Result<()> {
-    let request = request
-        .as_mut_z_obj()
-        .context("swoole request isn't object")?;
+    let request = request.as_z_obj().context("swoole request isn't object")?;
 
     let fd = request
-        .get_mut_property("fd")
+        .get_property("fd")
         .as_long()
         .context("swoole request fd not exists")?;
 
-    let header = {
-        let headers = request
-            .get_mut_property("header")
-            .as_z_arr()
-            .context("swoole request header not exists")?;
-        get_swoole_request_header(headers)
-    };
+    let headers = request
+        .get_property("header")
+        .as_z_arr()
+        .context("swoole request header not exists")?;
+
+    let header = get_swoole_request_header(headers);
 
     let server = request
-        .get_mut_property("server")
+        .get_property("server")
         .as_z_arr()
         .context("swoole request server not exists")?;
 
-    let uri = get_swoole_request_uri(server);
     let method = get_swoole_request_method(server);
+    let url = get_swoole_request_url(server, headers)?;
 
-    create_request_context(Some(fd), header.as_deref(), &method, &uri)
+    create_request_context(Some(fd), header.as_deref(), &method, &url)
 }
 
 fn request_shutdown_for_swoole(response: &mut ZVal) -> crate::Result<()> {
@@ -227,11 +246,30 @@ fn get_swoole_request_header(header: &ZArr) -> Option<String> {
     }
 }
 
-fn get_swoole_request_uri(server: &ZArr) -> String {
-    server
+fn get_swoole_request_url(server: &ZArr, headers: &ZArr) -> crate::Result<Url> {
+    let addr = headers
+        .get("host")
+        .and_then(z_val_to_string)
+        .or_else(|| {
+            server
+                .get("server_port")
+                .and_then(z_val_to_string)
+                .map(|port| format!("localhost:{}", port))
+        })
+        .unwrap_or_else(|| "UNKNOWN".to_string());
+
+    let uri = server
         .get("request_uri")
         .and_then(z_val_to_string)
-        .unwrap_or_else(|| "{unknown}".to_string())
+        .unwrap_or_else(|| "/UNKNOWN".to_string());
+
+    let query = server
+        .get("query_string")
+        .and_then(z_val_to_string)
+        .map(|s| format!("?{}", s))
+        .unwrap_or_default();
+
+    Ok(Url::parse(&format!("http://{}{}{}", addr, uri, query))?)
 }
 
 fn get_swoole_request_method(server: &ZArr) -> String {
@@ -242,7 +280,7 @@ fn get_swoole_request_method(server: &ZArr) -> String {
 }
 
 fn create_request_context(
-    request_id: Option<i64>, header: Option<&str>, method: &str, uri: &str,
+    request_id: Option<i64>, header: Option<&str>, method: &str, url: &Url,
 ) -> crate::Result<()> {
     let propagation = header
         .map(decode_propagation)
@@ -253,7 +291,7 @@ fn create_request_context(
 
     let mut ctx = tracer::create_trace_context();
 
-    let operation_name = format!("{method}:{uri}");
+    let operation_name = format!("{}:{}", method, url.path());
     let mut span = match propagation {
         Some(propagation) => ctx.create_entry_span_with_propagation(&operation_name, &propagation),
         None => ctx.create_entry_span(&operation_name),
@@ -261,7 +299,7 @@ fn create_request_context(
 
     let mut span_object = span.span_object_mut();
     span_object.component_id = COMPONENT_PHP_ID;
-    span_object.add_tag("url", uri);
+    span_object.add_tag("url", url.to_string());
     span_object.add_tag("http.method", method);
     drop(span_object);
 

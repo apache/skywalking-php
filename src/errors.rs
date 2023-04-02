@@ -31,3 +31,9 @@ impl From<Utf8Error> for Error {
         Self::Anyhow(e.into())
     }
 }
+
+impl From<url::ParseError> for Error {
+    fn from(e: url::ParseError) -> Self {
+        Self::Anyhow(e.into())
+    }
+}

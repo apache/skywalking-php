@@ -43,7 +43,7 @@ $http->on('request', function ($request, $response) {
         case "/curl":
             {
                 $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, "http://127.0.0.1:9501/");
+                curl_setopt($ch, CURLOPT_URL, "http://127.0.0.1:9501/?swoole=1");
                 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($ch, CURLOPT_HEADER, 0);

@@ -31,7 +31,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /index.php }
+              - { key: url, value: "http://127.0.0.1:9011/index.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
             refs:
@@ -59,7 +59,10 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /curl.test.php }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/curl.test.php?single=1",
+                }
               - { key: http.method, value: POST }
               - { key: http.status_code, value: "200" }
             refs:
@@ -87,7 +90,10 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /curl.test.php }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/curl.test.php?single=2",
+                }
               - { key: http.method, value: POST }
               - { key: http.status_code, value: "200" }
             refs:
@@ -115,7 +121,10 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /not-exists.php }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/not-exists.php?single=3",
+                }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "404" }
             refs:
@@ -143,7 +152,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /index.php }
+              - { key: url, value: "http://127.0.0.1:9011/index.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
             refs:
@@ -185,7 +194,10 @@ segmentItems:
             peer: 127.0.0.1:9011
             skipAnalysis: false
             tags:
-              - { key: url, value: "http://127.0.0.1:9011/curl.test.php" }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/curl.test.php?single=1",
+                }
               - { key: status_code, value: "200" }
           - operationName: /curl.test.php
             parentSpanId: 0
@@ -199,7 +211,10 @@ segmentItems:
             peer: 127.0.0.1:9011
             skipAnalysis: false
             tags:
-              - { key: url, value: "http://127.0.0.1:9011/curl.test.php" }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/curl.test.php?single=2",
+                }
               - { key: status_code, value: "200" }
           - operationName: /not-exists.php
             parentSpanId: 0
@@ -213,7 +228,10 @@ segmentItems:
             peer: 127.0.0.1:9011
             skipAnalysis: false
             tags:
-              - { key: url, value: "http://127.0.0.1:9011/not-exists.php" }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/not-exists.php?single=3",
+                }
               - { key: status_code, value: "500" }
           - operationName: /guzzle.php
             parentSpanId: 0
@@ -241,7 +259,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /curl.enter.php }
+              - { key: url, value: "http://127.0.0.1:9011/curl.enter.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
@@ -258,7 +276,10 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /not-exists.php }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/not-exists.php?multi=3",
+                }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "404" }
             refs:
@@ -286,7 +307,10 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /curl.test.php }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/curl.test.php?multi=1",
+                }
               - { key: http.method, value: POST }
               - { key: http.status_code, value: "200" }
             refs:
@@ -314,7 +338,10 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /curl.test.php }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/curl.test.php?multi=2",
+                }
               - { key: http.method, value: POST }
               - { key: http.status_code, value: "200" }
             refs:
@@ -342,7 +369,10 @@ segmentItems:
             peer: 127.0.0.1:9011
             skipAnalysis: false
             tags:
-              - { key: url, value: "http://127.0.0.1:9011/not-exists.php" }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/not-exists.php?multi=3",
+                }
               - { key: status_code, value: "500" }
           - operationName: /curl.test.php
             parentSpanId: 0
@@ -356,7 +386,10 @@ segmentItems:
             peer: 127.0.0.1:9011
             skipAnalysis: false
             tags:
-              - { key: url, value: "http://127.0.0.1:9011/curl.test.php" }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/curl.test.php?multi=2",
+                }
               - { key: status_code, value: "200" }
           - operationName: /curl.test.php
             parentSpanId: 0
@@ -370,7 +403,10 @@ segmentItems:
             peer: 127.0.0.1:9011
             skipAnalysis: false
             tags:
-              - { key: url, value: "http://127.0.0.1:9011/curl.test.php" }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/curl.test.php?multi=1",
+                }
               - { key: status_code, value: "200" }
           - operationName: GET:/curl-multi.enter.php
             parentSpanId: -1
@@ -384,7 +420,10 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /curl-multi.enter.php }
+              - {
+                  key: url,
+                  value: "http://127.0.0.1:9011/curl-multi.enter.php",
+                }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
@@ -592,7 +631,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /pdo.php }
+              - { key: url, value: "http://127.0.0.1:9011/pdo.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
@@ -671,7 +710,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /predis.php }
+              - { key: url, value: "http://127.0.0.1:9011/predis.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
       - segmentId: 'not null'
@@ -722,10 +761,10 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - {key: url, value: /mysqli.php}
-              - {key: http.method, value: GET}
-              - {key: http.status_code, value: '200'}
-      - segmentId: 'not null'
+              - { key: url, value: "http://127.0.0.1:9011/mysqli.php" }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+      - segmentId: "317420675919366046582542286930754598201"
         spans:
           - operationName: Memcached->set
             parentSpanId: 0
@@ -838,7 +877,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /memcached.php }
+              - { key: url, value: "http://127.0.0.1:9011/memcached.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
@@ -930,7 +969,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /redis.succ.php }
+              - { key: url, value: "http://127.0.0.1:9011/redis.succ.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
@@ -983,7 +1022,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /redis.fail.php }
+              - { key: url, value: "http://127.0.0.1:9011/redis.fail.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
   - serviceName: skywalking-agent-test-2
@@ -1017,7 +1056,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /guzzle.php }
+              - { key: url, value: "http://127.0.0.1:9012/guzzle.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
             refs:
@@ -1048,7 +1087,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: / }
+              - { key: url, value: "http://127.0.0.1:9501/?swoole=1" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
             refs:
@@ -1076,7 +1115,7 @@ segmentItems:
             peer: 127.0.0.1:9501
             skipAnalysis: false
             tags:
-              - { key: url, value: "http://127.0.0.1:9501/" }
+              - { key: url, value: "http://127.0.0.1:9501/?swoole=1" }
               - { key: status_code, value: "200" }
           - operationName: /
             parentSpanId: 0
@@ -1104,7 +1143,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: /curl }
+              - { key: url, value: "http://127.0.0.1:9501/curl" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
   - serviceName: skywalking-agent-test-2-swoole
@@ -1124,7 +1163,7 @@ segmentItems:
             peer: ""
             skipAnalysis: false
             tags:
-              - { key: url, value: / }
+              - { key: url, value: "http://127.0.0.1:9502/" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
             refs:

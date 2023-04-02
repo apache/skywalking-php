@@ -28,7 +28,7 @@ require_once dirname(__DIR__) . "/vendor/autoload.php";
         [
             'curl' => (function () {
                 $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, "http://127.0.0.1:9011/curl.test.php");
+                curl_setopt($ch, CURLOPT_URL, "http://127.0.0.1:9011/curl.test.php?multi=1");
                 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($ch, CURLOPT_POST, 1);
@@ -44,7 +44,7 @@ require_once dirname(__DIR__) . "/vendor/autoload.php";
             'curl' => (function () {
                 $ch = curl_init();
                 curl_setopt_array($ch, [
-                    CURLOPT_URL => "http://127.0.0.1:9011/curl.test.php",
+                    CURLOPT_URL => "http://127.0.0.1:9011/curl.test.php?multi=2",
                     CURLOPT_TIMEOUT => 10,
                     CURLOPT_RETURNTRANSFER => 1,
                     CURLOPT_POST => 1,
@@ -60,7 +60,7 @@ require_once dirname(__DIR__) . "/vendor/autoload.php";
         [
             'curl' => (function () {
                 $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, "http://127.0.0.1:9011/not-exists.php");
+                curl_setopt($ch, CURLOPT_URL, "http://127.0.0.1:9011/not-exists.php?multi=3");
                 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                 curl_setopt($ch, CURLOPT_HEADER, 0);
