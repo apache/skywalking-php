@@ -764,7 +764,7 @@ segmentItems:
               - { key: url, value: "http://127.0.0.1:9011/mysqli.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
-      - segmentId: "317420675919366046582542286930754598201"
+      - segmentId: 'not null'
         spans:
           - operationName: Memcached->set
             parentSpanId: 0
