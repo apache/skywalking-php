@@ -163,7 +163,7 @@ async fn http_proxy_fpm_handler(
 
         let mut params = fastcgi_client::Params::default()
             .request_method(method)
-            .query_string(query)
+            .query_string(&*query)
             .server_addr(state.http_addr.ip().to_string())
             .server_port(state.http_addr.port())
             .remote_addr(remote_addr.ip().to_string())
@@ -176,7 +176,10 @@ async fn http_proxy_fpm_handler(
 
             if key.as_str().starts_with("content-") {
                 param_key = key.as_str().replace('-', "_").to_uppercase();
-            } else if key.as_str().starts_with("sw") || key.as_str().starts_with("x-") {
+            } else if key.as_str().starts_with("sw")
+                || key.as_str().starts_with("x-")
+                || key.as_str() == "host"
+            {
                 param_key = "HTTP_".to_owned() + &key.as_str().replace('-', "_").to_uppercase();
             }
 
@@ -194,7 +197,7 @@ async fn http_proxy_fpm_handler(
             buffer.extend_from_slice(&buf);
         }
 
-        let params = params_set_script(params, &path);
+        let params = params_set_script(params, &path, &query);
 
         info!(?params, "proxy http to php-fpm");
 
@@ -231,12 +234,12 @@ async fn http_proxy_fpm_handler(
 }
 
 fn params_set_script<'a>(
-    params: fastcgi_client::Params<'a>, script_name: &'a str,
+    params: fastcgi_client::Params<'a>, script_name: &'a str, query: &'a str,
 ) -> fastcgi_client::Params<'a> {
     params
         .script_name(script_name)
         .script_filename(create_script_filename(script_name))
-        .request_uri(script_name)
+        .request_uri(create_request_uri(script_name, query))
         .document_uri(script_name)
 }
 
@@ -250,6 +253,14 @@ fn create_script_filename(script_name: &str) -> String {
         .to_str()
         .unwrap()
         .to_owned()
+}
+
+fn create_request_uri(script_name: &str, query: &str) -> String {
+    if query.is_empty() {
+        script_name.to_owned()
+    } else {
+        format!("{}?{}", script_name, query)
+    }
 }
 
 #[instrument]
