@@ -16,7 +16,11 @@
 use anyhow::anyhow;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
-use skywalking::trace::{span::Span, trace_context::TracingContext};
+use skywalking::trace::{
+    propagation::encoder::encode_propagation, span::Span, trace_context::TracingContext,
+};
+
+pub const SW_HEADER: &str = "sw8";
 
 static REQUEST_CONTEXT: Lazy<DashMap<Option<i64>, RequestContext>> = Lazy::new(DashMap::new);
 
@@ -50,8 +54,19 @@ impl RequestContext {
         Self::try_with_global(request_id, |ctx| f(&mut ctx.tracing_context))
     }
 
+    pub fn try_get_sw_header(request_id: Option<i64>) -> crate::Result<String> {
+        Ok(Self::try_with_global(request_id, |req_ctx| {
+            let span_object = req_ctx.get_primary_span().span_object();
+            Ok(encode_propagation(
+                &req_ctx.tracing_context,
+                &span_object.operation_name,
+                &span_object.peer,
+            ))
+        })?)
+    }
+
     /// Primary endpoint name is used for endpoint dependency.
-    pub fn get_primary_span(&self) -> &Span {
+    fn get_primary_span(&self) -> &Span {
         &self.entry_span
     }
 }

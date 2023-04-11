@@ -208,12 +208,10 @@ unsafe extern "C" fn execute_ex(execute_data: *mut sys::zend_execute_data) {
 
     // If before hook return error, don't execute the after hook.
     if let Ok(data) = result {
+        let mut null = ZVal::from(());
         let return_value = match ZVal::try_from_mut_ptr((*execute_data.as_mut_ptr()).return_value) {
             Some(return_value) => return_value,
-            None => {
-                error!(err = "return value is null", "after execute ex");
-                return;
-            }
+            None => &mut null,
         };
         if let Err(err) = catch_unwind_result(AssertUnwindSafe(|| {
             after(request_id, data, execute_data, return_value)

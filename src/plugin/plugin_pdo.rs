@@ -285,13 +285,13 @@ impl FromStr for Dsn {
         let db_type = ss.next().context("unknown db type")?.to_owned();
         let data_source = ss.next().context("unknown datasource")?.to_owned();
 
-        let mut host = "unknown";
+        let mut host = "UNKNOWN";
         let mut port = match &*db_type {
             "mysql" => "3306",
             "oci" => "1521", // Oracle
             "sqlsrv" => "1433",
             "pgsql" => "5432",
-            _ => "unknown",
+            _ => "UNKNOWN",
         };
 
         let ss = data_source.split(';');
