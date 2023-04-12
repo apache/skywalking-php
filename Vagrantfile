@@ -23,6 +23,7 @@ Vagrant.configure("2") do |config|
     config.vm.network "forwarded_port", guest: 3306, host: 3306
     config.vm.network "forwarded_port", guest: 6379, host: 6379
     config.vm.network "forwarded_port", guest: 11211, host: 11211
+    config.vm.network "forwarded_port", guest: 5672, host: 5672
 
     config.vm.synced_folder ".", "/vagrant"
 
