@@ -23,7 +23,9 @@ use crate::{
 use anyhow::Context;
 use phper::{
     arrays::ZArray,
-    objects::ZObj,
+    classes::ClassEntry,
+    functions::call,
+    objects::{ZObj, ZObject},
     values::{ExecuteData, ZVal},
 };
 use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
@@ -93,7 +95,7 @@ impl AmqplibPlugin {
                     &routing_key,
                 )?;
 
-                // Self::inject_sw_header(request_id, execute_data)?;
+                Self::inject_sw_header(request_id, execute_data)?;
 
                 Ok(Box::new(span))
             }),
@@ -133,42 +135,43 @@ impl AmqplibPlugin {
         Ok(span)
     }
 
-    #[allow(dead_code)]
     fn inject_sw_header(
         request_id: Option<i64>, execute_data: &mut ExecuteData,
     ) -> crate::Result<()> {
+        const HEADER_NAME: &str = "application_headers";
+
         let sw_header = RequestContext::try_get_sw_header(request_id)?;
 
         let message = execute_data
             .get_parameter(0)
             .as_mut_z_obj()
             .context("message isn't object")?;
-        let properties = message
-            .get_mut_property("properties")
-            .as_mut_z_arr()
-            .context("message.properties isn't array")?;
-        let headers = properties.get_mut("application_headers");
-        match headers {
-            Some(headers) => {
-                if let Some(headers) = headers.as_mut_z_obj() {
-                    headers.call("set", [ZVal::from(SW_HEADER), ZVal::from(sw_header)])?;
-                } else if let Some(headers) = headers.as_mut_z_arr() {
-                    headers.insert(SW_HEADER, sw_header);
-                } else if headers.as_null().is_some() {
-                    *headers = ZVal::from(Self::new_sw_headers(&sw_header));
-                }
-            }
-            None => {
-                properties.insert("application_headers", Self::new_sw_headers(&sw_header));
-            }
+
+        let has = message
+            .call("has", [ZVal::from(HEADER_NAME)])?
+            .expect_bool()?;
+        if has {
+            let mut headers = message.call("get", [ZVal::from(HEADER_NAME)])?;
+            let headers = headers.expect_mut_z_obj()?;
+            headers.call("set", [ZVal::from(SW_HEADER), ZVal::from(sw_header)])?;
+        } else {
+            let headers = Self::new_sw_headers(&sw_header)?;
+            message.call("set", [ZVal::from(HEADER_NAME), ZVal::from(headers)])?;
         }
 
         Ok(())
     }
 
-    fn new_sw_headers(sw_header: &str) -> ZArray {
+    fn new_sw_headers(sw_header: &str) -> crate::Result<ZObject> {
         let mut arr = ZArray::new();
         arr.insert(SW_HEADER, sw_header);
-        arr
+
+        let class_name = "PhpAmqpLib\\Wire\\AMQPTable";
+        let exists = call("class_exists", [ZVal::from(class_name), ZVal::from(true)])?;
+        if !exists.as_bool().unwrap_or_default() {
+            return Err(format!("Class {} not exists", class_name).into());
+        }
+        let obj = ClassEntry::from_globals(class_name)?.new_object([ZVal::from(arr)])?;
+        Ok(obj)
     }
 }

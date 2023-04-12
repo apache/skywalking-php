@@ -41,10 +41,8 @@ $channel->queue_bind('queue_test', 'exchange_test', 'routing_test');
 }
 
 {
-    $headers = new AMQPTable();
-    $headers->set('foo', 'bar');
     $msg = new AMQPMessage('Hello World!');
-    $msg->set('application_headers', $headers);
+    $msg->set('application_headers', new AMQPTable(['foo' => 'bar']));
     $channel->basic_publish($msg, '', 'not_exists');
 }
 

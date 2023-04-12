@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use anyhow::anyhow;
 use std::{result, str::Utf8Error};
 
 pub type Result<T> = result::Result<T, Error>;
@@ -35,5 +36,11 @@ impl From<Utf8Error> for Error {
 impl From<url::ParseError> for Error {
     fn from(e: url::ParseError) -> Self {
         Self::Anyhow(e.into())
+    }
+}
+
+impl From<String> for Error {
+    fn from(e: String) -> Self {
+        Self::Anyhow(anyhow!("{}", e))
     }
 }
