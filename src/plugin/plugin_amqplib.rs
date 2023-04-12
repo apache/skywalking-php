@@ -93,7 +93,7 @@ impl AmqplibPlugin {
                     &routing_key,
                 )?;
 
-                Self::inject_sw_header(request_id, execute_data)?;
+                // Self::inject_sw_header(request_id, execute_data)?;
 
                 Ok(Box::new(span))
             }),
@@ -133,6 +133,7 @@ impl AmqplibPlugin {
         Ok(span)
     }
 
+    #[allow(dead_code)]
     fn inject_sw_header(
         request_id: Option<i64>, execute_data: &mut ExecuteData,
     ) -> crate::Result<()> {
