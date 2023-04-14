@@ -511,7 +511,7 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/errno-dragonfly/0.1.2 0.1.2 MIT
     https://crates.io/crates/generic-array/0.14.6 0.14.6 MIT
     https://crates.io/crates/globwalk/0.8.1 0.8.1 MIT
-    https://crates.io/crates/h2/0.3.15 0.3.15 MIT
+    https://crates.io/crates/h2/0.3.17 0.3.17 MIT
     https://crates.io/crates/hostname/0.3.1 0.3.1 MIT
     https://crates.io/crates/http-body/0.4.5 0.4.5 MIT
     https://crates.io/crates/hyper/0.14.25 0.14.25 MIT
