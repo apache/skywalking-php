@@ -15,7 +15,7 @@
 
 use super::Plugin;
 use crate::{
-    component::COMPONENT_RABBITMQ_PRODUCER_ID,
+    component::COMPONENT_AMQP_PRODUCER_ID,
     context::{RequestContext, SW_HEADER},
     execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
     tag::{TAG_MQ_BROKER, TAG_MQ_QUEUE, TAG_MQ_TOPIC},
@@ -126,7 +126,7 @@ impl AmqplibPlugin {
 
         let mut span_object = span.span_object_mut();
         span_object.set_span_layer(SpanLayer::Mq);
-        span_object.component_id = COMPONENT_RABBITMQ_PRODUCER_ID;
+        span_object.component_id = COMPONENT_AMQP_PRODUCER_ID;
         span_object.add_tag(TAG_MQ_BROKER, peer);
         span_object.add_tag(TAG_MQ_TOPIC, exchange);
         span_object.add_tag(TAG_MQ_QUEUE, routing_key);

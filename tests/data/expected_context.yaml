@@ -1033,7 +1033,7 @@ segmentItems:
             spanLayer: MQ
             startTime: gt 0
             endTime: gt 0
-            componentId: 52
+            componentId: 144
             isError: false
             spanType: Exit
             peer: 127.0.0.1:5672
@@ -1048,7 +1048,7 @@ segmentItems:
             spanLayer: MQ
             startTime: gt 0
             endTime: gt 0
-            componentId: 52
+            componentId: 144
             isError: false
             spanType: Exit
             peer: 127.0.0.1:5672
@@ -1063,7 +1063,7 @@ segmentItems:
             spanLayer: MQ
             startTime: gt 0
             endTime: gt 0
-            componentId: 52
+            componentId: 144
             isError: false
             spanType: Exit
             peer: 127.0.0.1:5672
