@@ -186,7 +186,7 @@ impl PredisPlugin {
                 let peer = format!("{}:{}", host, port);
 
                 let handle = this.handle();
-                let command = execute_data.get_parameter(0).expect_mut_z_obj()?;
+                let command = execute_data.get_mut_parameter(0).expect_mut_z_obj()?;
                 let command_class_name = command
                     .get_class()
                     .get_name()

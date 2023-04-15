@@ -110,7 +110,7 @@ impl CurlPlugin {
                 let options = execute_data.get_parameter(1).as_long();
 
                 if options == Some(SKY_CURLOPT_HTTPHEADER) {
-                    *execute_data.get_parameter(1) = CURLOPT_HTTPHEADER.into();
+                    *execute_data.get_mut_parameter(1) = CURLOPT_HTTPHEADER.into();
                 } else if options == Some(CURLOPT_HTTPHEADER) {
                     let value = execute_data.get_parameter(2);
                     if value.get_type_info().is_array() {

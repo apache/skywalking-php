@@ -578,11 +578,11 @@ MulanPSL-2.0 licenses
 The following components are provided under the MulanPSL-2.0 License. See project link for details.
 The text of each license is also included in licenses/LICENSE-[project].txt.
 
-    https://crates.io/crates/phper/0.10.2 0.10.2 MulanPSL-2.0
-    https://crates.io/crates/phper-alloc/0.10.2 0.10.2 MulanPSL-2.0
-    https://crates.io/crates/phper-build/0.10.2 0.10.2 MulanPSL-2.0
-    https://crates.io/crates/phper-macros/0.10.2 0.10.2 MulanPSL-2.0
-    https://crates.io/crates/phper-sys/0.10.2 0.10.2 MulanPSL-2.0
+    https://crates.io/crates/phper/0.11.0 0.11.0 MulanPSL-2.0
+    https://crates.io/crates/phper-alloc/0.11.0 0.11.0 MulanPSL-2.0
+    https://crates.io/crates/phper-build/0.11.0 0.11.0 MulanPSL-2.0
+    https://crates.io/crates/phper-macros/0.11.0 0.11.0 MulanPSL-2.0
+    https://crates.io/crates/phper-sys/0.11.0 0.11.0 MulanPSL-2.0
 
 ========================================================================
 Unlicense licenses

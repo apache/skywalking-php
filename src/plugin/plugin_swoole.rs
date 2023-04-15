@@ -58,7 +58,7 @@ impl SwooleServerPlugin {
 
                 // Hack the closure with the
                 // [`crate::request::skywalking_hack_swoole_on_request`].
-                let closure = execute_data.get_parameter(1);
+                let closure = execute_data.get_mut_parameter(1);
                 let ori_closure = replace(
                     closure,
                     ZVal::from(ZString::new(
