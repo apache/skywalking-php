@@ -54,6 +54,7 @@ async fn run_e2e() {
     request_fpm_mysqli().await;
     request_fpm_memcached().await;
     request_fpm_redis().await;
+    request_fpm_rabbitmq().await;
     request_swoole_curl().await;
     sleep(Duration::from_secs(3)).await;
     request_collector_validate().await;
@@ -119,6 +120,14 @@ async fn request_fpm_redis() {
 
     request_common(
         HTTP_CLIENT.get(format!("http://{}/redis.fail.php", PROXY_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_fpm_rabbitmq() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/rabbitmq.php", PROXY_SERVER_1_ADDRESS)),
         "ok",
     )
     .await;

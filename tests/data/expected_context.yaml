@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 16
+    segmentSize: 17
     segments:
       - segmentId: "not null"
         spans:
@@ -1023,6 +1023,68 @@ segmentItems:
             skipAnalysis: false
             tags:
               - { key: url, value: "http://127.0.0.1:9011/redis.fail.php" }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+      - segmentId: "not null"
+        spans:
+          - operationName: "PhpAmqpLib\\Channel\\AMQPChannel->basic_publish"
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: MQ
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 144
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:5672
+            skipAnalysis: false
+            tags:
+              - { key: mq.broker, value: "127.0.0.1:5672" }
+              - { key: mq.topic, value: "" }
+              - { key: mq.queue, value: queue_test }
+          - operationName: "PhpAmqpLib\\Channel\\AMQPChannel->basic_publish"
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: MQ
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 144
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:5672
+            skipAnalysis: false
+            tags:
+              - { key: mq.broker, value: "127.0.0.1:5672" }
+              - { key: mq.topic, value: exchange_test }
+              - { key: mq.queue, value: routing_test }
+          - operationName: "PhpAmqpLib\\Channel\\AMQPChannel->basic_publish"
+            parentSpanId: 0
+            spanId: 3
+            spanLayer: MQ
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 144
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:5672
+            skipAnalysis: false
+            tags:
+              - { key: mq.broker, value: "127.0.0.1:5672" }
+              - { key: mq.topic, value: "" }
+              - { key: mq.queue, value: not_exists }
+          - operationName: GET:/rabbitmq.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: "http://127.0.0.1:9011/rabbitmq.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
   - serviceName: skywalking-agent-test-2

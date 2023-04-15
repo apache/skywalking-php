@@ -16,7 +16,7 @@
 use super::Plugin;
 use crate::{
     component::COMPONENT_PHP_CURL_ID,
-    context::RequestContext,
+    context::{RequestContext, SW_HEADER},
     execute::{validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
 };
 use anyhow::Context;
@@ -25,7 +25,7 @@ use phper::{
     functions::call,
     values::{ExecuteData, ZVal},
 };
-use skywalking::trace::{propagation::encoder::encode_propagation, span::Span};
+use skywalking::trace::span::Span;
 use std::{cell::RefCell, collections::HashMap, os::raw::c_long};
 use tracing::{debug, warn};
 use url::Url;
@@ -404,21 +404,14 @@ impl CurlPlugin {
     }
 
     fn inject_sw_header(request_id: Option<i64>, ch: ZVal, info: &CurlInfo) -> crate::Result<()> {
-        let sw_header = RequestContext::try_with_global(request_id, |req_ctx| {
-            let span_object = req_ctx.get_primary_span().span_object();
-            Ok(encode_propagation(
-                &req_ctx.tracing_context,
-                &span_object.operation_name,
-                &span_object.peer,
-            ))
-        })?;
+        let sw_header = RequestContext::try_get_sw_header(request_id)?;
         let mut val = CURL_HEADERS
             .with(|headers| headers.borrow_mut().remove(&info.cid))
             .unwrap_or_else(|| ZVal::from(ZArray::new()));
         if let Some(arr) = val.as_mut_z_arr() {
             arr.insert(
                 InsertKey::NextIndex,
-                ZVal::from(format!("sw8: {}", sw_header)),
+                ZVal::from(format!("{}: {}", SW_HEADER, sw_header)),
             );
             call(
                 "curl_setopt",

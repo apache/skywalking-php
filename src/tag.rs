@@ -46,3 +46,7 @@ impl Display for CacheOp {
 
 pub const TAG_DB_STATEMENT: &str = "db.statement";
 pub const TAG_DB_TYPE: &str = "db.type";
+
+pub const TAG_MQ_BROKER: &str = "mq.broker";
+pub const TAG_MQ_TOPIC: &str = "mq.topic";
+pub const TAG_MQ_QUEUE: &str = "mq.queue";
