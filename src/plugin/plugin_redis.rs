@@ -217,7 +217,7 @@ impl RedisPlugin {
                 }
 
                 let host = {
-                    let mut f = || {
+                    let f = || {
                         Ok::<_, anyhow::Error>(
                             execute_data
                                 .get_parameter(0)
@@ -236,7 +236,7 @@ impl RedisPlugin {
                     }
                 };
                 let port = {
-                    let mut f = || {
+                    let f = || {
                         execute_data
                             .get_parameter(1)
                             .as_long()

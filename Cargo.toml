@@ -44,7 +44,7 @@ futures-util = "0.3.27"
 hostname = "0.3.1"
 libc = "0.2.140"
 once_cell = "1.17.1"
-phper = "0.10.2"
+phper = "0.11.0"
 prost = "0.11.8"
 serde_json = { version = "1.0.94", features = ["preserve_order"] }
 skywalking = { version = "0.6.0", features = ["management"] }

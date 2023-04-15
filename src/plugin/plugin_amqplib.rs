@@ -143,7 +143,7 @@ impl AmqplibPlugin {
         let sw_header = RequestContext::try_get_sw_header(request_id)?;
 
         let message = execute_data
-            .get_parameter(0)
+            .get_mut_parameter(0)
             .as_mut_z_obj()
             .context("message isn't object")?;
 
