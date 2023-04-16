@@ -109,9 +109,6 @@ impl CreatePackageXmlCommand {
             .args(["ls-tree", "-r", "HEAD", "--name-only"])
             .output()?;
         let content = String::from_utf8(output.stdout)?;
-        Ok(content
-            .split_whitespace()
-            .map(|path| File::new(path))
-            .collect())
+        Ok(content.split_whitespace().map(File::new).collect())
     }
 }
