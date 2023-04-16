@@ -16,8 +16,8 @@
 use chrono::{DateTime, Local};
 use clap::Parser;
 use serde::Serialize;
-use std::{collections::HashMap, fs, path::PathBuf, process::Command, time::SystemTime};
-use tera::{Context, Result, Tera, Value};
+use std::{fs, path::PathBuf, process::Command, time::SystemTime};
+use tera::{Context, Tera};
 use tracing::info;
 
 /// Create package.xml from template file.
@@ -50,20 +50,28 @@ pub struct CreatePackageXmlCommand {
 
 #[derive(Serialize)]
 struct File {
-    path: String,
+    name: String,
+    role: String,
 }
 
-pub fn file_filter(value: &Value, _: &HashMap<String, Value>) -> Result<Value> {
-    let mut role = "src";
-    let path = value.to_string().trim_matches('"').to_string();
-    if path.ends_with(".md") || path == "LICENSE" || path == "NOTICE" {
-        role = "doc"
-    }
+impl File {
+    fn new(path: &str) -> Self {
+        let path = path.trim_matches('"');
+        let role = if path.ends_with(".md")
+            || path.starts_with("docs/")
+            || path.starts_with("dist-material/")
+            || ["LICENSE", "NOTICE"].contains(&path)
+        {
+            "doc"
+        } else {
+            "src"
+        };
 
-    Ok(Value::String(format!(
-        "<file name=\"{}\" role=\"{}\"/>",
-        path, role
-    )))
+        Self {
+            name: path.to_owned(),
+            role: role.to_owned(),
+        }
+    }
 }
 
 impl CreatePackageXmlCommand {
@@ -78,7 +86,6 @@ impl CreatePackageXmlCommand {
         context.insert("files", &self.get_git_files()?);
 
         let mut tera = Tera::default();
-        tera.register_filter("file_filter", file_filter);
         let contents = tera.render_str(&tpl, &context)?;
 
         info!(target_path = ?&self.target_path, "write target content");
@@ -102,11 +109,6 @@ impl CreatePackageXmlCommand {
             .args(["ls-tree", "-r", "HEAD", "--name-only"])
             .output()?;
         let content = String::from_utf8(output.stdout)?;
-        Ok(content
-            .split_whitespace()
-            .map(|path| File {
-                path: path.to_owned(),
-            })
-            .collect())
+        Ok(content.split_whitespace().map(File::new).collect())
     }
 }
