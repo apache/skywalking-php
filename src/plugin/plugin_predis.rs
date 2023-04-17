@@ -21,7 +21,7 @@ use crate::{
     tag::{TAG_CACHE_CMD, TAG_CACHE_KEY, TAG_CACHE_OP, TAG_CACHE_TYPE},
 };
 use once_cell::sync::Lazy;
-use phper::{functions::call, values::ZVal};
+use phper::{eg, functions::call, values::ZVal};
 use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
 use std::collections::HashSet;
 use tracing::debug;
@@ -229,8 +229,12 @@ impl PredisPlugin {
             Box::new(move |_, span, _, return_value| {
                 let mut span = span.downcast::<Span>().unwrap();
 
+                let exception = unsafe { eg!(exception) };
+
+                debug!(?return_value, ?exception, "predis after execute command");
+
                 let typ = return_value.get_type_info();
-                if typ.is_null() || typ.is_false() {
+                if !exception.is_null() || typ.is_false() {
                     span.span_object_mut().is_error = true;
                 }
 

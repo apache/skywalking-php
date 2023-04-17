@@ -689,7 +689,7 @@ segmentItems:
             startTime: gt 0
             endTime: gt 0
             componentId: 8006
-            isError: true
+            isError: false
             spanType: Exit
             peer: 127.0.0.1:6379
             skipAnalysis: false
