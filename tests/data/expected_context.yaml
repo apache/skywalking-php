@@ -636,7 +636,7 @@ segmentItems:
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
         spans:
-          - operationName: "Predis\\Connection\\AbstractConnection->executeCommand(Predis\\Command\\Redis\\AUTH)"
+          - operationName: "Predis\\Client->auth"
             parentSpanId: 0
             spanId: 1
             spanLayer: Cache
@@ -650,7 +650,7 @@ segmentItems:
             tags:
               - { key: cache.type, value: redis }
               - { key: cache.cmd, value: AUTH }
-          - operationName: "Predis\\Connection\\AbstractConnection->executeCommand(Predis\\Command\\Redis\\SET)"
+          - operationName: "Predis\\Client->set"
             parentSpanId: 0
             spanId: 2
             spanLayer: Cache
@@ -666,7 +666,7 @@ segmentItems:
               - { key: cache.cmd, value: SET }
               - { key: cache.op, value: write }
               - { key: cache.key, value: foo }
-          - operationName: "Predis\\Connection\\AbstractConnection->executeCommand(Predis\\Command\\Redis\\GET)"
+          - operationName: "Predis\\Client->get"
             parentSpanId: 0
             spanId: 3
             spanLayer: Cache
@@ -682,14 +682,14 @@ segmentItems:
               - { key: cache.cmd, value: GET }
               - { key: cache.op, value: read }
               - { key: cache.key, value: foo }
-          - operationName: "Predis\\Connection\\AbstractConnection->executeCommand(Predis\\Command\\Redis\\GET)"
+          - operationName: "Predis\\Client->get"
             parentSpanId: 0
             spanId: 4
             spanLayer: Cache
             startTime: gt 0
             endTime: gt 0
             componentId: 8006
-            isError: true
+            isError: false
             spanType: Exit
             peer: 127.0.0.1:6379
             skipAnalysis: false

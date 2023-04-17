@@ -13,8 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// TODO Need to be improved.
-
 use super::Plugin;
 use crate::{
     component::COMPONENT_PHP_PREDIS_ID,
@@ -22,8 +20,8 @@ use crate::{
     execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook},
     tag::{TAG_CACHE_CMD, TAG_CACHE_KEY, TAG_CACHE_OP, TAG_CACHE_TYPE},
 };
-use anyhow::Context;
 use once_cell::sync::Lazy;
+use phper::{eg, functions::call, values::ZVal};
 use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
 use std::collections::HashSet;
 use tracing::debug;
@@ -131,12 +129,24 @@ pub static REDIS_WRITE_COMMANDS: Lazy<HashSet<&str>> = Lazy::new(|| {
     .collect()
 });
 
+static REDIS_OTHER_COMMANDS: Lazy<HashSet<&str>> = Lazy::new(|| ["AUTH"].into_iter().collect());
+
+static REDIS_ALL_COMMANDS: Lazy<HashSet<&str>> = Lazy::new(|| {
+    let mut commands = HashSet::with_capacity(
+        REDIS_READ_COMMANDS.len() + REDIS_WRITE_COMMANDS.len() + REDIS_OTHER_COMMANDS.len(),
+    );
+    commands.extend(REDIS_READ_COMMANDS.iter());
+    commands.extend(REDIS_WRITE_COMMANDS.iter());
+    commands.extend(REDIS_OTHER_COMMANDS.iter());
+    commands
+});
+
 #[derive(Default, Clone)]
 pub struct PredisPlugin;
 
 impl Plugin for PredisPlugin {
     fn class_names(&self) -> Option<&'static [&'static str]> {
-        Some(&["Predis\\Connection\\AbstractConnection"])
+        Some(&["Predis\\Client"])
     }
 
     fn function_name_prefix(&self) -> Option<&'static str> {
@@ -150,13 +160,19 @@ impl Plugin for PredisPlugin {
         Box<crate::execute::AfterExecuteHook>,
     )> {
         match (class_name, function_name) {
-            (
-                Some(class_name @ "Predis\\Connection\\AbstractConnection"),
-                function_name @ "executeCommand",
-            ) => Some(self.hook_predis_execute_command(class_name, function_name)),
+            (Some(class_name @ "Predis\\Client"), function_name)
+                if REDIS_ALL_COMMANDS.contains(&*function_name.to_ascii_uppercase()) =>
+            {
+                Some(self.hook_predis_execute_command(class_name, function_name))
+            }
             _ => None,
         }
     }
+}
+
+enum ConnectionType {
+    AbstractConnection,
+    Unknown,
 }
 
 impl PredisPlugin {
@@ -170,35 +186,12 @@ impl PredisPlugin {
                 validate_num_args(execute_data, 1)?;
 
                 let this = get_this_mut(execute_data)?;
-                let parameters = this.get_mut_property("parameters").expect_mut_z_obj()?;
-                let parameters = parameters
-                    .get_mut_property("parameters")
-                    .expect_mut_z_arr()?;
-                let host = parameters
-                    .get_mut("host")
-                    .context("host not found")?
-                    .expect_z_str()?
-                    .to_str()?;
-                let port = parameters
-                    .get_mut("port")
-                    .context("port not found")?
-                    .expect_long()?;
-                let peer = format!("{}:{}", host, port);
-
                 let handle = this.handle();
-                let command = execute_data.get_mut_parameter(0).expect_mut_z_obj()?;
-                let command_class_name = command
-                    .get_class()
-                    .get_name()
-                    .to_str()
-                    .map(ToOwned::to_owned)
-                    .unwrap_or_default();
+                let connection = this.call("getConnection", [])?;
 
-                let id = command.call("getid", [])?;
-                let cmd = id.expect_z_str()?.to_str()?.to_ascii_uppercase();
+                let peer = Self::get_peer(connection)?;
 
-                let mut arguments = command.call("getarguments", [])?;
-                let arguments = arguments.expect_mut_z_arr()?;
+                let cmd = function_name.to_ascii_uppercase();
 
                 let op = if REDIS_READ_COMMANDS.contains(&*cmd) {
                     Some("read")
@@ -209,17 +202,13 @@ impl PredisPlugin {
                 };
 
                 let key = op
-                    .and_then(|_| arguments.get(0))
-                    .and_then(|arg| arg.as_z_str())
+                    .and_then(|_| execute_data.get_parameter(0).as_z_str())
                     .and_then(|s| s.to_str().ok());
 
                 debug!(handle, cmd, key, op, "call redis command");
 
                 let mut span = RequestContext::try_with_global_ctx(request_id, |ctx| {
-                    Ok(ctx.create_exit_span(
-                        &format!("{}->{}({})", class_name, function_name, command_class_name),
-                        &peer,
-                    ))
+                    Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &peer))
                 })?;
 
                 let mut span_object = span.span_object_mut();
@@ -229,7 +218,7 @@ impl PredisPlugin {
                 span_object.add_tag(TAG_CACHE_CMD, cmd);
                 if let Some(op) = op {
                     span_object.add_tag(TAG_CACHE_OP, op);
-                };
+                }
                 if let Some(key) = key {
                     span_object.add_tag(TAG_CACHE_KEY, key)
                 }
@@ -240,13 +229,52 @@ impl PredisPlugin {
             Box::new(move |_, span, _, return_value| {
                 let mut span = span.downcast::<Span>().unwrap();
 
+                let exception = unsafe { eg!(exception) };
+
+                debug!(?return_value, ?exception, "predis after execute command");
+
                 let typ = return_value.get_type_info();
-                if typ.is_null() || typ.is_false() {
+                if !exception.is_null() || typ.is_false() {
                     span.span_object_mut().is_error = true;
                 }
 
                 Ok(())
             }),
         )
+    }
+
+    fn get_peer(mut connection: ZVal) -> crate::Result<String> {
+        let connection_type = Self::infer_connection_type(connection.clone())?;
+        match connection_type {
+            ConnectionType::AbstractConnection => {
+                let connection = connection.expect_mut_z_obj()?;
+
+                let mut parameters = connection.call("getParameters", [])?;
+                let parameters = parameters.expect_mut_z_obj()?;
+
+                let host = parameters.call("__get", [ZVal::from("host")])?;
+                let host = host.expect_z_str()?.to_str()?;
+
+                let port = parameters.call("__get", [ZVal::from("port")])?;
+                let port = port.expect_long()?;
+
+                Ok(format!("{}:{}", host, port))
+            }
+            ConnectionType::Unknown => Ok("unknown:0".to_owned()),
+        }
+    }
+
+    fn infer_connection_type(connection: ZVal) -> crate::Result<ConnectionType> {
+        let is_abstract_connection = call(
+            "is_a",
+            [
+                connection,
+                ZVal::from("Predis\\Connection\\AbstractConnection"),
+            ],
+        )?;
+        if is_abstract_connection.as_bool() == Some(true) {
+            return Ok(ConnectionType::AbstractConnection);
+        }
+        Ok(ConnectionType::Unknown)
     }
 }
