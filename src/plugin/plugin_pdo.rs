@@ -291,7 +291,7 @@ impl FromStr for Dsn {
             "oci" => "1521", // Oracle
             "sqlsrv" => "1433",
             "pgsql" => "5432",
-            _ => "unknown",
+            _ => "0",
         };
 
         let ss = data_source.split(';');

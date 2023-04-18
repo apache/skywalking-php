@@ -116,14 +116,14 @@ fn get_page_request_url(server: &ZArr) -> crate::Result<Url> {
                 .and_then(z_val_to_string)
                 .map(|port| format!("localhost:{}", port))
         })
-        .unwrap_or_else(|| "UNKNOWN".to_string());
+        .unwrap_or_else(|| "unknown:0".to_string());
 
     let uri = server
         .get("REQUEST_URI")
         .and_then(z_val_to_string)
         .or_else(|| server.get("PHP_SELF").and_then(z_val_to_string))
         .or_else(|| server.get("SCRIPT_NAME").and_then(z_val_to_string))
-        .unwrap_or_else(|| "/UNKNOWN".to_string());
+        .unwrap_or_else(|| "/unknown".to_string());
 
     Ok(Url::parse(&format!("{}://{}{}", scheme, addr, uri))?)
 }
@@ -256,12 +256,12 @@ fn get_swoole_request_url(server: &ZArr, headers: &ZArr) -> crate::Result<Url> {
                 .and_then(z_val_to_string)
                 .map(|port| format!("localhost:{}", port))
         })
-        .unwrap_or_else(|| "UNKNOWN".to_string());
+        .unwrap_or_else(|| "unknown:0".to_string());
 
     let uri = server
         .get("request_uri")
         .and_then(z_val_to_string)
-        .unwrap_or_else(|| "/UNKNOWN".to_string());
+        .unwrap_or_else(|| "/unknown".to_string());
 
     let query = server
         .get("query_string")
