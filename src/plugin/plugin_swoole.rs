@@ -16,7 +16,10 @@
 use crate::{
     execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
     plugin::Plugin,
-    request::{IS_SWOOLE, ORI_SWOOLE_ON_REQUEST, SWOOLE_RESPONSE_STATUS_MAP},
+    request::{
+        HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME, IS_SWOOLE, ORI_SWOOLE_ON_REQUEST,
+        SWOOLE_RESPONSE_STATUS_MAP,
+    },
 };
 use phper::{strings::ZString, values::ZVal};
 use std::{mem::replace, sync::atomic::Ordering};
@@ -61,9 +64,7 @@ impl SwooleServerPlugin {
                 let closure = execute_data.get_mut_parameter(1);
                 let ori_closure = replace(
                     closure,
-                    ZVal::from(ZString::new(
-                        "skywalking_hack_swoole_on_request_please_do_not_use",
-                    )),
+                    ZVal::from(ZString::new(HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME)),
                 );
 
                 ORI_SWOOLE_ON_REQUEST.store(

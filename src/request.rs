@@ -25,7 +25,6 @@ use once_cell::sync::Lazy;
 use phper::{arrays::ZArr, eg, pg, sg, sys, values::ZVal};
 use skywalking::trace::{propagation::decoder::decode_propagation, tracer};
 use std::{
-    convert::Infallible,
     panic::AssertUnwindSafe,
     ptr::null_mut,
     sync::atomic::{AtomicBool, AtomicPtr, Ordering},
@@ -146,6 +145,9 @@ fn get_page_request_server<'a>() -> anyhow::Result<&'a ZArr> {
     }
 }
 
+pub const HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME: &str =
+    "skywalking_hack_swoole_on_request_please_do_not_use";
+
 /// Hold the response fd and status code kvs, because I dont't found that
 /// response has the status field, so I hook the response.status method, maybe
 /// there is a better way?
@@ -157,11 +159,11 @@ pub static IS_SWOOLE: AtomicBool = AtomicBool::new(false);
 
 /// The function is used by swoole plugin, to surround the callback of on
 /// request.
-pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) -> Result<(), Infallible> {
+pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) -> phper::Result<ZVal> {
     let f = ORI_SWOOLE_ON_REQUEST.load(Ordering::Relaxed);
     if f.is_null() {
         error!("Origin swoole on request handler is null");
-        return Ok(());
+        return Ok(ZVal::from(()));
     }
     let f = unsafe { ZVal::from_mut_ptr(f) };
 
@@ -170,7 +172,8 @@ pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) -> Result<(), Infall
         error!(mode = "swoole", ?err, "request init failed");
     }
 
-    if let Err(err) = f.call(&mut *args) {
+    let return_value = f.call(&mut *args);
+    if let Err(err) = &return_value {
         error!(
             mode = "swoole",
             ?err,
@@ -186,7 +189,7 @@ pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) -> Result<(), Infall
         }
     }
 
-    Ok(())
+    return_value
 }
 
 fn request_init_for_swoole(request: &mut ZVal) -> crate::Result<()> {

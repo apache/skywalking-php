@@ -31,6 +31,7 @@ mod worker;
 
 use phper::{ini::Policy, modules::Module, php_get_module};
 
+use crate::request::HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME;
 pub use errors::{Error, Result};
 
 /// Enable agent and report or not.
@@ -156,7 +157,7 @@ pub fn get_module() -> Module {
     // The function is used by swoole plugin, to surround the callback of on
     // request.
     module.add_function(
-        "skywalking_hack_swoole_on_request_please_do_not_use",
+        HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME,
         request::skywalking_hack_swoole_on_request,
     );
 
