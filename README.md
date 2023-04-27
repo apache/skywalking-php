@@ -36,12 +36,8 @@ SkyWalking PHP Agent requires SkyWalking 8.4+ and PHP 7.2+
   * [x] [php-amqplib](https://github.com/php-amqplib/php-amqplib) for Message Queuing Producer
 
 * Swoole Ecosystem
-  * [ ] [Coroutine\Http\Client](https://wiki.swoole.com/#/coroutine_client/http_client)
-  * [ ] [Coroutine\MySQL](https://wiki.swoole.com/#/coroutine_client/mysql)
-  * [ ] [Swoole\Coroutine\Http\Client](https://wiki.swoole.com/#/coroutine_client/http_client)
-  * [ ] [Coroutine\Redis](https://wiki.swoole.com/#/coroutine_client/redis)
 
-  *The components of the PHP-FPM ecosystem can also be used in Swoole.*
+  *The components of the PHP-FPM ecosystem can also be used in Swoole, wether the flag `SWOOLE_HOOK_ALL` is enabled or not.*
 
 ## Contact Us
 

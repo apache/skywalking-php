@@ -17,6 +17,7 @@ mod common;
 
 use crate::common::{
     COLLECTOR_HTTP_ADDRESS, HTTP_CLIENT, PROXY_SERVER_1_ADDRESS, SWOOLE_SERVER_1_ADDRESS,
+    SWOOLE_SERVER_2_ADDRESS,
 };
 use reqwest::{header::CONTENT_TYPE, RequestBuilder, StatusCode};
 use std::{
@@ -56,6 +57,12 @@ async fn run_e2e() {
     request_fpm_redis().await;
     request_fpm_rabbitmq().await;
     request_swoole_curl().await;
+    request_swoole_2_curl().await;
+    request_swoole_2_pdo().await;
+    request_swoole_2_mysqli().await;
+    request_swoole_2_memcached().await;
+    request_swoole_2_redis().await;
+    request_swoole_2_predis().await;
     sleep(Duration::from_secs(3)).await;
     request_collector_validate().await;
 }
@@ -136,6 +143,54 @@ async fn request_fpm_rabbitmq() {
 async fn request_swoole_curl() {
     request_common(
         HTTP_CLIENT.get(format!("http://{}/curl", SWOOLE_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_swoole_2_curl() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/curl", SWOOLE_SERVER_2_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_swoole_2_pdo() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/pdo", SWOOLE_SERVER_2_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_swoole_2_mysqli() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/mysqli", SWOOLE_SERVER_2_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_swoole_2_memcached() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/memcached", SWOOLE_SERVER_2_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_swoole_2_redis() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/redis", SWOOLE_SERVER_2_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_swoole_2_predis() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/predis", SWOOLE_SERVER_2_ADDRESS)),
         "ok",
     )
     .await;

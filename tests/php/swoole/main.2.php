@@ -26,8 +26,8 @@ $http = new Swoole\Http\Server('127.0.0.1', 9502);
 $http->set([
     'reactor_num' => 3,
     'worker_num' => 3,
-    'enable_coroutine' => false,
-    'hook_flags' => 0,
+    'enable_coroutine' => true,
+    'hook_flags' => SWOOLE_HOOK_ALL,
 ]);
 
 $http->on('start', function ($server) {
@@ -38,6 +38,64 @@ $http->on('request', function ($request, $response) {
     try {
         switch ($request->server['request_uri']) {
         case "/":
+            break;
+        
+        case '/curl':
+            {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, "http://127.0.0.1:9502/?swoole=2");
+                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                curl_setopt($ch, CURLOPT_HEADER, 0);
+                $output = curl_exec($ch);
+                curl_close($ch);
+                Assert::same($output, "ok");
+            }
+            break;
+        
+        case '/pdo':
+            {
+                $pdo = new PDO("mysql:dbname=skywalking;host=127.0.0.1;port=3306", "root", "password");
+                $result = $pdo->exec("SELECT 1");
+                Assert::notFalse($result);
+            }
+            break;
+
+        case '/mysqli':
+            {
+                $mysqli = new mysqli("127.0.0.1", "root", "password", "skywalking", 3306);
+                $result = $mysqli->query("SELECT 1");
+                Assert::notFalse($result);
+            }
+            break;
+
+        case '/memcached':
+            {
+                $mc = new Memcached();
+                $mc->addServer("127.0.0.1", 11211);
+
+                $mc->set("foo000", "bar000");
+                Assert::same($mc->get("foo000"), 'bar000');
+            }
+            break;
+
+        case '/redis':
+            {
+                $client = new Redis();
+                $client->connect("127.0.0.1", 6379);
+                $client->auth('password');
+                $client->set('foo001', 'bar001');
+                Assert::same($client->get('foo001'), 'bar001');
+            }
+            break;
+        
+        case '/predis':
+            {
+                $client = new Predis\Client();
+                $client->auth('password');
+                $client->set('foo002', 'bar002');
+                Assert::same($client->get('foo002'), 'bar002');
+            }
             break;
 
         default:

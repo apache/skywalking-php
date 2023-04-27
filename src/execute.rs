@@ -13,7 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{plugin::select_plugin, request::IS_SWOOLE, util::catch_unwind_result};
+use crate::{
+    plugin::select_plugin,
+    request::{HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME, IS_SWOOLE},
+    util::catch_unwind_result,
+};
 use anyhow::{bail, Context};
 use phper::{
     objects::ZObj,
@@ -99,6 +103,11 @@ unsafe extern "C" fn execute_internal(
             return;
         }
     };
+
+    if function_name == HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME {
+        ori_execute_internal(Some(execute_data), Some(return_value));
+        return;
+    }
 
     let plugin = select_plugin(class_name.as_deref(), &function_name);
     let plugin = match plugin {
@@ -297,7 +306,7 @@ fn infer_request_id(execute_data: &mut ExecuteData) -> Option<i64> {
         };
         let func_name = prev_execute_data.func().get_function_name();
         if !func_name
-            .map(|s| s == b"skywalking_hack_swoole_on_request_please_do_not_use")
+            .map(|s| s == &HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME.as_bytes())
             .unwrap_or_default()
         {
             prev_execute_data_ptr = unsafe { (*prev_execute_data_ptr).prev_execute_data };
