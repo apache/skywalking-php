@@ -51,7 +51,6 @@ pub const PROXY_SERVER_2_ADDRESS: &str = "127.0.0.1:9012";
 pub const FPM_SERVER_1_ADDRESS: &str = "127.0.0.1:9001";
 pub const FPM_SERVER_2_ADDRESS: &str = "127.0.0.1:9002";
 pub const SWOOLE_SERVER_1_ADDRESS: &str = "127.0.0.1:9501";
-#[allow(dead_code)]
 pub const SWOOLE_SERVER_2_ADDRESS: &str = "127.0.0.1:9502";
 pub const COLLECTOR_GRPC_ADDRESS: &str = "127.0.0.1:19876";
 pub const COLLECTOR_HTTP_ADDRESS: &str = "127.0.0.1:12800";
