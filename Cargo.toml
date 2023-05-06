@@ -21,7 +21,7 @@ members = [
 
 [package]
 name = "skywalking-php"
-version = "0.5.0-dev"
+version = "0.5.0"
 authors = ["Apache Software Foundation", "jmjoy <jmjoy@apache.org>", "Yanlong He <heyanlong@apache.org>"]
 description = "Apache SkyWalking PHP Agent."
 edition = "2021"
