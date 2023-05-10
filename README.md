@@ -37,7 +37,7 @@ SkyWalking PHP Agent requires SkyWalking 8.4+ and PHP 7.2+
 
 * Swoole Ecosystem
 
-  *The components of the PHP-FPM ecosystem can also be used in Swoole, wether the flag `SWOOLE_HOOK_ALL` is enabled or not.*
+  *The components of the PHP-FPM ecosystem can also be used in Swoole regardless of the flag `SWOOLE_HOOK_ALL`.
 
 ## Contact Us
 
