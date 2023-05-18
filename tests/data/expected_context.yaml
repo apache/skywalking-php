@@ -428,9 +428,26 @@ segmentItems:
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
         spans:
-          - operationName: PDO->exec
+          - operationName: PDO->__construct
             parentSpanId: 0
             spanId: 1
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8003
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+              - {
+                  key: db.data_source,
+                  value: dbname=skywalking;host=127.0.0.1;port=3306,
+                }
+          - operationName: PDO->exec
+            parentSpanId: 0
+            spanId: 2
             spanLayer: Database
             startTime: gt 0
             endTime: gt 0
@@ -446,28 +463,7 @@ segmentItems:
                   value: "dbname=skywalking;host=127.0.0.1;port=3306",
                 }
               - { key: db.statement, value: SELECT 1 }
-          - operationName: PDO->prepare
-            parentSpanId: 0
-            spanId: 2
-            spanLayer: Database
-            startTime: gt 0
-            endTime: gt 0
-            componentId: 8003
-            isError: false
-            spanType: Exit
-            peer: 127.0.0.1:3306
-            skipAnalysis: false
-            tags:
-              - { key: db.type, value: mysql }
-              - {
-                  key: db.data_source,
-                  value: "dbname=skywalking;host=127.0.0.1:3306",
-                }
-              - {
-                  key: db.statement,
-                  value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
-                }
-          - operationName: PDOStatement->execute
+          - operationName: PDO->__construct
             parentSpanId: 0
             spanId: 3
             spanLayer: Database
@@ -484,11 +480,7 @@ segmentItems:
                   key: db.data_source,
                   value: "dbname=skywalking;host=127.0.0.1:3306",
                 }
-              - {
-                  key: db.statement,
-                  value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
-                }
-          - operationName: PDOStatement->fetchAll
+          - operationName: PDO->prepare
             parentSpanId: 0
             spanId: 4
             spanLayer: Database
@@ -509,9 +501,68 @@ segmentItems:
                   key: db.statement,
                   value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
                 }
-          - operationName: PDO->prepare
+          - operationName: PDOStatement->execute
             parentSpanId: 0
             spanId: 5
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8003
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+              - {
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1:3306",
+                }
+              - {
+                  key: db.statement,
+                  value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
+                }
+          - operationName: PDOStatement->fetchAll
+            parentSpanId: 0
+            spanId: 6
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8003
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+              - {
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1:3306",
+                }
+              - {
+                  key: db.statement,
+                  value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
+                }
+          - operationName: PDO->__construct
+            parentSpanId: 0
+            spanId: 7
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8003
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+              - {
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1:3306;",
+                }
+          - operationName: PDO->prepare
+            parentSpanId: 0
+            spanId: 8
             spanLayer: Database
             startTime: gt 0
             endTime: gt 0
@@ -532,7 +583,7 @@ segmentItems:
               }
           - operationName: PDOStatement->execute
             parentSpanId: 0
-            spanId: 6
+            spanId: 9
             spanLayer: Database
             startTime: gt 0
             endTime: gt 0
@@ -553,7 +604,7 @@ segmentItems:
               }
           - operationName: PDOStatement->fetchAll
             parentSpanId: 0
-            spanId: 7
+            spanId: 10
             spanLayer: Database
             startTime: gt 0
             endTime: gt 0
@@ -572,9 +623,26 @@ segmentItems:
                 key: db.statement,
                 value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
               }
+          - operationName: PDO->__construct
+            parentSpanId: 0
+            spanId: 11
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8003
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+              - {
+                  key: db.data_source,
+                  value: dbname=skywalking;host=127.0.0.1;port=3306,
+                }
           - operationName: PDO->prepare
             parentSpanId: 0
-            spanId: 8
+            spanId: 12
             spanLayer: Database
             startTime: gt 0
             endTime: gt 0
@@ -595,7 +663,7 @@ segmentItems:
               }
           - operationName: PDOStatement->execute
             parentSpanId: 0
-            spanId: 9
+            spanId: 13
             spanLayer: Database
             startTime: gt 0
             endTime: gt 0
@@ -715,9 +783,22 @@ segmentItems:
               - { key: http.status_code, value: "200" }
       - segmentId: 'not null'
         spans:
-          - operationName: mysqli->query
+          - operationName: mysqli->__construct
             parentSpanId: 0
             spanId: 1
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8004
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+          - operationName: mysqli->query
+            parentSpanId: 0
+            spanId: 2
             spanLayer: Database
             startTime: gt 0
             endTime: gt 0
@@ -732,9 +813,22 @@ segmentItems:
                   key: db.statement,
                   value: "SELECT 1",
                 }
+          - operationName: mysqli->__construct
+            parentSpanId: 0
+            spanId: 3
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8004
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
           - operationName: mysqli->query
             parentSpanId: 0
-            spanId: 2
+            spanId: 4
             spanLayer: Database
             startTime: gt 0
             endTime: gt 0
@@ -1005,11 +1099,9 @@ segmentItems:
               - { key: cache.key, value: foo }
             logs:
               - logEvent:
-                  - { key: Exception Class, value: RedisException }
-                  - {
-                      key: Exception Message,
-                      value: NOAUTH Authentication required.,
-                    }
+                  - { key: error.kind, value: RedisException }
+                  - { key: message, value: NOAUTH Authentication required. }
+                  - { key: stack, value: not null }
           - operationName: GET:/redis.fail.php
             parentSpanId: -1
             spanId: 0
@@ -1300,9 +1392,26 @@ segmentItems:
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
         spans:
-          - operationName: PDO->exec
+          - operationName: PDO->__construct
             parentSpanId: 0
             spanId: 1
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8003
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+              - {
+                  key: db.data_source,
+                  value: dbname=skywalking;host=127.0.0.1;port=3306,
+                }
+          - operationName: PDO->exec
+            parentSpanId: 0
+            spanId: 2
             spanLayer: Database
             startTime: gt 0
             endTime: gt 0
@@ -1335,9 +1444,22 @@ segmentItems:
               - { key: http.status_code, value: "200" }
       - segmentId: "not null"
         spans:
-          - operationName: mysqli->query
+          - operationName: mysqli->__construct
             parentSpanId: 0
             spanId: 1
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8004
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+          - operationName: mysqli->query
+            parentSpanId: 0
+            spanId: 2
             spanLayer: Database
             startTime: gt 0
             endTime: gt 0

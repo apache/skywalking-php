@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::Plugin;
+use super::{log_exception, Plugin};
 use crate::{
     component::COMPONENT_PHP_PDO_ID,
     context::RequestContext,
-    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
+    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook},
     tag::{TAG_DB_STATEMENT, TAG_DB_TYPE},
 };
 use anyhow::Context;
@@ -82,7 +82,7 @@ impl Plugin for PdoPlugin {
 impl PdoPlugin {
     fn hook_pdo_construct(&self) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         (
-            Box::new(|_, execute_data| {
+            Box::new(|request_id, execute_data| {
                 validate_num_args(execute_data, 1)?;
 
                 let this = get_this_mut(execute_data)?;
@@ -96,11 +96,17 @@ impl PdoPlugin {
                 let dsn: Dsn = dsn.parse()?;
                 debug!(?dsn, "parse PDO dsn");
 
+                let span = create_exit_span_with_dsn(request_id, "PDO", "__construct", &dsn)?;
+
                 DSN_MAP.insert(handle, dsn);
 
-                Ok(Box::new(()))
+                Ok(Box::new(span))
             }),
-            Noop::noop(),
+            Box::new(move |_, span, _, _| {
+                let mut span = span.downcast::<Span>().unwrap();
+                log_exception(&mut span);
+                Ok(())
+            }),
         )
     }
 
@@ -190,18 +196,19 @@ unsafe extern "C" fn dtor(object: *mut sys::zend_object) {
 fn after_hook(
     _: Option<i64>, span: Box<dyn Any>, execute_data: &mut ExecuteData, return_value: &mut ZVal,
 ) -> crate::Result<()> {
+    let mut span = span.downcast::<Span>().unwrap();
+
     if let Some(b) = return_value.as_bool() {
         if !b {
-            return after_hook_when_false(
-                get_this_mut(execute_data)?,
-                &mut span.downcast::<Span>().unwrap(),
-            );
+            return after_hook_when_false(get_this_mut(execute_data)?, &mut span);
         }
     } else if let Some(obj) = return_value.as_mut_z_obj() {
         if obj.get_class().get_name() == &"PDOStatement" {
             return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
         }
     }
+
+    log_exception(&mut span);
 
     Ok(())
 }

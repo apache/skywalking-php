@@ -15,7 +15,7 @@
 
 use std::{any::Any, collections::HashMap};
 
-use super::Plugin;
+use super::{log_exception, Plugin};
 use crate::{
     component::COMPONENT_PHP_MEMCACHED_ID,
     context::RequestContext,
@@ -306,6 +306,7 @@ fn after_hook(
     _: Option<i64>, span: Box<dyn Any>, execute_data: &mut ExecuteData, return_value: &mut ZVal,
 ) -> crate::Result<()> {
     let mut span = span.downcast::<Span>().expect("Downcast to Span failed");
+
     if let Some(b) = return_value.as_bool() {
         if !b {
             span.span_object_mut().is_error = true;
@@ -330,6 +331,9 @@ fn after_hook(
             }
         }
     }
+
+    log_exception(&mut span);
+
     Ok(())
 }
 
