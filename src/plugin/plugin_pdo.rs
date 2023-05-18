@@ -91,7 +91,7 @@ impl PdoPlugin {
 
                 let dsn = execute_data.get_parameter(0);
                 let dsn = dsn.as_z_str().context("dsn isn't str")?.to_str()?;
-                debug!(dsn, "construct PDO");
+                debug!(dsn, handle, "construct PDO");
 
                 let dsn: Dsn = dsn.parse()?;
                 debug!(?dsn, "parse PDO dsn");
@@ -198,11 +198,18 @@ fn after_hook(
             );
         }
     } else if let Some(obj) = return_value.as_mut_z_obj() {
-        if obj.get_class().get_name() == &"PDOStatement" {
-            return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
-        }
-        else if obj.get_class().get_name() == &"Doctrine\\DBAL\\Driver\\PDOStatement" {
-            return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
+        let cls=obj.get_class().get_name().to_str()?;
+        debug!(cls, "returned class in after_hook");
+        match cls {
+            "PDOStatement" => {
+                return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
+            }
+            r"Doctrine\DBAL\Driver\PDO\Statement" => {
+                return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
+            }
+            _ => {
+                debug!(cls, "not a valid class");
+            }
         }
     }
 
@@ -238,7 +245,9 @@ fn after_hook_when_pdo_statement(pdo: &mut ZObj, pdo_statement: &mut ZObj) -> cr
         .get(&pdo.handle())
         .map(|r| r.value().clone())
         .context("DSN not found")?;
-    DSN_MAP.insert(pdo_statement.handle(), dsn);
+    let handle = pdo_statement.handle();
+    debug!(?dsn, handle, "Hook PDOStatement class");
+    DSN_MAP.insert(handle, dsn);
     hack_dtor(pdo_statement, Some(pdo_statement_dtor));
     Ok(())
 }
