@@ -201,6 +201,9 @@ fn after_hook(
         if obj.get_class().get_name() == &"PDOStatement" {
             return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
         }
+        else if obj.get_class().get_name() == &"Doctrine\\DBAL\\Driver\\PDOStatement" {
+            return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
+        }
     }
 
     Ok(())
