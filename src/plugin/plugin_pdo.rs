@@ -279,7 +279,7 @@ fn with_dsn<T>(handle: u32, f: impl FnOnce(&Dsn) -> anyhow::Result<T>) -> anyhow
     DSN_MAP
         .get(&handle)
         .map(|r| f(r.value()))
-        .context("dns not exists")?
+        .context("dsn not exists")?
 }
 
 #[derive(Debug, Clone)]
