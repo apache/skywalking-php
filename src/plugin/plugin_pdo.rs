@@ -199,7 +199,6 @@ fn after_hook(
         }
     } else if let Some(obj) = return_value.as_mut_z_obj() {
         let cls=obj.get_class().get_name().to_str()?;
-        debug!(cls, "returned class in after_hook");
         match cls {
             "PDOStatement" => {
                 return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
