@@ -50,9 +50,7 @@ impl Plugin for PdoPlugin {
     }
 
     fn hook(
-        &self,
-        class_name: Option<&str>,
-        function_name: &str,
+        &self, class_name: Option<&str>, function_name: &str,
     ) -> Option<(
         Box<crate::execute::BeforeExecuteHook>,
         Box<crate::execute::AfterExecuteHook>,
@@ -108,8 +106,7 @@ impl PdoPlugin {
     }
 
     fn hook_pdo_methods(
-        &self,
-        function_name: &str,
+        &self, function_name: &str,
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         let function_name = function_name.to_owned();
         (
@@ -135,8 +132,7 @@ impl PdoPlugin {
     }
 
     fn hook_pdo_statement_methods(
-        &self,
-        function_name: &str,
+        &self, function_name: &str,
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         let function_name = function_name.to_owned();
         (
@@ -193,10 +189,7 @@ unsafe extern "C" fn dtor(object: *mut sys::zend_object) {
 }
 
 fn after_hook(
-    _: Option<i64>,
-    span: Box<dyn Any>,
-    execute_data: &mut ExecuteData,
-    return_value: &mut ZVal,
+    _: Option<i64>, span: Box<dyn Any>, execute_data: &mut ExecuteData, return_value: &mut ZVal,
 ) -> crate::Result<()> {
     if let Some(b) = return_value.as_bool() {
         if !b {
@@ -261,10 +254,7 @@ fn get_error_info_item(info: &ZArr, i: u64) -> anyhow::Result<&ZVal> {
 }
 
 fn create_exit_span_with_dsn(
-    request_id: Option<i64>,
-    class_name: &str,
-    function_name: &str,
-    dsn: &Dsn,
+    request_id: Option<i64>, class_name: &str, function_name: &str, dsn: &Dsn,
 ) -> anyhow::Result<Span> {
     RequestContext::try_with_global_ctx(request_id, |ctx| {
         let mut span =
