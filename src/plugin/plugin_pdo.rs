@@ -25,6 +25,7 @@ use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use phper::{
     arrays::ZArr,
+    classes::ClassEntry,
     objects::ZObj,
     sys,
     values::{ExecuteData, ZVal},
@@ -49,7 +50,9 @@ impl Plugin for PdoPlugin {
     }
 
     fn hook(
-        &self, class_name: Option<&str>, function_name: &str,
+        &self,
+        class_name: Option<&str>,
+        function_name: &str,
     ) -> Option<(
         Box<crate::execute::BeforeExecuteHook>,
         Box<crate::execute::AfterExecuteHook>,
@@ -105,7 +108,8 @@ impl PdoPlugin {
     }
 
     fn hook_pdo_methods(
-        &self, function_name: &str,
+        &self,
+        function_name: &str,
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         let function_name = function_name.to_owned();
         (
@@ -131,7 +135,8 @@ impl PdoPlugin {
     }
 
     fn hook_pdo_statement_methods(
-        &self, function_name: &str,
+        &self,
+        function_name: &str,
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         let function_name = function_name.to_owned();
         (
@@ -188,7 +193,10 @@ unsafe extern "C" fn dtor(object: *mut sys::zend_object) {
 }
 
 fn after_hook(
-    _: Option<i64>, span: Box<dyn Any>, execute_data: &mut ExecuteData, return_value: &mut ZVal,
+    _: Option<i64>,
+    span: Box<dyn Any>,
+    execute_data: &mut ExecuteData,
+    return_value: &mut ZVal,
 ) -> crate::Result<()> {
     if let Some(b) = return_value.as_bool() {
         if !b {
@@ -198,17 +206,13 @@ fn after_hook(
             );
         }
     } else if let Some(obj) = return_value.as_mut_z_obj() {
-        let cls=obj.get_class().get_name().to_str()?;
-        match cls {
-            "PDOStatement" => {
-                return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
-            }
-            r"Doctrine\DBAL\Driver\PDO\Statement" => {
-                return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
-            }
-            _ => {
-                debug!(cls, "not a valid class");
-            }
+        let cls = obj.get_class();
+        let pdo_cls = ClassEntry::from_globals("PDOStatement").unwrap();
+        if cls.is_instance_of(pdo_cls) {
+            return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
+        } else {
+            let cls = cls.get_name().to_str()?;
+            debug!(cls, "not a subclass of PDOStatement");
         }
     }
 
@@ -257,7 +261,10 @@ fn get_error_info_item(info: &ZArr, i: u64) -> anyhow::Result<&ZVal> {
 }
 
 fn create_exit_span_with_dsn(
-    request_id: Option<i64>, class_name: &str, function_name: &str, dsn: &Dsn,
+    request_id: Option<i64>,
+    class_name: &str,
+    function_name: &str,
+    dsn: &Dsn,
 ) -> anyhow::Result<Span> {
     RequestContext::try_with_global_ctx(request_id, |ctx| {
         let mut span =
