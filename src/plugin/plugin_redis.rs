@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::Plugin;
+use super::{log_exception, Plugin};
 use crate::{
     component::COMPONENT_PHP_REDIS_ID,
     context::RequestContext,
@@ -24,7 +24,6 @@ use anyhow::Context;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use phper::{
-    eg,
     objects::ZObj,
     sys,
     values::{ExecuteData, ZVal},
@@ -360,24 +359,7 @@ fn after_hook(
 ) -> crate::Result<()> {
     let mut span = span.downcast::<Span>().unwrap();
 
-    let ex = unsafe { ZObj::try_from_mut_ptr(eg!(exception)) };
-    if let Some(ex) = ex {
-        let mut span_object = span.span_object_mut();
-        span_object.is_error = true;
-
-        let mut logs = Vec::new();
-        if let Ok(class_name) = ex.get_class().get_name().to_str() {
-            logs.push(("Exception Class", class_name.to_owned()));
-        }
-        if let Some(message) = ex.get_property("message").as_z_str() {
-            if let Ok(message) = message.to_str() {
-                logs.push(("Exception Message", message.to_owned()));
-            }
-        }
-        if !logs.is_empty() {
-            span_object.add_log(logs);
-        }
-    }
+    log_exception(&mut span);
 
     Ok(())
 }

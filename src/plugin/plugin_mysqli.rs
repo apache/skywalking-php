@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::Plugin;
+use super::{log_exception, Plugin};
 use crate::{
     component::COMPONENT_PHP_MYSQLI_ID,
     context::RequestContext,
-    execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook, Noop},
+    execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook},
 };
 use anyhow::Context;
 use dashmap::DashMap;
@@ -60,7 +60,7 @@ impl Plugin for MySQLImprovedPlugin {
 impl MySQLImprovedPlugin {
     fn hook_mysqli_construct(&self) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         (
-            Box::new(|_, execute_data| {
+            Box::new(|request_id, execute_data| {
                 let this = get_this_mut(execute_data)?;
                 let handle = this.handle();
                 hack_dtor(this, Some(mysqli_dtor));
@@ -89,10 +89,17 @@ impl MySQLImprovedPlugin {
                     info.port = port
                 }
 
+                let span = create_mysqli_exit_span(request_id, "mysqli", "__construct", &info)?;
+
                 MYSQL_MAP.insert(handle, info);
-                Ok(Box::new(()))
+
+                Ok(Box::new(span))
             }),
-            Noop::noop(),
+            Box::new(move |_, span, _, _| {
+                let mut span = span.downcast::<Span>().unwrap();
+                log_exception(&mut span);
+                Ok(())
+            }),
         )
     }
 
@@ -119,7 +126,11 @@ impl MySQLImprovedPlugin {
 
                 Ok(Box::new(span) as _)
             }),
-            Noop::noop(),
+            Box::new(move |_, span, _, _| {
+                let mut span = span.downcast::<Span>().unwrap();
+                log_exception(&mut span);
+                Ok(())
+            }),
         )
     }
 }

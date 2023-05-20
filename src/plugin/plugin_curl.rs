@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::Plugin;
+use super::{log_exception, Plugin};
 use crate::{
     component::COMPONENT_PHP_CURL_ID,
     context::{RequestContext, SW_HEADER},
@@ -442,6 +442,7 @@ impl CurlPlugin {
             .and_then(|code| code.as_long())
             .context("Call curl_getinfo, http_code is null")?;
         span.add_tag("status_code", &*http_code.to_string());
+
         if http_code == 0 {
             let result = call("curl_error", &mut [ch.clone()])?;
             let curl_error = result
@@ -456,6 +457,9 @@ impl CurlPlugin {
         } else {
             span.span_object_mut().is_error = false;
         }
+
+        log_exception(span);
+
         Ok(())
     }
 }
