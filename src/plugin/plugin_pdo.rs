@@ -25,6 +25,7 @@ use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use phper::{
     arrays::ZArr,
+    classes::ClassEntry,
     objects::ZObj,
     sys,
     values::{ExecuteData, ZVal},
@@ -91,7 +92,7 @@ impl PdoPlugin {
 
                 let dsn = execute_data.get_parameter(0);
                 let dsn = dsn.as_z_str().context("dsn isn't str")?.to_str()?;
-                debug!(dsn, "construct PDO");
+                debug!(dsn, handle, "construct PDO");
 
                 let dsn: Dsn = dsn.parse()?;
                 debug!(?dsn, "parse PDO dsn");
@@ -203,8 +204,13 @@ fn after_hook(
             return after_hook_when_false(get_this_mut(execute_data)?, &mut span);
         }
     } else if let Some(obj) = return_value.as_mut_z_obj() {
-        if obj.get_class().get_name() == &"PDOStatement" {
+        let cls = obj.get_class();
+        let pdo_cls = ClassEntry::from_globals("PDOStatement").unwrap();
+        if cls.is_instance_of(pdo_cls) {
             return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
+        } else {
+            let cls = cls.get_name().to_str()?;
+            debug!(cls, "not a subclass of PDOStatement");
         }
     }
 
@@ -242,7 +248,9 @@ fn after_hook_when_pdo_statement(pdo: &mut ZObj, pdo_statement: &mut ZObj) -> cr
         .get(&pdo.handle())
         .map(|r| r.value().clone())
         .context("DSN not found")?;
-    DSN_MAP.insert(pdo_statement.handle(), dsn);
+    let handle = pdo_statement.handle();
+    debug!(?dsn, handle, "Hook PDOStatement class");
+    DSN_MAP.insert(handle, dsn);
     hack_dtor(pdo_statement, Some(pdo_statement_dtor));
     Ok(())
 }
@@ -274,7 +282,7 @@ fn with_dsn<T>(handle: u32, f: impl FnOnce(&Dsn) -> anyhow::Result<T>) -> anyhow
     DSN_MAP
         .get(&handle)
         .map(|r| f(r.value()))
-        .context("dns not exists")?
+        .context("dsn not exists")?
 }
 
 #[derive(Debug, Clone)]
