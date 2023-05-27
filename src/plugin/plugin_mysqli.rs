@@ -23,7 +23,10 @@ use anyhow::Context;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use phper::{objects::ZObj, sys};
-use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
+use skywalking::{
+    proto::v3::SpanLayer,
+    trace::span::{AbstractSpan, Span},
+};
 use tracing::debug;
 
 static MYSQL_MAP: Lazy<DashMap<u32, MySQLInfo>> = Lazy::new(Default::default);
@@ -97,7 +100,7 @@ impl MySQLImprovedPlugin {
             }),
             Box::new(move |_, span, _, _| {
                 let mut span = span.downcast::<Span>().unwrap();
-                log_exception(&mut span);
+                log_exception(&mut *span);
                 Ok(())
             }),
         )
@@ -128,7 +131,7 @@ impl MySQLImprovedPlugin {
             }),
             Box::new(move |_, span, _, _| {
                 let mut span = span.downcast::<Span>().unwrap();
-                log_exception(&mut span);
+                log_exception(&mut *span);
                 Ok(())
             }),
         )
@@ -148,7 +151,6 @@ fn create_mysqli_exit_span(
         span_object.set_span_layer(SpanLayer::Database);
         span_object.component_id = COMPONENT_PHP_MYSQLI_ID;
         span_object.add_tag("db.type", "mysql");
-        drop(span_object);
 
         Ok(span)
     })

@@ -23,7 +23,10 @@ use crate::{
 };
 use once_cell::sync::Lazy;
 use phper::{eg, functions::call, values::ZVal};
-use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
+use skywalking::{
+    proto::v3::SpanLayer,
+    trace::span::{AbstractSpan, Span},
+};
 use std::collections::HashSet;
 use tracing::debug;
 
@@ -223,7 +226,6 @@ impl PredisPlugin {
                 if let Some(key) = key {
                     span_object.add_tag(TAG_CACHE_KEY, key)
                 }
-                drop(span_object);
 
                 Ok(Box::new(span))
             }),
@@ -239,7 +241,7 @@ impl PredisPlugin {
                     span.span_object_mut().is_error = true;
                 }
 
-                log_exception(&mut span);
+                log_exception(&mut *span);
 
                 Ok(())
             }),

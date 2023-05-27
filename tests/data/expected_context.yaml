@@ -287,7 +287,7 @@ segmentItems:
                   parentEndpoint: "GET:/curl-multi.enter.php",
                   networkAddress: "",
                   refType: CrossProcess,
-                  parentSpanId: 3,
+                  parentSpanId: 1,
                   parentTraceSegmentId: "not null",
                   parentServiceInstance: "not null",
                   parentService: skywalking-agent-test-1,
@@ -318,7 +318,7 @@ segmentItems:
                   parentEndpoint: "GET:/curl-multi.enter.php",
                   networkAddress: "",
                   refType: CrossProcess,
-                  parentSpanId: 1,
+                  parentSpanId: 3,
                   parentTraceSegmentId: "not null",
                   parentServiceInstance: "not null",
                   parentService: skywalking-agent-test-1,
@@ -359,7 +359,7 @@ segmentItems:
         spans:
           - operationName: /not-exists.php
             parentSpanId: 0
-            spanId: 3
+            spanId: 1
             spanLayer: Http
             startTime: gt 0
             endTime: gt 0
@@ -393,7 +393,7 @@ segmentItems:
               - { key: status_code, value: "200" }
           - operationName: /curl.test.php
             parentSpanId: 0
-            spanId: 1
+            spanId: 3
             spanLayer: Http
             startTime: gt 0
             endTime: gt 0

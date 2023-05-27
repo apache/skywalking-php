@@ -191,7 +191,7 @@ pub fn shutdown() {
         return;
     }
 
-    info!("Shutdowning skywalking agent");
+    debug!("skywalking agent shutdown hook called");
 }
 
 fn try_init_logger() -> anyhow::Result<()> {

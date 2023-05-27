@@ -25,7 +25,10 @@ use phper::{
     functions::call,
     values::{ExecuteData, ZVal},
 };
-use skywalking::trace::span::Span;
+use skywalking::{
+    proto::v3::SpanLayer,
+    trace::span::{AbstractSpan, AsyncSpan, Span},
+};
 use std::{cell::RefCell, collections::HashMap, os::raw::c_long};
 use tracing::{debug, warn};
 use url::Url;
@@ -53,7 +56,7 @@ struct CurlInfo {
 
 #[derive(Default)]
 struct CurlMultiInfo {
-    exec_spans: Option<Vec<(i64, Span)>>,
+    exec_spans: Option<Vec<(i64, AsyncSpan)>>,
     curl_handles: HashMap<i64, ZVal>,
 }
 
@@ -167,7 +170,7 @@ impl CurlPlugin {
                 let mut span = span.downcast::<Span>().unwrap();
 
                 let ch = execute_data.get_parameter(0);
-                Self::finish_exit_span(&mut span, ch)?;
+                Self::finish_exit_span(&mut *span, ch)?;
 
                 Ok(())
             }),
@@ -259,27 +262,18 @@ impl CurlPlugin {
                     for (cid, ch) in &multi_info.curl_handles {
                         curl_infos.push( (*cid, ch.clone(), Self::get_curl_info(*cid, ch.clone())?));
                     }
-                    curl_infos.sort_by(|(_, _, i1), (_, _, i2)| i1.raw_url.cmp(&i2.raw_url));
+                    curl_infos.sort_by(|(_, _, i1), (_, _, i2)| i2.raw_url.cmp(&i1.raw_url));
 
                     let mut exec_spans = Vec::with_capacity(curl_infos.len());
                     for (cid, ch, info) in curl_infos {
                         let span = Self::create_exit_span(request_id, &info)?;
-
                         if info.is_http {
                             Self::inject_sw_header(request_id, ch, &info)?;
                         }
+                        let span = span.prepare_for_async();
 
                         debug!(multi_id, operation_name = ?&span.span_object().operation_name, "create exit span");
                         exec_spans.push((cid, span));
-                    }
-
-                    // skywalking-rust can't create same level span at one time, so modify parent
-                    // span id by hand.
-                    if let [(_, head_span), tail_span @ ..] = exec_spans.as_mut_slice() {
-                        let parent_span_id = head_span.span_object().parent_span_id;
-                        for (_, span) in tail_span {
-                            span.span_object_mut().parent_span_id = parent_span_id;
-                        }
                     }
 
                     multi_info.exec_spans = Some(exec_spans);
@@ -324,8 +318,12 @@ impl CurlPlugin {
 
                     debug!(multi_id, "curl multi spans count: {}", spans.len());
                     loop {
-                        let Some((cid, mut span)) = spans.pop() else { break };
-                        let Some(ch) = info.curl_handles.remove(&cid) else  { continue };
+                        let Some((cid, mut span)) = spans.pop() else {
+                            break
+                        };
+                        let Some(ch) = info.curl_handles.remove(&cid) else {
+                            continue
+                        };
                         Self::finish_exit_span(&mut span, &ch)?;
                     }
                     Ok::<_, crate::Error>(())
@@ -427,14 +425,14 @@ impl CurlPlugin {
         })?;
 
         let mut span_object = span.span_object_mut();
+        span_object.set_span_layer(SpanLayer::Http);
         span_object.component_id = COMPONENT_PHP_CURL_ID;
         span_object.add_tag("url", &info.raw_url);
-        drop(span_object);
 
         Ok(span)
     }
 
-    fn finish_exit_span(span: &mut Span, ch: &ZVal) -> crate::Result<()> {
+    fn finish_exit_span(span: &mut impl AbstractSpan, ch: &ZVal) -> crate::Result<()> {
         let result = call("curl_getinfo", &mut [ch.clone()])?;
         let response = result.as_z_arr().context("response in not arr")?;
         let http_code = response

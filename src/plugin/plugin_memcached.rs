@@ -28,7 +28,10 @@ use phper::{
     objects::ZObj,
     values::{ExecuteData, ZVal},
 };
-use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
+use skywalking::{
+    proto::v3::SpanLayer,
+    trace::span::{AbstractSpan, Span},
+};
 use tracing::{debug, instrument, warn};
 
 /// The method parameters is empty.
@@ -332,7 +335,7 @@ fn after_hook(
         }
     }
 
-    log_exception(&mut span);
+    log_exception(&mut *span);
 
     Ok(())
 }
@@ -358,7 +361,6 @@ fn create_exit_span<'a>(
         if let Some(key) = key {
             span_object.add_tag(TAG_CACHE_KEY, key)
         }
-        drop(span_object);
 
         Ok(span)
     })
