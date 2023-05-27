@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::Plugin;
+use super::{log_exception, Plugin};
 use crate::{
     component::COMPONENT_PHP_PDO_ID,
     context::RequestContext,
-    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
+    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook},
     tag::{TAG_DB_STATEMENT, TAG_DB_TYPE},
 };
 use anyhow::Context;
@@ -25,6 +25,7 @@ use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use phper::{
     arrays::ZArr,
+    classes::ClassEntry,
     objects::ZObj,
     sys,
     values::{ExecuteData, ZVal},
@@ -85,7 +86,7 @@ impl Plugin for PdoPlugin {
 impl PdoPlugin {
     fn hook_pdo_construct(&self) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         (
-            Box::new(|_, execute_data| {
+            Box::new(|request_id, execute_data| {
                 validate_num_args(execute_data, 1)?;
 
                 let this = get_this_mut(execute_data)?;
@@ -94,16 +95,22 @@ impl PdoPlugin {
 
                 let dsn = execute_data.get_parameter(0);
                 let dsn = dsn.as_z_str().context("dsn isn't str")?.to_str()?;
-                debug!(dsn, "construct PDO");
+                debug!(dsn, handle, "construct PDO");
 
                 let dsn: Dsn = dsn.parse()?;
                 debug!(?dsn, "parse PDO dsn");
 
+                let span = create_exit_span_with_dsn(request_id, "PDO", "__construct", &dsn)?;
+
                 DSN_MAP.insert(handle, dsn);
 
-                Ok(Box::new(()))
+                Ok(Box::new(span))
             }),
-            Noop::noop(),
+            Box::new(move |_, span, _, _| {
+                let mut span = span.downcast::<Span>().unwrap();
+                log_exception(&mut span);
+                Ok(())
+            }),
         )
     }
 
@@ -193,18 +200,24 @@ unsafe extern "C" fn dtor(object: *mut sys::zend_object) {
 fn after_hook(
     _: Option<i64>, span: Box<dyn Any>, execute_data: &mut ExecuteData, return_value: &mut ZVal,
 ) -> crate::Result<()> {
+    let mut span = span.downcast::<Span>().unwrap();
+
     if let Some(b) = return_value.as_bool() {
         if !b {
-            return after_hook_when_false(
-                get_this_mut(execute_data)?,
-                &mut span.downcast::<Span>().unwrap(),
-            );
+            return after_hook_when_false(get_this_mut(execute_data)?, &mut span);
         }
     } else if let Some(obj) = return_value.as_mut_z_obj() {
-        if obj.get_class().get_name() == &"PDOStatement" {
+        let cls = obj.get_class();
+        let pdo_cls = ClassEntry::from_globals("PDOStatement").unwrap();
+        if cls.is_instance_of(pdo_cls) {
             return after_hook_when_pdo_statement(get_this_mut(execute_data)?, obj);
+        } else {
+            let cls = cls.get_name().to_str()?;
+            debug!(cls, "not a subclass of PDOStatement");
         }
     }
+
+    log_exception(&mut span);
 
     Ok(())
 }
@@ -238,7 +251,9 @@ fn after_hook_when_pdo_statement(pdo: &mut ZObj, pdo_statement: &mut ZObj) -> cr
         .get(&pdo.handle())
         .map(|r| r.value().clone())
         .context("DSN not found")?;
-    DSN_MAP.insert(pdo_statement.handle(), dsn);
+    let handle = pdo_statement.handle();
+    debug!(?dsn, handle, "Hook PDOStatement class");
+    DSN_MAP.insert(handle, dsn);
     hack_dtor(pdo_statement, Some(pdo_statement_dtor));
     Ok(())
 }
@@ -270,7 +285,7 @@ fn with_dsn<T>(handle: u32, f: impl FnOnce(&Dsn) -> anyhow::Result<T>) -> anyhow
     DSN_MAP
         .get(&handle)
         .map(|r| f(r.value()))
-        .context("dns not exists")?
+        .context("dsn not exists")?
 }
 
 #[derive(Debug, Clone)]

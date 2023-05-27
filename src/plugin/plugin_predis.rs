@@ -18,6 +18,7 @@ use crate::{
     component::COMPONENT_PHP_PREDIS_ID,
     context::RequestContext,
     execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook},
+    plugin::log_exception,
     tag::{TAG_CACHE_CMD, TAG_CACHE_KEY, TAG_CACHE_OP, TAG_CACHE_TYPE},
 };
 use once_cell::sync::Lazy;
@@ -240,6 +241,8 @@ impl PredisPlugin {
                 if !exception.is_null() || typ.is_false() {
                     span.span_object_mut().is_error = true;
                 }
+
+                log_exception(&mut span);
 
                 Ok(())
             }),

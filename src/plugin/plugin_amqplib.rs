@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::Plugin;
+use super::{log_exception, Plugin};
 use crate::{
     component::COMPONENT_AMQP_PRODUCER_ID,
     context::{RequestContext, SW_HEADER},
-    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
+    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook},
     tag::{TAG_MQ_BROKER, TAG_MQ_QUEUE, TAG_MQ_TOPIC},
 };
 use anyhow::Context;
@@ -102,7 +102,11 @@ impl AmqplibPlugin {
 
                 Ok(Box::new(span))
             }),
-            Noop::noop(),
+            Box::new(move |_, span, _, _| {
+                let mut span = span.downcast::<Span>().unwrap();
+                log_exception(&mut span);
+                Ok(())
+            }),
         )
     }
 
