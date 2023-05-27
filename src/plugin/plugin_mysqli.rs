@@ -23,7 +23,10 @@ use anyhow::Context;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use phper::{objects::ZObj, sys};
-use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
+use skywalking::{
+    proto::v3::SpanLayer,
+    trace::span::{AbstractSpan, Span},
+};
 use tracing::debug;
 
 static MYSQL_MAP: Lazy<DashMap<u32, MySQLInfo>> = Lazy::new(Default::default);

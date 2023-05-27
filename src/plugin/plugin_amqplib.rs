@@ -28,7 +28,10 @@ use phper::{
     objects::{ZObj, ZObject},
     values::{ExecuteData, ZVal},
 };
-use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
+use skywalking::{
+    proto::v3::SpanLayer,
+    trace::span::{AbstractSpan, Span},
+};
 
 #[derive(Default, Clone)]
 pub struct AmqplibPlugin;

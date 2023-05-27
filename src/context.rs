@@ -17,7 +17,9 @@ use anyhow::anyhow;
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use skywalking::trace::{
-    propagation::encoder::encode_propagation, span::Span, trace_context::TracingContext,
+    propagation::encoder::encode_propagation,
+    span::{AbstractSpan, Span},
+    trace_context::TracingContext,
 };
 
 pub const SW_HEADER: &str = "sw8";

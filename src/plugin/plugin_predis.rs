@@ -22,7 +22,10 @@ use crate::{
 };
 use once_cell::sync::Lazy;
 use phper::{eg, functions::call, values::ZVal};
-use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
+use skywalking::{
+    proto::v3::SpanLayer,
+    trace::span::{AbstractSpan, Span},
+};
 use std::collections::HashSet;
 use tracing::debug;
 

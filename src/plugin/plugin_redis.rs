@@ -29,7 +29,10 @@ use phper::{
     sys,
     values::{ExecuteData, ZVal},
 };
-use skywalking::{skywalking_proto::v3::SpanLayer, trace::span::Span};
+use skywalking::{
+    proto::v3::SpanLayer,
+    trace::span::{AbstractSpan, Span},
+};
 use std::{any::Any, collections::HashMap};
 use tracing::{debug, warn};
 
