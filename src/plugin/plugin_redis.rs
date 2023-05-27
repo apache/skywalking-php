@@ -266,7 +266,6 @@ impl RedisPlugin {
                 span_object.set_span_layer(SpanLayer::Cache);
                 span_object.component_id = COMPONENT_PHP_REDIS_ID;
                 span_object.add_tag(TAG_CACHE_TYPE, "redis");
-                drop(span_object);
 
                 Ok(Box::new(span))
             }),
@@ -322,7 +321,6 @@ impl RedisPlugin {
                 if let Some(key) = key {
                     span_object.add_tag(TAG_CACHE_KEY, key)
                 }
-                drop(span_object);
 
                 Ok(Box::new(span))
             }),
@@ -362,7 +360,7 @@ fn after_hook(
 ) -> crate::Result<()> {
     let mut span = span.downcast::<Span>().unwrap();
 
-    log_exception(&mut span);
+    log_exception(&mut *span);
 
     Ok(())
 }

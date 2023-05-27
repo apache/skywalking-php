@@ -226,7 +226,6 @@ impl PredisPlugin {
                 if let Some(key) = key {
                     span_object.add_tag(TAG_CACHE_KEY, key)
                 }
-                drop(span_object);
 
                 Ok(Box::new(span))
             }),
@@ -242,7 +241,7 @@ impl PredisPlugin {
                     span.span_object_mut().is_error = true;
                 }
 
-                log_exception(&mut span);
+                log_exception(&mut *span);
 
                 Ok(())
             }),

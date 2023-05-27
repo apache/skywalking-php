@@ -335,7 +335,7 @@ fn after_hook(
         }
     }
 
-    log_exception(&mut span);
+    log_exception(&mut *span);
 
     Ok(())
 }
@@ -361,7 +361,6 @@ fn create_exit_span<'a>(
         if let Some(key) = key {
             span_object.add_tag(TAG_CACHE_KEY, key)
         }
-        drop(span_object);
 
         Ok(span)
     })

@@ -25,7 +25,7 @@ mod plugin_swoole;
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
 use once_cell::sync::Lazy;
 use phper::{eg, objects::ZObj};
-use skywalking::trace::span::Span;
+use skywalking::trace::span::AbstractSpan;
 
 // Register plugins here.
 static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
@@ -77,7 +77,7 @@ pub fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'
     selected_plugin.map(AsRef::as_ref)
 }
 
-fn log_exception(span: &mut Span) {
+fn log_exception(span: &mut impl AbstractSpan) {
     let ex = unsafe { ZObj::try_from_mut_ptr(eg!(exception)) };
     if let Some(ex) = ex {
         let mut span_object = span.span_object_mut();

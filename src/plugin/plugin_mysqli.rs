@@ -100,7 +100,7 @@ impl MySQLImprovedPlugin {
             }),
             Box::new(move |_, span, _, _| {
                 let mut span = span.downcast::<Span>().unwrap();
-                log_exception(&mut span);
+                log_exception(&mut *span);
                 Ok(())
             }),
         )
@@ -131,7 +131,7 @@ impl MySQLImprovedPlugin {
             }),
             Box::new(move |_, span, _, _| {
                 let mut span = span.downcast::<Span>().unwrap();
-                log_exception(&mut span);
+                log_exception(&mut *span);
                 Ok(())
             }),
         )
@@ -151,7 +151,6 @@ fn create_mysqli_exit_span(
         span_object.set_span_layer(SpanLayer::Database);
         span_object.component_id = COMPONENT_PHP_MYSQLI_ID;
         span_object.add_tag("db.type", "mysql");
-        drop(span_object);
 
         Ok(span)
     })

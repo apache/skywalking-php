@@ -104,7 +104,7 @@ impl AmqplibPlugin {
             }),
             Box::new(move |_, span, _, _| {
                 let mut span = span.downcast::<Span>().unwrap();
-                log_exception(&mut span);
+                log_exception(&mut *span);
                 Ok(())
             }),
         )
@@ -137,7 +137,6 @@ impl AmqplibPlugin {
         span_object.add_tag(TAG_MQ_BROKER, peer);
         span_object.add_tag(TAG_MQ_TOPIC, exchange);
         span_object.add_tag(TAG_MQ_QUEUE, routing_key);
-        drop(span_object);
 
         Ok(span)
     }

@@ -108,7 +108,7 @@ impl PdoPlugin {
             }),
             Box::new(move |_, span, _, _| {
                 let mut span = span.downcast::<Span>().unwrap();
-                log_exception(&mut span);
+                log_exception(&mut *span);
                 Ok(())
             }),
         )
@@ -217,7 +217,7 @@ fn after_hook(
         }
     }
 
-    log_exception(&mut span);
+    log_exception(&mut *span);
 
     Ok(())
 }
@@ -275,7 +275,6 @@ fn create_exit_span_with_dsn(
         span_object.component_id = COMPONENT_PHP_PDO_ID;
         span_object.add_tag(TAG_DB_TYPE, &dsn.db_type);
         span_object.add_tag("db.data_source", &dsn.data_source);
-        drop(span_object);
 
         Ok(span)
     })

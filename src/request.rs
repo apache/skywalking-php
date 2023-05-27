@@ -304,7 +304,6 @@ fn create_request_context(
     span_object.component_id = COMPONENT_PHP_ID;
     span_object.add_tag("url", url.to_string());
     span_object.add_tag("http.method", method);
-    drop(span_object);
 
     RequestContext::set_global(
         request_id,
