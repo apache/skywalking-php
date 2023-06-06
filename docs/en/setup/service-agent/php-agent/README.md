@@ -7,7 +7,7 @@
 ## Requirements
 
 - GCC
-- Rustc 1.56+
+- Rustc 1.65+
 - Cargo
 - Libclang 9.0+
 - Make
@@ -90,7 +90,7 @@ Configure skywalking agent in your `php.ini`.
 
 ```ini
 [skywalking_agent]
-extension=skywalking_agent.so
+extension = skywalking_agent.so
 
 ; Enable skywalking_agent extension or not.
 skywalking_agent.enable = On
