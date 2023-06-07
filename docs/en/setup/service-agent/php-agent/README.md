@@ -7,7 +7,7 @@
 ## Requirements
 
 - GCC
-- Rustc 1.56+
+- Rustc 1.65+
 - Cargo
 - Libclang 9.0+
 - Make
@@ -56,9 +56,9 @@ way:
 
 ## Install
 
-> If you compile `skywalking_agent` in Alpine Linux, you have to disable `crt-static`, otherwise
-> the problem will be throw: "the libclang shared library at /usr/lib/libclang.so.15.0.7 could not
-> be opened: Dynamic loading not supported".
+> **Notice:** If you compile `skywalking_agent` in Alpine Linux, you have to disable `crt-static`,
+> otherwise the problem will be throw: "the libclang shared library at
+> /usr/lib/libclang.so.15.0.7 could not be opened: Dynamic loading not supported".
 >
 > You can disable `crt-static` by environment variable:
 >
@@ -90,10 +90,10 @@ Configure skywalking agent in your `php.ini`.
 
 ```ini
 [skywalking_agent]
-extension=skywalking_agent.so
+extension = skywalking_agent.so
 
 ; Enable skywalking_agent extension or not.
-skywalking_agent.enable = On
+skywalking_agent.enable = Off
 
 ; Log file path.
 skywalking_agent.log_file = /tmp/skywalking-agent.log
@@ -109,3 +109,15 @@ skywalking_agent.service_name = hello-skywalking
 ```
 
 Refer to the Configuration section for more configuration items.
+
+## Run
+
+Start `php-fpm` server:
+
+```shell
+php-fpm -F -d "skywalking_agent.enable=On"
+```
+
+> **Notice:** It is necessary to keep the `php-fpm` process running in the foreground
+> (by specifying the > `-F` parameter, etc.), running `php-fpm` as a daemon will cause the
+> `skywalking-agent` reporter process immediately exit.
