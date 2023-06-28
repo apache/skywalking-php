@@ -238,18 +238,15 @@ impl RedisPlugin {
                     }
                 };
                 let port = {
-                    let f = || {
-                        execute_data
-                            .get_parameter(1)
-                            .as_long()
-                            .context("isn't long")
-                    };
-                    match f() {
-                        Ok(port) => port,
-                        Err(err) => {
-                            warn!(?err, "parse second argument to port failed, skipped.");
-                            return Ok(Box::new(()));
-                        }
+                    let port = execute_data.get_parameter(1);
+
+                    if let Some(port) = port.as_long() {
+                        port.to_string()
+                    } else if let Some(port) = port.as_z_str() {
+                        port.to_str().unwrap_or("0").to_string()
+                    } else {
+                        warn!("parse second argument to port failed, skipped.");
+                        return Ok(Box::new(()));
                     }
                 };
 
