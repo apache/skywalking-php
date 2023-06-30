@@ -83,6 +83,10 @@ const SKYWALKING_AGENT_HEARTBEAT_PERIOD: &str = "skywalking_agent.heartbeat_peri
 const SKYWALKING_AGENT_PROPERTIES_REPORT_PERIOD_FACTOR: &str =
     "skywalking_agent.properties_report_period_factor";
 
+/// Whether to use zend observer instead of execute_ex to hook the functions.
+/// This feature is only available for PHP8+, and can work with PHP8's jit.
+const SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER: &str = "skywalking_agent.enable_zend_observer";
+
 #[php_get_module]
 pub fn get_module() -> Module {
     let mut module = Module::new(
@@ -147,6 +151,7 @@ pub fn get_module() -> Module {
         10i64,
         Policy::System,
     );
+    module.add_ini(SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER, false, Policy::System);
 
     // Hooks.
     module.on_module_init(module::init);

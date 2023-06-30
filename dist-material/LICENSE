@@ -599,7 +599,7 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/phper-alloc/0.12.0 0.12.0 MulanPSL-2.0
     https://crates.io/crates/phper-build/0.12.0 0.12.0 MulanPSL-2.0
     https://crates.io/crates/phper-macros/0.12.0 0.12.0 MulanPSL-2.0
-    https://crates.io/crates/phper-sys/0.12.0 0.12.0 MulanPSL-2.0
+    https://crates.io/crates/phper-sys/0.12.1 0.12.1 MulanPSL-2.0
 
 ========================================================================
 Unlicense licenses

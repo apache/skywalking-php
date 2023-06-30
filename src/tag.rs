@@ -17,11 +17,11 @@
 //!
 //! Virtual Cache
 //!
-//! https://skywalking.apache.org/docs/main/next/en/setup/service-agent/virtual-cache/
+//! <https://skywalking.apache.org/docs/main/next/en/setup/service-agent/virtual-cache/>
 //!
 //! Virtual Database
 //!
-//! https://skywalking.apache.org/docs/main/next/en/setup/service-agent/virtual-database/
+//! <https://skywalking.apache.org/docs/main/next/en/setup/service-agent/virtual-database/>
 
 use std::fmt::Display;
 

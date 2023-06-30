@@ -169,6 +169,9 @@ impl Plugin for PredisPlugin {
             {
                 Some(self.hook_predis_execute_command(class_name, function_name))
             }
+            (Some(class_name @ "Predis\\Client"), "__call") => {
+                Some(self.hook_predis_execute_command(class_name, function_name))
+            }
             _ => None,
         }
     }
@@ -187,7 +190,9 @@ impl PredisPlugin {
         let function_name = function_name.to_owned();
         (
             Box::new(move |request_id, execute_data| {
-                validate_num_args(execute_data, 1)?;
+                let is_call_method = function_name == "__call";
+
+                validate_num_args(execute_data, if is_call_method { 1 } else { 0 })?;
 
                 let this = get_this_mut(execute_data)?;
                 let handle = this.handle();
@@ -195,7 +200,16 @@ impl PredisPlugin {
 
                 let peer = Self::get_peer(connection)?;
 
-                let cmd = function_name.to_ascii_uppercase();
+                let cmd = if is_call_method {
+                    execute_data
+                        .get_parameter(0)
+                        .as_z_str()
+                        .and_then(|s| s.to_str().ok())
+                        .unwrap_or("")
+                        .to_string()
+                } else {
+                    function_name.to_ascii_uppercase()
+                };
 
                 let op = if REDIS_READ_COMMANDS.contains(&*cmd) {
                     Some("read")
@@ -206,13 +220,24 @@ impl PredisPlugin {
                 };
 
                 let key = op
-                    .and_then(|_| execute_data.get_parameter(0).as_z_str())
+                    .and_then(|_| {
+                        execute_data
+                            .get_parameter(if is_call_method { 1 } else { 0 })
+                            .as_z_str()
+                    })
                     .and_then(|s| s.to_str().ok());
 
                 debug!(handle, cmd, key, op, "call redis command");
 
                 let mut span = RequestContext::try_with_global_ctx(request_id, |ctx| {
-                    Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &peer))
+                    Ok(ctx.create_exit_span(
+                        &format!(
+                            "{}->{}",
+                            class_name,
+                            if is_call_method { &cmd } else { &function_name }
+                        ),
+                        &peer,
+                    ))
                 })?;
 
                 let mut span_object = span.span_object_mut();

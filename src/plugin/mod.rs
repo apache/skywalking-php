@@ -23,9 +23,11 @@ mod plugin_redis;
 mod plugin_swoole;
 
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
+use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use phper::{eg, objects::ZObj};
 use skywalking::trace::span::AbstractSpan;
+use std::{collections::HashMap, ops::Deref, os::raw::c_void, sync::Mutex};
 
 // Register plugins here.
 static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
@@ -54,7 +56,30 @@ pub trait Plugin {
     ) -> Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)>;
 }
 
-pub fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'static DynPlugin> {
+pub fn select_plugin_hook(
+    class_name: Option<&str>, function_name: &str,
+) -> Option<(&'static BeforeExecuteHook, &'static AfterExecuteHook)> {
+    static LOCK: Lazy<Mutex<()>> = Lazy::new(Default::default);
+    static mut HOOK_MAP: Lazy<
+        HashMap<(Option<String>, String), Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)>>,
+    > = Lazy::new(HashMap::new);
+
+    let Ok(_guard) = LOCK.lock() else {
+        return None;
+    };
+    unsafe {
+        HOOK_MAP
+            .entry((class_name.map(ToOwned::to_owned), function_name.to_owned()))
+            .or_insert_with(|| {
+                select_plugin(class_name, function_name)
+                    .and_then(|plugin| plugin.hook(class_name, function_name))
+            })
+            .as_ref()
+            .map(|(before, after)| (before.deref(), after.deref()))
+    }
+}
+
+fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'static DynPlugin> {
     let mut selected_plugin = None;
 
     for plugin in &*PLUGINS {

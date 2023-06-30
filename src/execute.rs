@@ -14,7 +14,7 @@
 // limitations under the License.
 
 use crate::{
-    plugin::select_plugin,
+    plugin::select_plugin_hook,
     request::{HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME, IS_SWOOLE},
     util::catch_unwind_result,
 };
@@ -26,13 +26,12 @@ use phper::{
     values::{ExecuteData, ZVal},
 };
 use std::{any::Any, panic::AssertUnwindSafe, ptr::null_mut, sync::atomic::Ordering};
-use tracing::{error, trace};
+use tracing::{error, info, trace};
 
-pub type BeforeExecuteHook =
-    dyn FnOnce(Option<i64>, &mut ExecuteData) -> crate::Result<Box<dyn Any>>;
+pub type BeforeExecuteHook = dyn Fn(Option<i64>, &mut ExecuteData) -> crate::Result<Box<dyn Any>>;
 
 pub type AfterExecuteHook =
-    dyn FnOnce(Option<i64>, Box<dyn Any>, &mut ExecuteData, &mut ZVal) -> crate::Result<()>;
+    dyn Fn(Option<i64>, Box<dyn Any>, &mut ExecuteData, &mut ZVal) -> crate::Result<()>;
 
 pub trait Noop {
     fn noop() -> Self;
@@ -109,21 +108,9 @@ unsafe extern "C" fn execute_internal(
         return;
     }
 
-    let plugin = select_plugin(class_name.as_deref(), &function_name);
-    let plugin = match plugin {
-        Some(plugin) => plugin,
-        None => {
-            ori_execute_internal(Some(execute_data), Some(return_value));
-            return;
-        }
-    };
-
-    let (before, after) = match plugin.hook(class_name.as_deref(), &function_name) {
-        Some(hook) => hook,
-        None => {
-            ori_execute_internal(Some(execute_data), Some(return_value));
-            return;
-        }
+    let Some((before, after)) = select_plugin_hook(class_name.as_deref(), &function_name) else {
+        ori_execute_internal(Some(execute_data), Some(return_value));
+        return;
     };
 
     let request_id = infer_request_id(execute_data);
@@ -183,21 +170,9 @@ unsafe extern "C" fn execute_ex(execute_data: *mut sys::zend_execute_data) {
         }
     };
 
-    let plugin = select_plugin(class_name.as_deref(), &function_name);
-    let plugin = match plugin {
-        Some(plugin) => plugin,
-        None => {
-            ori_execute_ex(Some(execute_data));
-            return;
-        }
-    };
-
-    let (before, after) = match plugin.hook(class_name.as_deref(), &function_name) {
-        Some(hook) => hook,
-        None => {
-            ori_execute_ex(Some(execute_data));
-            return;
-        }
+    let Some((before, after)) = select_plugin_hook(class_name.as_deref(), &function_name) else {
+        ori_execute_ex(Some(execute_data));
+        return;
     };
 
     let request_id = infer_request_id(execute_data);
@@ -322,5 +297,160 @@ fn infer_request_id(execute_data: &mut ExecuteData) -> Option<i64> {
                 return None;
             }
         }
+    }
+}
+
+pub fn register_observer_handlers() {
+    #[cfg(phper_major_version = "8")]
+    unsafe {
+        info!("register zend observer handlers");
+        sys::zend_observer_fcall_register(Some(self::observer::observer_handler));
+    }
+}
+
+#[cfg(phper_major_version = "8")]
+pub mod observer {
+    use super::*;
+    use dashmap::DashMap;
+    use once_cell::sync::Lazy;
+    use phper::sys;
+
+    /// Key is the pointer address of execute_data, value is the result of
+    /// before hook.
+    static mut RESULT_MAP: Lazy<DashMap<*const sys::zend_execute_data, Box<dyn Any>>> =
+        Lazy::new(DashMap::new);
+
+    pub unsafe extern "C" fn observer_handler(
+        execute_data: *mut sys::zend_execute_data,
+    ) -> sys::zend_observer_fcall_handlers {
+        let Some(execute_data) = ExecuteData::try_from_mut_ptr(execute_data) else {
+            return Default::default()
+        };
+
+        let (function_name, class_name) = match get_function_and_class_name(execute_data) {
+            Ok(x) => x,
+            Err(err) => {
+                error!(?err, "get function and class name failed");
+                return Default::default();
+            }
+        };
+
+        trace!(
+            ?function_name,
+            ?class_name,
+            "observer_handler function and class name"
+        );
+
+        let Some(function_name) = function_name else {
+            return Default::default();
+        };
+
+        if function_name == HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME {
+            return Default::default();
+        }
+
+        if select_plugin_hook(class_name.as_deref(), &function_name).is_none() {
+            return Default::default();
+        }
+
+        sys::zend_observer_fcall_handlers {
+            begin: Some(observer_begin),
+            end: Some(observer_end),
+        }
+    }
+
+    unsafe extern "C" fn observer_begin(execute_data: *mut sys::zend_execute_data) {
+        let Some(execute_data) = ExecuteData::try_from_mut_ptr(execute_data) else {
+            return;
+        };
+        trace!(execute_data_ptr=?execute_data.as_ptr(), "start observer_begin");
+
+        let Ok((function_name, class_name)) = get_function_and_class_name(execute_data) else {
+            return;
+        };
+
+        trace!(
+            ?function_name,
+            ?class_name,
+            "observer_begin function and class name"
+        );
+
+        let Some(function_name) = function_name else {
+            return;
+        };
+
+        let Some((before, _)) = select_plugin_hook(class_name.as_deref(), &function_name) else {
+            return;
+        };
+
+        let request_id = infer_request_id(execute_data);
+        trace!(
+            ?request_id,
+            ?function_name,
+            ?class_name,
+            "observer_begin infer request id"
+        );
+
+        let result =
+            match catch_unwind_result(AssertUnwindSafe(|| before(request_id, execute_data))) {
+                Ok(result) => result,
+                Err(err) => {
+                    error!(?err, "run observer_begin hook failed");
+                    return;
+                }
+            };
+
+        RESULT_MAP.insert(execute_data.as_ptr(), result);
+    }
+
+    unsafe extern "C" fn observer_end(
+        execute_data: *mut sys::zend_execute_data, retval: *mut sys::zval,
+    ) {
+        let Some(execute_data) = ExecuteData::try_from_mut_ptr(execute_data) else {
+            return;
+        };
+        trace!(execute_data_ptr=?execute_data.as_ptr(), "start observer_end");
+
+        let Some((_, result)) = RESULT_MAP.remove(&execute_data.as_ptr()) else {
+            return;
+        };
+
+        let mut null = ZVal::from(());
+        let ret = match ZVal::try_from_mut_ptr(retval) {
+            Some(ret) => ret,
+            None => &mut null,
+        };
+
+        let Ok((function_name, class_name)) = get_function_and_class_name(execute_data) else {
+            return;
+        };
+
+        trace!(
+            ?function_name,
+            ?class_name,
+            "observer_end function and class name"
+        );
+
+        let Some(function_name) = function_name else {
+            return;
+        };
+
+        let Some((_, after)) = select_plugin_hook(class_name.as_deref(), &function_name) else {
+            return;
+        };
+
+        let request_id = infer_request_id(execute_data);
+        trace!(
+            ?request_id,
+            ?function_name,
+            ?class_name,
+            "observer_end infer request id"
+        );
+
+        if let Err(err) = catch_unwind_result(AssertUnwindSafe(|| {
+            after(request_id, result, execute_data, ret)
+        })) {
+            error!(?err, "run observer_end hook failed");
+        };
     }
 }
