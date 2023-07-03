@@ -26,6 +26,8 @@ catalog:
     catalog:
       - name: "INI Settings"
         path: "/en/configuration/ini-settings"
+      - name: "Zend Observer"
+        path: "/en/configuration/zend-observer"
   - name: "Contribution"
     catalog:
       - name: "Compiling Guidance"
