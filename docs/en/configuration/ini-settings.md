@@ -19,3 +19,4 @@ This is the configuration list supported in `php.ini`.
 | skywalking_agent.ssl_cert_chain_path             | The certificate file. Enable mTLS when `ssl_key_path` and `ssl_cert_chain_path` exist.                                   |                           |
 | skywalking_agent.heartbeat_period                | Agent heartbeat report period. Unit, second.                                                                             | 30                        |
 | skywalking_agent.properties_report_period_factor | The agent sends the instance properties to the backend every heartbeat_period * properties_report_period_factor seconds. | 10                        |
+| skywalking_agent.enable_zend_observer            | Whether to use `zend observer` instead of `execute_ex` to hook the functions, this feature is only available for PHP8+.  | Off                       |
