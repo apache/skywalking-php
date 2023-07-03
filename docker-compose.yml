@@ -26,6 +26,12 @@ services:
 
   mysql:
     image: mysql:5.7.39
+    command:
+      - "mysqld"
+      - "--connect-timeout=60"
+      - "--wait-timeout=28800"
+      - "--max-allowed-packet=64M"
+      - "--net-buffer-length=16M"
     ports:
       - "3306:3306"
     environment:
