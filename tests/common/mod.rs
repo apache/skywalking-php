@@ -69,6 +69,14 @@ pub const EXT: &str = if cfg!(target_os = "linux") {
     ""
 };
 
+pub static ENABLE_ZEND_OBSERVER: Lazy<&str> = Lazy::new(|| {
+    if env::var("ENABLE_ZEND_OBSERVER").is_ok() {
+        "On"
+    } else {
+        "Off"
+    }
+});
+
 pub static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 
 pub struct Fixture {
@@ -82,6 +90,13 @@ pub struct Fixture {
 
 pub async fn setup() -> Fixture {
     setup_logging();
+    info!(
+        TARGET = &*TARGET,
+        EXT = &*EXT,
+        ENABLE_ZEND_OBSERVER = &*ENABLE_ZEND_OBSERVER,
+        "setup fixture"
+    );
+
     Fixture {
         http_server_1_handle: tokio::spawn(setup_http_proxy_server(
             PROXY_SERVER_1_ADDRESS,
@@ -156,6 +171,7 @@ async fn http_proxy_fpm_handler(
         let method = &req.method().to_string();
         let path = &req.uri().path().to_string();
         let query = &req.uri().query().unwrap_or_default().to_string();
+        info!(method, uri=?req.uri(), "http proxy to fpm");
 
         let stream = TcpStream::connect(&state.fpm_addr).await?;
         let client = fastcgi_client::Client::new(stream);
@@ -293,6 +309,11 @@ fn setup_php_fpm(index: usize, fpm_addr: &str) -> Child {
         ),
         "-d",
         "skywalking_agent.worker_threads=3",
+        "-d",
+        &format!(
+            "skywalking_agent.enable_zend_observer={}",
+            *ENABLE_ZEND_OBSERVER
+        ),
     ];
     info!(cmd = args.join(" "), "start command");
     let child = Command::new(&args[0])
@@ -334,6 +355,11 @@ fn setup_php_swoole(index: usize) -> Child {
         ),
         "-d",
         "skywalking.worker_threads=3",
+        "-d",
+        &format!(
+            "skywalking_agent.enable_zend_observer={}",
+            *ENABLE_ZEND_OBSERVER
+        ),
         &format!("tests/php/swoole/main.{}.php", index),
     ];
     info!(cmd = args.join(" "), "start command");

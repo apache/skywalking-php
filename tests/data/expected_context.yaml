@@ -684,9 +684,9 @@ segmentItems:
               }
             logs:
               - logEvent:
-                - { key: SQLSTATE, value: 42S02 }
-                - { key: Error Code, value: '1146' }
-                - { key: Error, value: "Table 'skywalking.not_exist' doesn't exist" }
+                  - { key: error.kind, value: PDOException }
+                  - { key: message, value: not null }
+                  - { key: stack, value: not null }
           - operationName: GET:/pdo.php
             parentSpanId: -1
             spanId: 0

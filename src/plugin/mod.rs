@@ -23,11 +23,10 @@ mod plugin_redis;
 mod plugin_swoole;
 
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
-use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use phper::{eg, objects::ZObj};
 use skywalking::trace::span::AbstractSpan;
-use std::{collections::HashMap, ops::Deref, os::raw::c_void, sync::Mutex};
+use std::{collections::HashMap, ops::Deref, sync::Mutex};
 
 // Register plugins here.
 static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
@@ -59,10 +58,11 @@ pub trait Plugin {
 pub fn select_plugin_hook(
     class_name: Option<&str>, function_name: &str,
 ) -> Option<(&'static BeforeExecuteHook, &'static AfterExecuteHook)> {
+    type HookMap =
+        HashMap<(Option<String>, String), Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)>>;
+
     static LOCK: Lazy<Mutex<()>> = Lazy::new(Default::default);
-    static mut HOOK_MAP: Lazy<
-        HashMap<(Option<String>, String), Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)>>,
-    > = Lazy::new(HashMap::new);
+    static mut HOOK_MAP: Lazy<HookMap> = Lazy::new(HashMap::new);
 
     let Ok(_guard) = LOCK.lock() else {
         return None;
@@ -102,9 +102,9 @@ fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'stat
     selected_plugin.map(AsRef::as_ref)
 }
 
-fn log_exception(span: &mut impl AbstractSpan) {
-    let ex = unsafe { ZObj::try_from_mut_ptr(eg!(exception)) };
-    if let Some(ex) = ex {
+fn log_exception(span: &mut impl AbstractSpan) -> Option<&mut ZObj> {
+    let mut ex = unsafe { ZObj::try_from_mut_ptr(eg!(exception)) };
+    if let Some(ex) = ex.as_mut() {
         let mut span_object = span.span_object_mut();
         span_object.is_error = true;
 
@@ -126,4 +126,5 @@ fn log_exception(span: &mut impl AbstractSpan) {
             span_object.add_log(logs);
         }
     }
+    ex
 }

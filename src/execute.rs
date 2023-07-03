@@ -26,7 +26,7 @@ use phper::{
     values::{ExecuteData, ZVal},
 };
 use std::{any::Any, panic::AssertUnwindSafe, ptr::null_mut, sync::atomic::Ordering};
-use tracing::{error, info, trace};
+use tracing::{error, trace};
 
 pub type BeforeExecuteHook = dyn Fn(Option<i64>, &mut ExecuteData) -> crate::Result<Box<dyn Any>>;
 
@@ -303,7 +303,7 @@ fn infer_request_id(execute_data: &mut ExecuteData) -> Option<i64> {
 pub fn register_observer_handlers() {
     #[cfg(phper_major_version = "8")]
     unsafe {
-        info!("register zend observer handlers");
+        tracing::info!("register zend observer handlers");
         sys::zend_observer_fcall_register(Some(self::observer::observer_handler));
     }
 }
