@@ -27,6 +27,7 @@ use once_cell::sync::Lazy;
 use phper::{eg, objects::ZObj};
 use skywalking::trace::span::AbstractSpan;
 use std::{collections::HashMap, ops::Deref, sync::Mutex};
+use tracing::error;
 
 // Register plugins here.
 static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
@@ -64,8 +65,12 @@ pub fn select_plugin_hook(
     static LOCK: Lazy<Mutex<()>> = Lazy::new(Default::default);
     static mut HOOK_MAP: Lazy<HookMap> = Lazy::new(HashMap::new);
 
-    let Ok(_guard) = LOCK.lock() else {
-        return None;
+    let _guard = match LOCK.lock() {
+        Ok(guard) => guard,
+        Err(err) => {
+            error!(?err, "get lock failed");
+            return None;
+        }
     };
     unsafe {
         HOOK_MAP

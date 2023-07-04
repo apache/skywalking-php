@@ -215,6 +215,6 @@ async fn request_common(request_builder: RequestBuilder, actual_content: impl In
     let response = request_builder.send().await.unwrap();
     let status = response.status();
     let content = response.text().await.unwrap();
-    info!(content, "response content");
+    info!("response content: {}", content);
     assert_eq!((status, content), (StatusCode::OK, actual_content.into()));
 }
