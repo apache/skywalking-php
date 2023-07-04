@@ -56,16 +56,31 @@ jobs:
           # Many composer dependencies need PHP 7.2+
           - php: "7.2"
             swoole: "4.6.7"
+            enable_zend_observer: "Off"
           - php: "7.3"
             swoole: "4.7.1"
+            enable_zend_observer: "Off"
           - php: "7.4"
             swoole: "4.8.10"
+            enable_zend_observer: "Off"
           - php: "8.0"
             swoole: "5.0.0"
+            enable_zend_observer: "Off"
+          - php: "8.0"
+            swoole: "5.0.0"
+            enable_zend_observer: "On"
           - php: "8.1"
             swoole: "5.0.0"
+            enable_zend_observer: "Off"
+          - php: "8.1"
+            swoole: "5.0.0"
+            enable_zend_observer: "On"
           - php: "8.2"
             swoole: "5.0.0"
+            enable_zend_observer: "Off"
+          - php: "8.2"
+            swoole: "5.0.0"
+            enable_zend_observer: "On"
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -164,6 +179,8 @@ jobs:
           toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: test
           args: --release --workspace
+        env:
+          ENABLE_ZEND_OBSERVER: ${{ matrix.version.enable_zend_observer }}
         continue-on-error: true
 
       # Rebuild the mixture when cargo test failed.
@@ -189,6 +206,8 @@ jobs:
           toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: test
           args: --release --workspace
+        env:
+          ENABLE_ZEND_OBSERVER: ${{ matrix.version.enable_zend_observer }}
 
       - name: View logs
         if: always()

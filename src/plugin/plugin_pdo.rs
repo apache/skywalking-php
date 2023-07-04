@@ -202,6 +202,10 @@ fn after_hook(
 ) -> crate::Result<()> {
     let mut span = span.downcast::<Span>().unwrap();
 
+    if log_exception(&mut *span).is_some() {
+        return Ok(());
+    }
+
     if let Some(b) = return_value.as_bool() {
         if !b {
             return after_hook_when_false(get_this_mut(execute_data)?, &mut span);
@@ -216,8 +220,6 @@ fn after_hook(
             debug!(cls, "not a subclass of PDOStatement");
         }
     }
-
-    log_exception(&mut *span);
 
     Ok(())
 }

@@ -14,9 +14,5 @@
 // limitations under the License.
 
 fn main() {
-    #[cfg(target_os = "macos")]
-    {
-        println!("cargo:rustc-link-arg=-undefined");
-        println!("cargo:rustc-link-arg=dynamic_lookup");
-    }
+    phper_build::register_all();
 }

@@ -164,9 +164,7 @@ impl Plugin for PredisPlugin {
         Box<crate::execute::AfterExecuteHook>,
     )> {
         match (class_name, function_name) {
-            (Some(class_name @ "Predis\\Client"), function_name)
-                if REDIS_ALL_COMMANDS.contains(&*function_name.to_ascii_uppercase()) =>
-            {
+            (Some(class_name @ "Predis\\Client"), "__call") => {
                 Some(self.hook_predis_execute_command(class_name, function_name))
             }
             _ => None,
@@ -181,21 +179,31 @@ enum ConnectionType {
 
 impl PredisPlugin {
     fn hook_predis_execute_command(
-        &self, class_name: &str, function_name: &str,
+        &self, class_name: &str, _function_name: &str,
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         let class_name = class_name.to_owned();
-        let function_name = function_name.to_owned();
         (
             Box::new(move |request_id, execute_data| {
                 validate_num_args(execute_data, 1)?;
+
+                let function_name = execute_data
+                    .get_parameter(0)
+                    .as_z_str()
+                    .and_then(|s| s.to_str().ok())
+                    .unwrap_or("")
+                    .to_string();
+
+                let cmd = function_name.to_uppercase();
+
+                if !REDIS_ALL_COMMANDS.contains(&*cmd) {
+                    return Ok(Box::new(()));
+                }
 
                 let this = get_this_mut(execute_data)?;
                 let handle = this.handle();
                 let connection = this.call("getConnection", [])?;
 
                 let peer = Self::get_peer(connection)?;
-
-                let cmd = function_name.to_ascii_uppercase();
 
                 let op = if REDIS_READ_COMMANDS.contains(&*cmd) {
                     Some("read")
@@ -206,14 +214,20 @@ impl PredisPlugin {
                 };
 
                 let key = op
-                    .and_then(|_| execute_data.get_parameter(0).as_z_str())
+                    .and_then(|_| execute_data.get_parameter(1).as_z_arr())
+                    .and_then(|params| params.get(0))
+                    .and_then(|key| key.as_z_str())
                     .and_then(|s| s.to_str().ok());
 
                 debug!(handle, cmd, key, op, "call redis command");
 
-                let mut span = RequestContext::try_with_global_ctx(request_id, |ctx| {
-                    Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &peer))
-                })?;
+                let mut span =
+                    RequestContext::try_with_global_ctx(request_id, |ctx| {
+                        Ok(ctx.create_exit_span(
+                            &format!("{}->{}", class_name, &function_name,),
+                            &peer,
+                        ))
+                    })?;
 
                 let mut span_object = span.span_object_mut();
                 span_object.set_span_layer(SpanLayer::Cache);
@@ -230,6 +244,10 @@ impl PredisPlugin {
                 Ok(Box::new(span))
             }),
             Box::new(move |_, span, _, return_value| {
+                if span.downcast_ref::<()>().is_some() {
+                    return Ok(());
+                }
+
                 let mut span = span.downcast::<Span>().unwrap();
 
                 let exception = unsafe { eg!(exception) };

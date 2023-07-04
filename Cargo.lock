@@ -1528,9 +1528,9 @@ dependencies = [
 
 [[package]]
 name = "phper-sys"
-version = "0.12.0"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2538b854618f97f39c0612a9ad97c5980b8d6f32d3a01a9de605851dcaf9507"
+checksum = "fda67a4b0389183e564f08797db31b635eff8bb2b30cfe5cc2394acaa35cd6a7"
 dependencies = [
  "bindgen",
  "cc",
@@ -2099,6 +2099,7 @@ dependencies = [
  "libc",
  "once_cell",
  "phper",
+ "phper-build",
  "prost",
  "reqwest",
  "serde_json",

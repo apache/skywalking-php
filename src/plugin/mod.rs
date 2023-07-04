@@ -26,6 +26,8 @@ use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
 use once_cell::sync::Lazy;
 use phper::{eg, objects::ZObj};
 use skywalking::trace::span::AbstractSpan;
+use std::{collections::HashMap, ops::Deref, sync::Mutex};
+use tracing::error;
 
 // Register plugins here.
 static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
@@ -54,7 +56,35 @@ pub trait Plugin {
     ) -> Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)>;
 }
 
-pub fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'static DynPlugin> {
+pub fn select_plugin_hook(
+    class_name: Option<&str>, function_name: &str,
+) -> Option<(&'static BeforeExecuteHook, &'static AfterExecuteHook)> {
+    type HookMap =
+        HashMap<(Option<String>, String), Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)>>;
+
+    static LOCK: Lazy<Mutex<()>> = Lazy::new(Default::default);
+    static mut HOOK_MAP: Lazy<HookMap> = Lazy::new(HashMap::new);
+
+    let _guard = match LOCK.lock() {
+        Ok(guard) => guard,
+        Err(err) => {
+            error!(?err, "get lock failed");
+            return None;
+        }
+    };
+    unsafe {
+        HOOK_MAP
+            .entry((class_name.map(ToOwned::to_owned), function_name.to_owned()))
+            .or_insert_with(|| {
+                select_plugin(class_name, function_name)
+                    .and_then(|plugin| plugin.hook(class_name, function_name))
+            })
+            .as_ref()
+            .map(|(before, after)| (before.deref(), after.deref()))
+    }
+}
+
+fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'static DynPlugin> {
     let mut selected_plugin = None;
 
     for plugin in &*PLUGINS {
@@ -77,9 +107,9 @@ pub fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'
     selected_plugin.map(AsRef::as_ref)
 }
 
-fn log_exception(span: &mut impl AbstractSpan) {
-    let ex = unsafe { ZObj::try_from_mut_ptr(eg!(exception)) };
-    if let Some(ex) = ex {
+fn log_exception(span: &mut impl AbstractSpan) -> Option<&mut ZObj> {
+    let mut ex = unsafe { ZObj::try_from_mut_ptr(eg!(exception)) };
+    if let Some(ex) = ex.as_mut() {
         let mut span_object = span.span_object_mut();
         span_object.is_error = true;
 
@@ -101,4 +131,5 @@ fn log_exception(span: &mut impl AbstractSpan) {
             span_object.add_log(logs);
         }
     }
+    ex
 }
