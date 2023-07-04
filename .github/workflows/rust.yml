@@ -206,6 +206,8 @@ jobs:
           toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: test
           args: --release --workspace
+        env:
+          ENABLE_ZEND_OBSERVER: ${{ matrix.enable_zend_observer }}
 
       - name: View logs
         if: always()

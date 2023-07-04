@@ -69,13 +69,8 @@ pub const EXT: &str = if cfg!(target_os = "linux") {
     ""
 };
 
-pub static ENABLE_ZEND_OBSERVER: Lazy<&str> = Lazy::new(|| {
-    if env::var("ENABLE_ZEND_OBSERVER").is_ok() {
-        "On"
-    } else {
-        "Off"
-    }
-});
+pub static ENABLE_ZEND_OBSERVER: Lazy<String> =
+    Lazy::new(|| env::var("ENABLE_ZEND_OBSERVER").unwrap_or_else(|_| "Off".to_owned()));
 
 pub static HTTP_CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
 

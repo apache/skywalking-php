@@ -14,6 +14,7 @@
 // limitations under the License.
 
 use crate::{
+    module::{ENABLE_ZEND_OBSERVER, IS_ZEND_OBSERVER_CALLED_FOR_INTERNAL},
     plugin::select_plugin_hook,
     request::{HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME, IS_SWOOLE},
     util::catch_unwind_result,
@@ -232,11 +233,15 @@ fn ori_execute_ex(execute_data: Option<&mut ExecuteData>) {
 
 pub fn register_execute_functions() {
     unsafe {
-        ORI_EXECUTE_INTERNAL = sys::zend_execute_internal;
-        sys::zend_execute_internal = Some(execute_internal);
+        if !*ENABLE_ZEND_OBSERVER || !IS_ZEND_OBSERVER_CALLED_FOR_INTERNAL {
+            ORI_EXECUTE_INTERNAL = sys::zend_execute_internal;
+            sys::zend_execute_internal = Some(execute_internal);
+        }
 
-        ORI_EXECUTE_EX = sys::zend_execute_ex;
-        sys::zend_execute_ex = Some(execute_ex);
+        if !*ENABLE_ZEND_OBSERVER {
+            ORI_EXECUTE_EX = sys::zend_execute_ex;
+            sys::zend_execute_ex = Some(execute_ex);
+        }
     }
 }
 
@@ -303,8 +308,10 @@ fn infer_request_id(execute_data: &mut ExecuteData) -> Option<i64> {
 pub fn register_observer_handlers() {
     #[cfg(phper_major_version = "8")]
     unsafe {
-        tracing::info!("register zend observer handlers");
-        sys::zend_observer_fcall_register(Some(self::observer::observer_handler));
+        if *ENABLE_ZEND_OBSERVER {
+            tracing::info!("register zend observer handlers");
+            sys::zend_observer_fcall_register(Some(self::observer::observer_handler));
+        }
     }
 }
 

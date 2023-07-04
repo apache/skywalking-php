@@ -112,9 +112,17 @@ pub static HEARTBEAT_PERIOD: Lazy<i64> =
 pub static PROPERTIES_REPORT_PERIOD_FACTOR: Lazy<i64> =
     Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_PROPERTIES_REPORT_PERIOD_FACTOR));
 
+/// Zend observer is only support in PHP8+.
 pub static ENABLE_ZEND_OBSERVER: Lazy<bool> = Lazy::new(|| {
-    cfg!(phper_major_version = "8") && ini_get::<bool>(SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER)
+    sys::PHP_MAJOR_VERSION >= 8 && ini_get::<bool>(SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER)
 });
+
+/// For PHP 8.2+, zend observer api are now also called for internal functions.
+///
+/// Refer to this commit: <https://github.com/php/php-src/commit/625f1649639c2b9a9d76e4d42f88c264ddb8447d>
+#[allow(clippy::absurd_extreme_comparisons)]
+pub const IS_ZEND_OBSERVER_CALLED_FOR_INTERNAL: bool =
+    sys::PHP_MAJOR_VERSION > 8 || (sys::PHP_MAJOR_VERSION == 8 && sys::PHP_MINOR_VERSION >= 2);
 
 pub fn init() {
     if !is_enable() {
@@ -182,11 +190,8 @@ pub fn init() {
     ));
 
     // Hook functions.
-    if *ENABLE_ZEND_OBSERVER {
-        register_observer_handlers();
-    } else {
-        register_execute_functions();
-    }
+    register_execute_functions();
+    register_observer_handlers();
 }
 
 pub fn shutdown() {
