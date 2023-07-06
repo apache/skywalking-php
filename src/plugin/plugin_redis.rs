@@ -355,6 +355,10 @@ fn after_hook(
     _request_id: Option<i64>, span: Box<dyn Any>, _execute_data: &mut ExecuteData,
     _return_value: &mut ZVal,
 ) -> crate::Result<()> {
+    if span.downcast_ref::<()>().is_some() {
+        return Ok(());
+    }
+
     let mut span = span.downcast::<Span>().unwrap();
 
     log_exception(&mut *span);
