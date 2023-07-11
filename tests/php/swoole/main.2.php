@@ -97,6 +97,14 @@ $http->on('request', function ($request, $response) {
                 Assert::same($client->get('foo002'), 'bar002');
             }
             break;
+        
+        case '/mongodb':
+            {
+                $manager = new MongoDB\Driver\Manager("mongodb://root:example@127.0.0.1:27017");
+                $command = new MongoDB\Driver\Command(['ping' => 1]);
+                $manager->executeCommand('admin', $command);
+            }
+            break;
 
         default:
             throw new DomainException("Unknown operation");

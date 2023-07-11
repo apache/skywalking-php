@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 17
+    segmentSize: 18
     segments:
       - segmentId: "not null"
         spans:
@@ -574,13 +574,13 @@ segmentItems:
             tags:
               - { key: db.type, value: mysql }
               - {
-                key: db.data_source,
-                value: "dbname=skywalking;host=127.0.0.1:3306;",
-              }
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1:3306;",
+                }
               - {
-                key: db.statement,
-                value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
-              }
+                  key: db.statement,
+                  value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
+                }
           - operationName: PDOStatement->execute
             parentSpanId: 0
             spanId: 9
@@ -595,13 +595,13 @@ segmentItems:
             tags:
               - { key: db.type, value: mysql }
               - {
-                key: db.data_source,
-                value: "dbname=skywalking;host=127.0.0.1:3306;",
-              }
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1:3306;",
+                }
               - {
-                key: db.statement,
-                value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
-              }
+                  key: db.statement,
+                  value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
+                }
           - operationName: PDOStatement->fetchAll
             parentSpanId: 0
             spanId: 10
@@ -616,13 +616,13 @@ segmentItems:
             tags:
               - { key: db.type, value: mysql }
               - {
-                key: db.data_source,
-                value: "dbname=skywalking;host=127.0.0.1:3306;",
-              }
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1:3306;",
+                }
               - {
-                key: db.statement,
-                value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
-              }
+                  key: db.statement,
+                  value: "SELECT * FROM `mysql`.`user` WHERE `User` = :user",
+                }
           - operationName: PDO->__construct
             parentSpanId: 0
             spanId: 11
@@ -654,13 +654,10 @@ segmentItems:
             tags:
               - { key: db.type, value: mysql }
               - {
-                key: db.data_source,
-                value: "dbname=skywalking;host=127.0.0.1;port=3306",
-              }
-              - {
-                key: db.statement,
-                value: "SELECT * FROM not_exist",
-              }
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1;port=3306",
+                }
+              - { key: db.statement, value: "SELECT * FROM not_exist" }
           - operationName: PDOStatement->execute
             parentSpanId: 0
             spanId: 13
@@ -675,13 +672,10 @@ segmentItems:
             tags:
               - { key: db.type, value: mysql }
               - {
-                key: db.data_source,
-                value: "dbname=skywalking;host=127.0.0.1;port=3306",
-              }
-              - {
-                key: db.statement,
-                value: "SELECT * FROM not_exist",
-              }
+                  key: db.data_source,
+                  value: "dbname=skywalking;host=127.0.0.1;port=3306",
+                }
+              - { key: db.statement, value: "SELECT * FROM not_exist" }
             logs:
               - logEvent:
                   - { key: error.kind, value: PDOException }
@@ -781,7 +775,7 @@ segmentItems:
               - { key: url, value: "http://127.0.0.1:9011/predis.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
-      - segmentId: 'not null'
+      - segmentId: "not null"
         spans:
           - operationName: mysqli->__construct
             parentSpanId: 0
@@ -808,11 +802,8 @@ segmentItems:
             peer: 127.0.0.1:3306
             skipAnalysis: false
             tags:
-              - {key: db.type, value: mysql}
-              - {
-                  key: db.statement,
-                  value: "SELECT 1",
-                }
+              - { key: db.type, value: mysql }
+              - { key: db.statement, value: "SELECT 1" }
           - operationName: mysqli->__construct
             parentSpanId: 0
             spanId: 3
@@ -838,7 +829,7 @@ segmentItems:
             peer: 127.0.0.1:3306
             skipAnalysis: false
             tags:
-              - {key: db.type, value: mysql}
+              - { key: db.type, value: mysql }
               - {
                   key: db.statement,
                   value: "SELECT * FROM `mysql`.`user` WHERE `User` = 'root'",
@@ -858,7 +849,7 @@ segmentItems:
               - { key: url, value: "http://127.0.0.1:9011/mysqli.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
-      - segmentId: 'not null'
+      - segmentId: "not null"
         spans:
           - operationName: Memcached->set
             parentSpanId: 0
@@ -1179,6 +1170,89 @@ segmentItems:
               - { key: url, value: "http://127.0.0.1:9011/rabbitmq.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
+      - segmentId: "not null"
+        spans:
+          - operationName: "MongoDB\\Driver\\Manager->executeCommand"
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 9
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:27017
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: MongoDB }
+              - { key: mongo.db, value: admin }
+          - operationName: "MongoDB\\Driver\\Manager->executeBulkWrite"
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 9
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:27017
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: MongoDB }
+              - { key: mongo.db, value: my_db }
+              - { key: mongo.collection, value: my_collection }
+          - operationName: "MongoDB\\Driver\\Manager->executeQuery"
+            parentSpanId: 0
+            spanId: 3
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 9
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:27017
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: MongoDB }
+              - { key: mongo.db, value: my_db }
+              - { key: mongo.collection, value: my_collection }
+          - operationName: "MongoDB\\Driver\\Manager->executeCommand"
+            parentSpanId: 0
+            spanId: 4
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 9
+            isError: true
+            spanType: Exit
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: MongoDB }
+              - { key: mongo.db, value: admin }
+            logs:
+              - logEvent:
+                  - {
+                      key: error.kind,
+                      value: "MongoDB\\Driver\\Exception\\ConnectionTimeoutException",
+                    }
+                  - { key: message, value: "not null" }
+                  - { key: stack, value: "not null" }
+          - operationName: GET:/mongodb.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: "http://127.0.0.1:9011/mongodb.php" }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
   - serviceName: skywalking-agent-test-2
     segmentSize: 1
     segments:
@@ -1301,7 +1375,7 @@ segmentItems:
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
   - serviceName: skywalking-agent-test-2-swoole
-    segmentSize: 8
+    segmentSize: 9
     segments:
       - segmentId: "not null"
         spans:
@@ -1672,5 +1746,36 @@ segmentItems:
             skipAnalysis: false
             tags:
               - { key: url, value: "http://127.0.0.1:9502/predis" }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+      - segmentId: "not null"
+        spans:
+          - operationName: "MongoDB\\Driver\\Manager->executeCommand"
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 9
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:27017
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: MongoDB }
+              - { key: mongo.db, value: admin }
+          - operationName: GET:/mongodb
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: "http://127.0.0.1:9502/mongodb" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }

@@ -16,6 +16,7 @@
 mod plugin_amqplib;
 mod plugin_curl;
 mod plugin_memcached;
+mod plugin_mongodb;
 mod plugin_mysqli;
 mod plugin_pdo;
 mod plugin_predis;
@@ -41,6 +42,7 @@ static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
         Box::<plugin_memcached::MemcachedPlugin>::default(),
         Box::<plugin_redis::RedisPlugin>::default(),
         Box::<plugin_amqplib::AmqplibPlugin>::default(),
+        Box::<plugin_mongodb::MongodbPlugin>::default(),
     ]
 });
 

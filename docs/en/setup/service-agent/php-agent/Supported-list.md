@@ -14,8 +14,9 @@ The following plugins provide the distributed tracing capability.
 * [MySQL Improved](https://www.php.net/manual/en/book.mysqli.php)
 * [Memcached](https://www.php.net/manual/en/book.memcached.php)
 * [phpredis](https://github.com/phpredis/phpredis)
-* [php-amqplib](https://github.com/php-amqplib/php-amqplib) for Message Queuing Producer
+* [MongoDB](https://www.php.net/manual/en/set.mongodb.php)
 
 ## Supported PHP library
 
 * [predis](https://github.com/predis/predis)
+* [php-amqplib](https://github.com/php-amqplib/php-amqplib) for Message Queuing Producer
