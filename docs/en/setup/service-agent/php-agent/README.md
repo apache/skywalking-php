@@ -110,6 +110,11 @@ skywalking_agent.service_name = hello-skywalking
 
 Refer to the Configuration section for more configuration items.
 
+> **Notice:** It is not recommended to enable `skywalking_agent.enable` by default globally,
+> because skywalking agent will modify the hook function and fork a new process to be a worker.
+> Enabling it by default will cause extra meaningless consumption when skywalking agent is not
+> needed (such as simply executing a php script).
+
 ## Run
 
 Start `php-fpm` server:
