@@ -319,10 +319,10 @@ impl CurlPlugin {
                     debug!(multi_id, "curl multi spans count: {}", spans.len());
                     loop {
                         let Some((cid, mut span)) = spans.pop() else {
-                            break
+                            break;
                         };
                         let Some(ch) = info.curl_handles.remove(&cid) else {
-                            continue
+                            continue;
                         };
                         Self::finish_exit_span(&mut span, &ch)?;
                     }

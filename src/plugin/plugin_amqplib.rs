@@ -111,7 +111,11 @@ impl AmqplibPlugin {
     }
 
     fn get_peer(this: &mut ZObj) -> String {
-        let Some(io) = this.get_property("connection").as_z_obj().and_then(|connection| connection.get_property("io").as_z_obj()) else {
+        let Some(io) = this
+            .get_property("connection")
+            .as_z_obj()
+            .and_then(|connection| connection.get_property("io").as_z_obj())
+        else {
             return "unknown:0".to_owned();
         };
         let host = io

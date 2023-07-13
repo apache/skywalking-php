@@ -281,7 +281,9 @@ fn infer_request_id(execute_data: &mut ExecuteData) -> Option<i64> {
 
     let mut prev_execute_data_ptr = execute_data.as_mut_ptr();
     loop {
-        let Some(prev_execute_data) = (unsafe { ExecuteData::try_from_mut_ptr(prev_execute_data_ptr) }) else {
+        let Some(prev_execute_data) =
+            (unsafe { ExecuteData::try_from_mut_ptr(prev_execute_data_ptr) })
+        else {
             return None;
         };
         let func_name = prev_execute_data.func().get_function_name();
@@ -331,7 +333,7 @@ pub mod observer {
         execute_data: *mut sys::zend_execute_data,
     ) -> sys::zend_observer_fcall_handlers {
         let Some(execute_data) = ExecuteData::try_from_mut_ptr(execute_data) else {
-            return Default::default()
+            return Default::default();
         };
 
         let (function_name, class_name) = match get_function_and_class_name(execute_data) {
