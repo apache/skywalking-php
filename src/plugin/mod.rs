@@ -112,7 +112,7 @@ fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'stat
 fn log_exception(span: &mut impl HandleSpanObject) -> Option<&mut ZObj> {
     let mut ex = unsafe { ZObj::try_from_mut_ptr(eg!(exception)) };
     if let Some(ex) = ex.as_mut() {
-        let mut span_object = span.span_object_mut();
+        let span_object = span.span_object_mut();
         span_object.is_error = true;
 
         let mut logs = Vec::new();

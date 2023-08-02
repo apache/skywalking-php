@@ -259,7 +259,7 @@ impl RedisPlugin {
                     Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &addr))
                 })?;
 
-                let mut span_object = span.span_object_mut();
+                let span_object = span.span_object_mut();
                 span_object.set_span_layer(SpanLayer::Cache);
                 span_object.component_id = COMPONENT_PHP_REDIS_ID;
                 span_object.add_tag(TAG_CACHE_TYPE, "redis");
@@ -304,7 +304,7 @@ impl RedisPlugin {
                     Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &peer))
                 })?;
 
-                let mut span_object = span.span_object_mut();
+                let span_object = span.span_object_mut();
                 span_object.set_span_layer(SpanLayer::Cache);
                 span_object.component_id = COMPONENT_PHP_REDIS_ID;
                 span_object.add_tag(TAG_CACHE_TYPE, "redis");

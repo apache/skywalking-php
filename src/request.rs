@@ -300,7 +300,7 @@ fn create_request_context(
         None => ctx.create_entry_span(&operation_name),
     };
 
-    let mut span_object = span.span_object_mut();
+    let span_object = span.span_object_mut();
     span_object.component_id = COMPONENT_PHP_ID;
     span_object.add_tag("url", url.to_string());
     span_object.add_tag("http.method", method);

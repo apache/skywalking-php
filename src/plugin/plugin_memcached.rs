@@ -340,15 +340,15 @@ fn after_hook(
     Ok(())
 }
 
-fn create_exit_span<'a>(
+fn create_exit_span(
     request_id: Option<i64>, class_name: &str, function_name: &str, remote_peer: &str,
-    tag_info: &TagInfo<'a>, key: Option<&str>,
+    tag_info: &TagInfo<'_>, key: Option<&str>,
 ) -> anyhow::Result<Span> {
     RequestContext::try_with_global_ctx(request_id, |ctx| {
         let mut span =
             ctx.create_exit_span(&format!("{}->{}", class_name, function_name), remote_peer);
 
-        let mut span_object = span.span_object_mut();
+        let span_object = span.span_object_mut();
         span_object.set_span_layer(SpanLayer::Cache);
         span_object.component_id = COMPONENT_PHP_MEMCACHED_ID;
         span_object.add_tag(TAG_CACHE_TYPE, "memcache");

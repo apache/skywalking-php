@@ -121,7 +121,7 @@ fn before_manager_crud_hook(
         Ok(ctx.create_exit_span(&format!("{}->{}", MANAGER_CLASS_NAME, function_name), ""))
     })?;
 
-    let mut span_object = span.span_object_mut();
+    let span_object = span.span_object_mut();
     span_object.set_span_layer(SpanLayer::Database);
     span_object.component_id = COMPONENT_MONGODB_ID;
     span_object.add_tag(TAG_DB_TYPE, "MongoDB");
