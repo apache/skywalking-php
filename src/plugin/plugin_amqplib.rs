@@ -30,7 +30,7 @@ use phper::{
 };
 use skywalking::{
     proto::v3::SpanLayer,
-    trace::span::{AbstractSpan, Span},
+    trace::span::{HandleSpanObject, Span},
 };
 
 #[derive(Default, Clone)]
@@ -135,7 +135,7 @@ impl AmqplibPlugin {
             Ok(ctx.create_exit_span(&format!("{}->{}", class_name, function_name), peer))
         })?;
 
-        let mut span_object = span.span_object_mut();
+        let span_object = span.span_object_mut();
         span_object.set_span_layer(SpanLayer::Mq);
         span_object.component_id = COMPONENT_AMQP_PRODUCER_ID;
         span_object.add_tag(TAG_MQ_BROKER, peer);

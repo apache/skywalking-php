@@ -32,7 +32,7 @@ use phper::{
 };
 use skywalking::{
     proto::v3::SpanLayer,
-    trace::span::{AbstractSpan, Span},
+    trace::span::{HandleSpanObject, Span},
 };
 use std::{any::Any, str::FromStr};
 use tracing::{debug, warn};
@@ -241,7 +241,7 @@ fn after_hook_when_false(this: &mut ZObj, span: &mut Span) -> crate::Result<()> 
     };
     let error = get_error_info_item(info, 2)?.expect_z_str()?.to_str()?;
 
-    let mut span_object = span.span_object_mut();
+    let span_object = span.span_object_mut();
     span_object.is_error = true;
     span_object.add_log([("SQLSTATE", state), ("Error Code", code), ("Error", error)]);
 
@@ -272,7 +272,7 @@ fn create_exit_span_with_dsn(
         let mut span =
             ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &dsn.peer);
 
-        let mut span_object = span.span_object_mut();
+        let span_object = span.span_object_mut();
         span_object.set_span_layer(SpanLayer::Database);
         span_object.component_id = COMPONENT_PHP_PDO_ID;
         span_object.add_tag(TAG_DB_TYPE, &dsn.db_type);

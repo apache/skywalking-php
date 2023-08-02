@@ -23,7 +23,7 @@ use anyhow::{anyhow, Context};
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use phper::{arrays::ZArr, eg, pg, sg, sys, values::ZVal};
-use skywalking::trace::{propagation::decoder::decode_propagation, span::AbstractSpan, tracer};
+use skywalking::trace::{propagation::decoder::decode_propagation, span::HandleSpanObject, tracer};
 use std::{
     panic::AssertUnwindSafe,
     ptr::null_mut,
@@ -300,7 +300,7 @@ fn create_request_context(
         None => ctx.create_entry_span(&operation_name),
     };
 
-    let mut span_object = span.span_object_mut();
+    let span_object = span.span_object_mut();
     span_object.component_id = COMPONENT_PHP_ID;
     span_object.add_tag("url", url.to_string());
     span_object.add_tag("http.method", method);

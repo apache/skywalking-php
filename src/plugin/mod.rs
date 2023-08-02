@@ -26,7 +26,7 @@ mod plugin_swoole;
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
 use once_cell::sync::Lazy;
 use phper::{eg, objects::ZObj};
-use skywalking::trace::span::AbstractSpan;
+use skywalking::trace::span::HandleSpanObject;
 use std::{collections::HashMap, ops::Deref, sync::Mutex};
 use tracing::error;
 
@@ -109,10 +109,10 @@ fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'stat
     selected_plugin.map(AsRef::as_ref)
 }
 
-fn log_exception(span: &mut impl AbstractSpan) -> Option<&mut ZObj> {
+fn log_exception(span: &mut impl HandleSpanObject) -> Option<&mut ZObj> {
     let mut ex = unsafe { ZObj::try_from_mut_ptr(eg!(exception)) };
     if let Some(ex) = ex.as_mut() {
-        let mut span_object = span.span_object_mut();
+        let span_object = span.span_object_mut();
         span_object.is_error = true;
 
         let mut logs = Vec::new();

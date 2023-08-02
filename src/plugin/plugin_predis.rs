@@ -25,7 +25,7 @@ use once_cell::sync::Lazy;
 use phper::{eg, functions::call, values::ZVal};
 use skywalking::{
     proto::v3::SpanLayer,
-    trace::span::{AbstractSpan, Span},
+    trace::span::{HandleSpanObject, Span},
 };
 use std::collections::HashSet;
 use tracing::debug;
@@ -229,7 +229,7 @@ impl PredisPlugin {
                         ))
                     })?;
 
-                let mut span_object = span.span_object_mut();
+                let span_object = span.span_object_mut();
                 span_object.set_span_layer(SpanLayer::Cache);
                 span_object.component_id = COMPONENT_PHP_PREDIS_ID;
                 span_object.add_tag(TAG_CACHE_TYPE, "redis");
