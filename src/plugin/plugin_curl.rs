@@ -27,7 +27,7 @@ use phper::{
 };
 use skywalking::{
     proto::v3::SpanLayer,
-    trace::span::{AbstractSpan, AsyncSpan, Span},
+    trace::span::{AsyncSpan, HandleSpanObject, Span},
 };
 use std::{cell::RefCell, collections::HashMap, os::raw::c_long};
 use tracing::{debug, warn};
@@ -432,7 +432,7 @@ impl CurlPlugin {
         Ok(span)
     }
 
-    fn finish_exit_span(span: &mut impl AbstractSpan, ch: &ZVal) -> crate::Result<()> {
+    fn finish_exit_span(span: &mut impl HandleSpanObject, ch: &ZVal) -> crate::Result<()> {
         let result = call("curl_getinfo", &mut [ch.clone()])?;
         let response = result.as_z_arr().context("response in not arr")?;
         let http_code = response

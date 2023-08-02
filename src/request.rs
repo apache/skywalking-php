@@ -23,7 +23,7 @@ use anyhow::{anyhow, Context};
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use phper::{arrays::ZArr, eg, pg, sg, sys, values::ZVal};
-use skywalking::trace::{propagation::decoder::decode_propagation, span::AbstractSpan, tracer};
+use skywalking::trace::{propagation::decoder::decode_propagation, span::HandleSpanObject, tracer};
 use std::{
     panic::AssertUnwindSafe,
     ptr::null_mut,

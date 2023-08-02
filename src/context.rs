@@ -18,7 +18,7 @@ use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use skywalking::trace::{
     propagation::encoder::encode_propagation,
-    span::{AbstractSpan, Span},
+    span::{HandleSpanObject, Span},
     trace_context::TracingContext,
 };
 

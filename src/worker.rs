@@ -28,10 +28,7 @@ use once_cell::sync::Lazy;
 use phper::ini::ini_get;
 use skywalking::{
     management::{instance::Properties, manager::Manager},
-    reporter::{
-        grpc::{CollectItemConsume, GrpcReporter},
-        CollectItem,
-    },
+    reporter::{grpc::GrpcReporter, CollectItem, CollectItemConsume},
 };
 use std::{
     cmp::Ordering, error::Error, ffi::CStr, fs, io, marker::PhantomData, num::NonZeroUsize,

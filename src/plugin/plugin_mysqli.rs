@@ -25,7 +25,7 @@ use once_cell::sync::Lazy;
 use phper::{objects::ZObj, sys};
 use skywalking::{
     proto::v3::SpanLayer,
-    trace::span::{AbstractSpan, Span},
+    trace::span::{HandleSpanObject, Span},
 };
 use tracing::debug;
 

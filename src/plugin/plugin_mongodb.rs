@@ -26,7 +26,7 @@ use phper::{
 };
 use skywalking::{
     proto::v3::SpanLayer,
-    trace::span::{AbstractSpan, Span},
+    trace::span::{HandleSpanObject, Span},
 };
 use std::any::Any;
 use tracing::{debug, error};

@@ -30,7 +30,7 @@ use phper::{
 };
 use skywalking::{
     proto::v3::SpanLayer,
-    trace::span::{AbstractSpan, Span},
+    trace::span::{HandleSpanObject, Span},
 };
 
 #[derive(Default, Clone)]

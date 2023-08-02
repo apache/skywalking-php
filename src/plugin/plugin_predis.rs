@@ -25,7 +25,7 @@ use once_cell::sync::Lazy;
 use phper::{eg, functions::call, values::ZVal};
 use skywalking::{
     proto::v3::SpanLayer,
-    trace::span::{AbstractSpan, Span},
+    trace::span::{HandleSpanObject, Span},
 };
 use std::collections::HashSet;
 use tracing::debug;

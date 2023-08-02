@@ -30,7 +30,7 @@ use phper::{
 };
 use skywalking::{
     proto::v3::SpanLayer,
-    trace::span::{AbstractSpan, Span},
+    trace::span::{HandleSpanObject, Span},
 };
 use std::{any::Any, collections::HashMap};
 use tracing::{debug, warn};
