@@ -18,7 +18,7 @@ use crate::{
     module::{
         AUTHENTICATION, ENABLE_TLS, HEARTBEAT_PERIOD, PROPERTIES_REPORT_PERIOD_FACTOR,
         SERVICE_INSTANCE, SERVICE_NAME, SOCKET_FILE_PATH, SSL_CERT_CHAIN_PATH, SSL_KEY_PATH,
-        SSL_TRUSTED_CA_PATH,
+        SSL_TRUSTED_CA_PATH, SERVER_ADDR, WORKER_THREADS,
     },
     util::change_permission,
     SKYWALKING_AGENT_SERVER_ADDR, SKYWALKING_AGENT_WORKER_THREADS,
@@ -49,10 +49,7 @@ use tonic::{
 use tracing::{debug, error, info, warn};
 
 pub fn init_worker() {
-    let server_addr = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SERVER_ADDR)
-        .and_then(|s| s.to_str().ok())
-        .unwrap_or_default()
-        .to_owned();
+    let server_addr = SERVER_ADDR.clone();
     let worker_threads = worker_threads();
 
     unsafe {
@@ -88,7 +85,7 @@ pub fn init_worker() {
 }
 
 fn worker_threads() -> usize {
-    let worker_threads = ini_get::<i64>(SKYWALKING_AGENT_WORKER_THREADS);
+    let worker_threads = *WORKER_THREADS;
     if worker_threads <= 0 {
         available_parallelism().map(NonZeroUsize::get).unwrap_or(1)
     } else {

@@ -39,6 +39,13 @@ use std::{
 use tracing::{debug, error, info, metadata::LevelFilter};
 use tracing_subscriber::FmtSubscriber;
 
+pub static SERVER_ADDR: Lazy<String> = Lazy::new(|| {
+    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SERVER_ADDR)
+        .and_then(|s| s.to_str().ok())
+        .unwrap_or_default()
+        .to_owned()
+});
+
 pub static SERVICE_NAME: Lazy<String> = Lazy::new(|| {
     ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SERVICE_NAME)
         .and_then(|s| s.to_str().ok())
@@ -117,6 +124,8 @@ pub static ENABLE_ZEND_OBSERVER: Lazy<bool> = Lazy::new(|| {
     sys::PHP_MAJOR_VERSION >= 8 && ini_get::<bool>(SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER)
 });
 
+pub static WORKER_THREADS : Lazy<i64> = Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_WORKER_THREADS));
+
 /// For PHP 8.2+, zend observer api are now also called for internal functions.
 ///
 /// Refer to this commit: <https://github.com/php/php-src/commit/625f1649639c2b9a9d76e4d42f88c264ddb8447d>
@@ -132,6 +141,10 @@ pub fn init() {
     if let Err(err) = try_init_logger() {
         eprintln!("skywalking_agent: initialize logger failed: {}", err);
     }
+
+    // Initialize configuration properties.
+    Lazy::force(&SERVER_ADDR);
+    Lazy::force(&WORKER_THREADS);
 
     // Skywalking agent info.
     let service_name = Lazy::force(&SERVICE_NAME);
