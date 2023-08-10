@@ -18,7 +18,7 @@
 ### For Debian-base OS
 
 ```shell
-sudo apt install gcc make llvm-13-dev libclang-13-dev protobuf-c-compiler
+sudo apt install gcc make llvm-13-dev libclang-13-dev protobuf-c-compiler protobuf-compiler
 ```
 
 ### For Alpine Linux
@@ -52,6 +52,9 @@ way:
 
    ```shell
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none
+   # Optional
+   rustup install stable
+   rustup default stable
    ```
 
 ## Install
