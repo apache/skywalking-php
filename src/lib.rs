@@ -24,11 +24,11 @@ mod errors;
 mod execute;
 mod module;
 mod plugin;
+mod reporter;
 mod request;
 mod tag;
 mod util;
 mod worker;
-mod reporter;
 
 use phper::{ini::Policy, modules::Module, php_get_module};
 
@@ -92,8 +92,8 @@ const SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER: &str = "skywalking_agent.enable_zen
 /// Reporter type, optional values are `grpc` and `kafka`, default is `grpc`.
 const SKYWALKING_AGENT_REPORTER_TYPE: &str = "skywalking_agent.reporter_type";
 
-/// A list of host/port pairs to use for establishing the initial connection to the Kafka cluster.
-/// Only available when the reporter type is `kafka`.
+/// A list of host/port pairs to use for establishing the initial connection to
+/// the Kafka cluster. Only available when the reporter type is `kafka`.
 const SKYWALKING_AGENT_KAFKA_BOOTSTRAP_SERVERS: &str = "skywalking_agent.kafka_bootstrap_servers";
 
 /// Configure Kafka Producer configuration in JSON format.
@@ -165,7 +165,21 @@ pub fn get_module() -> Module {
         Policy::System,
     );
     module.add_ini(SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER, false, Policy::System);
-    module.add_ini(SKYWALKING_AGENT_REPORTER_TYPE, "grpc".to_string(), Policy::System);
+    module.add_ini(
+        SKYWALKING_AGENT_REPORTER_TYPE,
+        "grpc".to_string(),
+        Policy::System,
+    );
+    module.add_ini(
+        SKYWALKING_AGENT_KAFKA_BOOTSTRAP_SERVERS,
+        "".to_string(),
+        Policy::System,
+    );
+    module.add_ini(
+        SKYWALKING_AGENT_KAFKA_PRODUCER_CONFIG,
+        "{}".to_string(),
+        Policy::System,
+    );
 
     // Hooks.
     module.on_module_init(module::init);

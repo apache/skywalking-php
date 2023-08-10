@@ -16,7 +16,7 @@
 use crate::{
     channel::Reporter,
     execute::{register_execute_functions, register_observer_handlers},
-    util::{get_sapi_module_name, IPS},
+    util::{get_sapi_module_name, get_str_ini_with_default, IPS},
     worker::init_worker,
     *,
 };
@@ -28,7 +28,6 @@ use skywalking::{
     trace::tracer::{self, Tracer},
 };
 use std::{
-    borrow::ToOwned,
     ffi::{CStr, OsStr},
     fs::{self, OpenOptions},
     os::unix::prelude::OsStrExt,
@@ -39,19 +38,11 @@ use std::{
 use tracing::{debug, error, info, metadata::LevelFilter};
 use tracing_subscriber::FmtSubscriber;
 
-pub static SERVER_ADDR: Lazy<String> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SERVER_ADDR)
-        .and_then(|s| s.to_str().ok())
-        .unwrap_or_default()
-        .to_owned()
-});
+pub static SERVER_ADDR: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SERVER_ADDR));
 
-pub static SERVICE_NAME: Lazy<String> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SERVICE_NAME)
-        .and_then(|s| s.to_str().ok())
-        .map(ToOwned::to_owned)
-        .unwrap_or_default()
-});
+pub static SERVICE_NAME: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SERVICE_NAME));
 
 pub static SERVICE_INSTANCE: Lazy<String> =
     Lazy::new(|| RandomGenerator::generate() + "@" + &IPS[0]);
@@ -83,35 +74,19 @@ pub static SOCKET_FILE_PATH: Lazy<PathBuf> = Lazy::new(|| {
     dir
 });
 
-pub static AUTHENTICATION: Lazy<String> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_AUTHENTICATION)
-        .and_then(|s| s.to_str().ok())
-        .map(ToOwned::to_owned)
-        .unwrap_or_default()
-});
+pub static AUTHENTICATION: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_AUTHENTICATION));
 
 pub static ENABLE_TLS: Lazy<bool> = Lazy::new(|| ini_get::<bool>(SKYWALKING_AGENT_ENABLE_TLS));
 
-pub static SSL_TRUSTED_CA_PATH: Lazy<String> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SSL_TRUSTED_CA_PATH)
-        .and_then(|s| s.to_str().ok())
-        .map(ToOwned::to_owned)
-        .unwrap_or_default()
-});
+pub static SSL_TRUSTED_CA_PATH: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SSL_TRUSTED_CA_PATH));
 
-pub static SSL_KEY_PATH: Lazy<String> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SSL_KEY_PATH)
-        .and_then(|s| s.to_str().ok())
-        .map(ToOwned::to_owned)
-        .unwrap_or_default()
-});
+pub static SSL_KEY_PATH: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SSL_KEY_PATH));
 
-pub static SSL_CERT_CHAIN_PATH: Lazy<String> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH)
-        .and_then(|s| s.to_str().ok())
-        .map(ToOwned::to_owned)
-        .unwrap_or_default()
-});
+pub static SSL_CERT_CHAIN_PATH: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH));
 
 pub static HEARTBEAT_PERIOD: Lazy<i64> =
     Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_HEARTBEAT_PERIOD));
@@ -124,7 +99,17 @@ pub static ENABLE_ZEND_OBSERVER: Lazy<bool> = Lazy::new(|| {
     sys::PHP_MAJOR_VERSION >= 8 && ini_get::<bool>(SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER)
 });
 
-pub static WORKER_THREADS : Lazy<i64> = Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_WORKER_THREADS));
+pub static WORKER_THREADS: Lazy<i64> =
+    Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_WORKER_THREADS));
+
+pub static REPORTER_TYPE: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_REPORTER_TYPE));
+
+pub static KAFKA_BOOTSTRAP_SERVERS: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_KAFKA_BOOTSTRAP_SERVERS));
+
+pub static KAFKA_PRODUCER_CONFIG: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_KAFKA_PRODUCER_CONFIG));
 
 /// For PHP 8.2+, zend observer api are now also called for internal functions.
 ///
@@ -145,6 +130,9 @@ pub fn init() {
     // Initialize configuration properties.
     Lazy::force(&SERVER_ADDR);
     Lazy::force(&WORKER_THREADS);
+    Lazy::force(&REPORTER_TYPE);
+    Lazy::force(&KAFKA_BOOTSTRAP_SERVERS);
+    Lazy::force(&KAFKA_PRODUCER_CONFIG);
 
     // Skywalking agent info.
     let service_name = Lazy::force(&SERVICE_NAME);

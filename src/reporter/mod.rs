@@ -14,3 +14,19 @@
 // limitations under the License.
 
 mod reporter_grpc;
+mod reporter_kafka;
+
+use crate::module::REPORTER_TYPE;
+use anyhow::bail;
+use skywalking::reporter::{CollectItemConsume, CollectItemProduce};
+
+pub async fn run_reporter(
+    producer: impl CollectItemProduce, consumer: impl CollectItemConsume,
+) -> anyhow::Result<()> {
+    match REPORTER_TYPE.as_str() {
+        "grpc" => reporter_grpc::run_reporter(producer, consumer).await,
+        #[cfg(feature = "kafka-reporter")]
+        "kafka" => reporter_kafka::run_reporter(producer, consumer).await,
+        typ => bail!("unknown reporter type, {}", typ),
+    }
+}
