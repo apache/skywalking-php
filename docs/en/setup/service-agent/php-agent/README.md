@@ -18,7 +18,7 @@
 ### For Debian-base OS
 
 ```shell
-sudo apt install gcc make llvm-13-dev libclang-13-dev protobuf-c-compiler
+sudo apt install gcc make llvm-13-dev libclang-13-dev protobuf-c-compiler protobuf-compiler
 ```
 
 ### For Alpine Linux
