@@ -16,8 +16,8 @@
 use crate::{
     channel::{self, TxReporter},
     module::{
-        HEARTBEAT_PERIOD, PROPERTIES_REPORT_PERIOD_FACTOR,
-        SERVICE_INSTANCE, SERVICE_NAME, SOCKET_FILE_PATH, WORKER_THREADS,
+        HEARTBEAT_PERIOD, PROPERTIES_REPORT_PERIOD_FACTOR, SERVICE_INSTANCE, SERVICE_NAME,
+        SOCKET_FILE_PATH, WORKER_THREADS,
     },
     reporter::run_reporter,
     util::change_permission,
@@ -30,8 +30,8 @@ use skywalking::{
     reporter::{CollectItem, CollectItemConsume},
 };
 use std::{
-    cmp::Ordering, error::Error, fs, io, marker::PhantomData, num::NonZeroUsize,
-    process::exit, thread::available_parallelism, time::Duration,
+    cmp::Ordering, error::Error, fs, io, marker::PhantomData, num::NonZeroUsize, process::exit,
+    thread::available_parallelism, time::Duration,
 };
 use tokio::{
     net::UnixListener,
@@ -40,9 +40,7 @@ use tokio::{
     signal::unix::{signal, SignalKind},
     sync::mpsc::{self, error::TrySendError},
 };
-use tonic::{
-    async_trait,
-};
+use tonic::async_trait;
 use tracing::{debug, error, info, warn};
 
 pub fn init_worker() {

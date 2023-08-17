@@ -80,10 +80,11 @@ jobs:
 
       - name: Install Rust Stable Globally
         run: |
-          curl https://sh.rustup.rs -sSf | sudo -E sh -s -- -y
+          curl https://sh.rustup.rs -sSf | sudo -E sh -s -- -y --default-toolchain none
 
       - name: PECL install
         run: |
+          source "/tmp/cargo/env"
           sudo -E cargo version
           sudo -E cargo run -p scripts --release -- create-package-xml --version 0.0.0 --notes "Just for TEST."
           cat package.xml

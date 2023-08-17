@@ -38,6 +38,24 @@ use std::{
 use tracing::{debug, error, info, metadata::LevelFilter};
 use tracing_subscriber::FmtSubscriber;
 
+static IS_ENABLE: Lazy<bool> = Lazy::new(|| {
+    if !ini_get::<bool>(SKYWALKING_AGENT_ENABLE) {
+        return false;
+    }
+
+    let sapi = get_sapi_module_name().to_bytes();
+
+    if sapi == b"fpm-fcgi" {
+        return true;
+    }
+
+    if sapi == b"cli" && get_module_registry().exists("swoole") {
+        return true;
+    }
+
+    false
+});
+
 pub static SERVER_ADDR: Lazy<String> =
     Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SERVER_ADDR));
 
@@ -123,52 +141,49 @@ pub fn init() {
         return;
     }
 
-    if let Err(err) = try_init_logger() {
-        eprintln!("skywalking_agent: initialize logger failed: {}", err);
-    }
-
     // Initialize configuration properties.
     Lazy::force(&SERVER_ADDR);
+    Lazy::force(&SERVICE_NAME);
+    Lazy::force(&SERVICE_INSTANCE);
+    Lazy::force(&SKYWALKING_VERSION);
+    Lazy::force(&RUNTIME_DIR);
+    Lazy::force(&SOCKET_FILE_PATH);
+    Lazy::force(&AUTHENTICATION);
+    Lazy::force(&ENABLE_TLS);
+    Lazy::force(&SSL_TRUSTED_CA_PATH);
+    Lazy::force(&SSL_KEY_PATH);
+    Lazy::force(&SSL_CERT_CHAIN_PATH);
+    Lazy::force(&HEARTBEAT_PERIOD);
+    Lazy::force(&PROPERTIES_REPORT_PERIOD_FACTOR);
+    Lazy::force(&ENABLE_ZEND_OBSERVER);
     Lazy::force(&WORKER_THREADS);
     Lazy::force(&REPORTER_TYPE);
     Lazy::force(&KAFKA_BOOTSTRAP_SERVERS);
     Lazy::force(&KAFKA_PRODUCER_CONFIG);
 
+    if let Err(err) = try_init_logger() {
+        eprintln!("skywalking_agent: initialize logger failed: {}", err);
+    }
+
     // Skywalking agent info.
-    let service_name = Lazy::force(&SERVICE_NAME);
-    let service_instance = Lazy::force(&SERVICE_INSTANCE);
-    let skywalking_version = Lazy::force(&SKYWALKING_VERSION);
-    let authentication = Lazy::force(&AUTHENTICATION);
-    let heartbeat_period = Lazy::force(&HEARTBEAT_PERIOD);
-    let properties_report_period_factor = Lazy::force(&PROPERTIES_REPORT_PERIOD_FACTOR);
     info!(
-        service_name,
-        service_instance,
-        skywalking_version,
-        authentication,
-        heartbeat_period,
-        properties_report_period_factor,
+        service_name = &*SERVICE_NAME,
+        service_instance = &*SERVICE_INSTANCE,
+        skywalking_version = &*SKYWALKING_VERSION,
+        heartbeat_period = &*HEARTBEAT_PERIOD,
+        properties_report_period_factor = &*PROPERTIES_REPORT_PERIOD_FACTOR,
         "Starting skywalking agent"
     );
 
     // Skywalking version check.
-    if *skywalking_version < 8 {
+    let skywalking_version = *SKYWALKING_VERSION;
+    if skywalking_version < 8 {
         error!(
             skywalking_version,
             "The skywalking agent only supports versions after skywalking 8"
         );
         return;
     }
-
-    // Initialize TLS if enabled.
-    let enable_tls = Lazy::force(&ENABLE_TLS);
-    let ssl_trusted_ca_path = Lazy::force(&SSL_TRUSTED_CA_PATH);
-    let ssl_key_path = Lazy::force(&SSL_KEY_PATH);
-    let ssl_cert_chain_path = Lazy::force(&SSL_CERT_CHAIN_PATH);
-    debug!(
-        enable_tls,
-        ssl_trusted_ca_path, ssl_key_path, ssl_cert_chain_path, "Skywalking TLS info"
-    );
 
     // Initialize runtime directory.
     if RUNTIME_DIR.as_os_str().is_empty() {
@@ -181,12 +196,11 @@ pub fn init() {
     }
 
     // Initialize Agent worker.
-    Lazy::force(&SOCKET_FILE_PATH);
     init_worker();
 
     tracer::set_global_tracer(Tracer::new(
-        service_name,
-        service_instance,
+        &*SERVICE_NAME,
+        &*SERVICE_INSTANCE,
         Reporter::new(&*SOCKET_FILE_PATH),
     ));
 
@@ -244,27 +258,12 @@ fn try_init_logger() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[inline]
 fn get_module_registry() -> &'static ZArr {
     unsafe { ZArr::from_ptr(&sys::module_registry) }
 }
 
+#[inline]
 pub fn is_enable() -> bool {
-    static IS_ENABLE: Lazy<bool> = Lazy::new(|| {
-        if !ini_get::<bool>(SKYWALKING_AGENT_ENABLE) {
-            return false;
-        }
-
-        let sapi = get_sapi_module_name().to_bytes();
-
-        if sapi == b"fpm-fcgi" {
-            return true;
-        }
-
-        if sapi == b"cli" && get_module_registry().exists("swoole") {
-            return true;
-        }
-
-        false
-    });
     *IS_ENABLE
 }

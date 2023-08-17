@@ -59,6 +59,14 @@ async fn create_endpoint(server_addr: &str) -> anyhow::Result<Endpoint> {
     debug!(url, "Create Endpoint");
     let mut endpoint = Endpoint::from_shared(url)?;
 
+    debug!(
+        enable_tls = *ENABLE_TLS,
+        ssl_trusted_ca_path = &*SSL_TRUSTED_CA_PATH,
+        ssl_key_path = &*SSL_KEY_PATH,
+        ssl_cert_chain_path = &*SSL_CERT_CHAIN_PATH,
+        "Skywalking TLS info"
+    );
+
     if *ENABLE_TLS {
         let domain_name = server_addr.split(':').next().unwrap_or_default();
         debug!(domain_name, "Configure TLS domain");
