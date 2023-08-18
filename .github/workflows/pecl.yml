@@ -53,8 +53,8 @@ jobs:
           - php: "8.2"
             swoole: "5.0.0"
         option:
-          - 'enable-cargo-debug="no" enable-kafka-reporter="no"'
-          - 'enable-cargo-debug="no" enable-kafka-reporter="yes"'
+          - 'enable-cargo-debug=\"no\" enable-kafka-reporter=\"no\"'
+          - 'enable-cargo-debug=\"no\" enable-kafka-reporter=\"yes\"'
 
     runs-on: ${{ matrix.os }}
     steps:
