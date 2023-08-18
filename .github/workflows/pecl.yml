@@ -84,7 +84,7 @@ jobs:
 
       - name: PECL install
         run: |
-          sudo sh -c "source /tmp/cargo/env && \
+          sudo bash -c "source /tmp/cargo/env && \
             cargo version && \
             cargo run -p scripts --release -- create-package-xml --version 0.0.0 --notes 'Just for TEST.' && \
             cat package.xml && \
