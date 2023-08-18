@@ -53,8 +53,8 @@ jobs:
           - php: "8.2"
             swoole: "5.0.0"
         input:
-          - "\n\n"
-          - "\nyes\n"
+          - '\n\n'
+          - '\nyes\n'
 
     runs-on: ${{ matrix.os }}
     steps:
