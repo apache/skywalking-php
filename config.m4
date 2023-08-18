@@ -76,6 +76,7 @@ cargo_clean:
 EOF
 
   AC_CONFIG_LINKS([ \
+    rust-toolchain.toml:rust-toolchain.toml \
     .rustfmt.toml:.rustfmt.toml \
     Cargo.lock:Cargo.lock \
     Cargo.toml:Cargo.toml \
