@@ -28,6 +28,10 @@ catalog:
         path: "/en/configuration/ini-settings"
       - name: "Zend Observer"
         path: "/en/configuration/zend-observer"
+  - name: "Reporter"
+    catalog:
+      - name: "Kafka Reporter"
+        path: "/en/reporter/kafka-reporter"
   - name: "Contribution"
     catalog:
       - name: "Compiling Guidance"
