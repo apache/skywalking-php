@@ -15,7 +15,7 @@
 
 use anyhow::anyhow;
 use once_cell::sync::Lazy;
-use phper::{sys, values::ZVal};
+use phper::{ini::ini_get, sys, values::ZVal};
 use std::{
     ffi::CStr,
     os::unix::prelude::OsStrExt,
@@ -95,4 +95,11 @@ pub fn change_permission(f: impl AsRef<Path>, mode: libc::mode_t) {
     unsafe {
         libc::chmod(path.as_ptr().cast(), mode);
     }
+}
+
+pub fn get_str_ini_with_default(name: &str) -> String {
+    ini_get::<Option<&CStr>>(name)
+        .and_then(|s| s.to_str().ok())
+        .map(ToOwned::to_owned)
+        .unwrap_or_default()
 }

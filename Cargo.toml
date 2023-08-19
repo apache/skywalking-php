@@ -35,6 +35,9 @@ publish = false
 name = "skywalking_agent"
 crate-type = ["lib", "cdylib"]
 
+[features]
+kafka-reporter = ["skywalking/kafka-reporter"]
+
 [dependencies]
 anyhow = { version = "1.0.72", features = ["backtrace"] }
 bincode = "1.3.3"

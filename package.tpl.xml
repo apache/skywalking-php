@@ -72,5 +72,6 @@ limitations under the License.
 	<providesextension>skywalking_agent</providesextension>
 	<extsrcrelease>
 		<configureoption default="no" name="enable-cargo-debug" prompt="enable cargo debug?" />
+		<configureoption default="no" name="enable-kafka-reporter" prompt="enable kafka reporter?" />
 	</extsrcrelease>
 </package>

@@ -52,6 +52,9 @@ jobs:
         version:
           - php: "8.2"
             swoole: "5.0.0"
+        option:
+          - 'enable-cargo-debug=\"no\" enable-kafka-reporter=\"no\"'
+          - 'enable-cargo-debug=\"no\" enable-kafka-reporter=\"yes\"'
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -77,14 +80,14 @@ jobs:
 
       - name: Install Rust Stable Globally
         run: |
-          curl https://sh.rustup.rs -sSf | sudo -E sh -s -- -y --no-modify-path
-          sudo ln -sf $CARGO_HOME/bin/rustup /usr/local/bin/rustup
-          sudo ln -sf $CARGO_HOME/bin/rustc /usr/local/bin/rustc
-          sudo ln -sf $CARGO_HOME/bin/cargo /usr/local/bin/cargo
+          curl https://sh.rustup.rs -sSf | sudo -E sh -s -- -y --default-toolchain none
 
       - name: PECL install
         run: |
-          sudo -E cargo run -p scripts --release -- create-package-xml --version 0.0.0 --notes "Just for TEST."
-          cat package.xml
-          printf "\n" | sudo -E pecl install package.xml
+          sudo bash -c "\
+            source /tmp/cargo/env && \
+            cargo version && \
+            cargo run -p scripts --release -- create-package-xml --version 0.0.0 --notes 'Just for TEST.' && \
+            cat package.xml && \
+            pecl install -D '${{ matrix.option }}' package.xml"
           php -d "extension=skywalking_agent" --ri skywalking_agent

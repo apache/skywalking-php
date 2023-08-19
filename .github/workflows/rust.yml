@@ -52,35 +52,48 @@ jobs:
         os:
           - ubuntu-20.04
           - macos-12
-        version:
+        flag:
           # Many composer dependencies need PHP 7.2+
-          - php: "7.2"
-            swoole: "4.6.7"
+          - php_version: "7.2"
+            swoole_version: "4.6.7"
             enable_zend_observer: "Off"
-          - php: "7.3"
-            swoole: "4.7.1"
+            cargo_features: ""
+          - php_version: "7.3"
+            swoole_version: "4.7.1"
             enable_zend_observer: "Off"
-          - php: "7.4"
-            swoole: "4.8.10"
+            cargo_features: ""
+          - php_version: "7.4"
+            swoole_version: "4.8.10"
             enable_zend_observer: "Off"
-          - php: "8.0"
-            swoole: "5.0.0"
+            cargo_features: ""
+          - php_version: "8.0"
+            swoole_version: "5.0.0"
             enable_zend_observer: "Off"
-          - php: "8.0"
-            swoole: "5.0.0"
+            cargo_features: ""
+          - php_version: "8.0"
+            swoole_version: "5.0.0"
             enable_zend_observer: "On"
-          - php: "8.1"
-            swoole: "5.0.0"
+            cargo_features: ""
+          - php_version: "8.1"
+            swoole_version: "5.0.0"
             enable_zend_observer: "Off"
-          - php: "8.1"
-            swoole: "5.0.0"
+            cargo_features: ""
+          - php_version: "8.1"
+            swoole_version: "5.0.0"
             enable_zend_observer: "On"
-          - php: "8.2"
-            swoole: "5.0.0"
+            cargo_features: ""
+          - php_version: "8.2"
+            swoole_version: "5.0.0"
             enable_zend_observer: "Off"
-          - php: "8.2"
-            swoole: "5.0.0"
+            cargo_features: ""
+          - php_version: "8.2"
+            swoole_version: "5.0.0"
             enable_zend_observer: "On"
+            cargo_features: ""
+          - php_version: "8.2"
+            swoole_version: "5.0.0"
+            enable_zend_observer: "On"
+            cargo_features: "--features kafka-reporter"
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -100,19 +113,19 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.version.php }}
+          php-version: ${{ matrix.flag.php_version }}
           tools: php-config, composer:v2
           extensions: >
             bcmath, calendar, ctype, dom, exif, gettext, iconv, intl, json, mbstring,
             mysqli, mysqlnd, opcache, pdo, pdo_mysql, phar, posix, readline, redis,
-            memcached, swoole-${{ matrix.version.swoole }}, xml, xmlreader, xmlwriter,
+            memcached, swoole-${{ matrix.flag.swoole_version }}, xml, xmlreader, xmlwriter,
             yaml, zip, mongodb
 
       - name: Setup php-fpm for Linux
         if: matrix.os == 'ubuntu-20.04'
         run: |
-          sudo apt-get install -y php${{ matrix.version.php }}-fpm
-          sudo ln -sf /usr/sbin/php-fpm${{ matrix.version.php }} /usr/sbin/php-fpm
+          sudo apt-get install -y php${{ matrix.flag.php_version }}-fpm
+          sudo ln -sf /usr/sbin/php-fpm${{ matrix.flag.php_version }} /usr/sbin/php-fpm
 
       - name: PHP version
         run: |
@@ -122,9 +135,9 @@ jobs:
           php -r 'echo "Swoole version: " . phpversion("swoole") . "\n";'
           composer --version
 
-          [[ `php --version` == PHP\ ${{ matrix.version.php }}.* ]] || exit 1;
-          [[ `php-fpm --version` == PHP\ ${{ matrix.version.php }}.* ]] || exit 1;
-          [[ `php-config --version` == ${{ matrix.version.php }}.* ]] || exit 1;
+          [[ `php --version` == PHP\ ${{ matrix.flag.php_version }}.* ]] || exit 1;
+          [[ `php-fpm --version` == PHP\ ${{ matrix.flag.php_version }}.* ]] || exit 1;
+          [[ `php-config --version` == ${{ matrix.flag.php_version }}.* ]] || exit 1;
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -142,21 +155,21 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ matrix.os }}-test-${{ matrix.version.php }}-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ matrix.os }}-test-${{ matrix.flag.php_version }}-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cargo clippy
         uses: actions-rs/cargo@v1
         with:
           toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: clippy
-          args: --release --workspace
+          args: --release --workspace ${{ matrix.flag.cargo_features }}
 
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
           toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: build
-          args: --release --workspace
+          args: --release --workspace ${{ matrix.flag.cargo_features }}
 
       - name: Composer install
         run: composer install --working-dir=tests/php
@@ -178,9 +191,9 @@ jobs:
         with:
           toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
           command: test
-          args: --release --workspace
+          args: --release --workspace ${{ matrix.flag.cargo_features }}
         env:
-          ENABLE_ZEND_OBSERVER: ${{ matrix.version.enable_zend_observer }}
+          ENABLE_ZEND_OBSERVER: ${{ matrix.flag.enable_zend_observer }}
         continue-on-error: true
 
       # Rebuild the mixture when cargo test failed.
@@ -207,7 +220,7 @@ jobs:
           command: test
           args: --release --workspace
         env:
-          ENABLE_ZEND_OBSERVER: ${{ matrix.version.enable_zend_observer }}
+          ENABLE_ZEND_OBSERVER: ${{ matrix.flag.enable_zend_observer }}
 
       - name: View logs
         if: always()

@@ -22,6 +22,9 @@ PHP_ARG_ENABLE([skywalking_agent],
 PHP_ARG_ENABLE([cargo_debug], [whether to enable cargo debug mode],
 [  --enable-cargo-debug           Enable cargo debug], no, no)
 
+PHP_ARG_ENABLE([kafka_reporter], [whether to enable kafka reporter],
+[  --enable-kafka-reporter        Enable kafka reporter], no, no)
+
 if test "$PHP_THREAD_SAFETY" == "yes"; then
   AC_MSG_ERROR([skywalking_agent does not support ZTS])
 fi
@@ -43,10 +46,15 @@ if test "$PHP_SKYWALKING_AGENT" != "no"; then
 
   CARGO_MODE_FLAGS="--release"
   CARGO_MODE_DIR="release"
+  CARGO_FEATURES_FLAGS=""
 
   if test "$PHP_CARGO_DEBUG" != "no"; then
     CARGO_MODE_FLAGS=""
     CARGO_MODE_DIR="debug"
+  fi
+
+  if test "$PHP_KAFKA_REPORTER" != "no"; then
+    CARGO_FEATURES_FLAGS="--features kafka-reporter"
   fi
 
   cat >>Makefile.objects<< EOF
@@ -55,7 +63,7 @@ all: cargo_build
 clean: cargo_clean
 
 cargo_build:
-	PHP_CONFIG=$PHP_PHP_CONFIG cargo build $CARGO_MODE_FLAGS
+	PHP_CONFIG=$PHP_PHP_CONFIG cargo build $CARGO_MODE_FLAGS $CARGO_FEATURES_FLAGS
 	if [[ -f ./target/$CARGO_MODE_DIR/libskywalking_agent.dylib ]] ; then \\
 		cp ./target/$CARGO_MODE_DIR/libskywalking_agent.dylib ./modules/skywalking_agent.so ; fi
 	if [[ -f ./target/$CARGO_MODE_DIR/libskywalking_agent.so ]] ; then \\
@@ -73,6 +81,7 @@ EOF
     Cargo.toml:Cargo.toml \
     build.rs:build.rs \
     docker-compose.yml:docker-compose.yml \
+    rust-toolchain.toml:rust-toolchain.toml \
     scripts:scripts \
     src:src \
     tests:tests \
