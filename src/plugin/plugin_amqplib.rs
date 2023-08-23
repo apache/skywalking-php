@@ -69,25 +69,33 @@ impl AmqplibPlugin {
         let function_name = function_name.to_owned();
         (
             Box::new(move |request_id, execute_data| {
-                validate_num_args(execute_data, 3)?;
+                validate_num_args(execute_data, 1)?;
 
                 let this = get_this_mut(execute_data)?;
 
                 let peer = Self::get_peer(this);
 
-                let exchange = execute_data
-                    .get_parameter(1)
-                    .as_z_str()
-                    .and_then(|s| s.to_str().ok())
-                    .map(ToOwned::to_owned)
-                    .unwrap_or_else(|| "unknown".to_owned());
+                let exchange = if execute_data.num_args() >= 2 {
+                    execute_data
+                        .get_parameter(1)
+                        .as_z_str()
+                        .and_then(|s| s.to_str().ok())
+                        .map(ToOwned::to_owned)
+                        .unwrap_or_else(|| "unknown".to_owned())
+                } else {
+                    "".to_owned()
+                };
 
-                let routing_key = execute_data
-                    .get_parameter(2)
-                    .as_z_str()
-                    .and_then(|s| s.to_str().ok())
-                    .map(ToOwned::to_owned)
-                    .unwrap_or_else(|| "unknown".to_owned());
+                let routing_key = if execute_data.num_args() >= 3 {
+                    execute_data
+                        .get_parameter(2)
+                        .as_z_str()
+                        .and_then(|s| s.to_str().ok())
+                        .map(ToOwned::to_owned)
+                        .unwrap_or_else(|| "unknown".to_owned())
+                } else {
+                    "".to_owned()
+                };
 
                 let span = Self::create_exit_span(
                     request_id,
