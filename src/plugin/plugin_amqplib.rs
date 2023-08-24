@@ -69,7 +69,7 @@ impl AmqplibPlugin {
         let function_name = function_name.to_owned();
         (
             Box::new(move |request_id, execute_data| {
-                validate_num_args(execute_data, 3)?;
+                validate_num_args(execute_data, 1)?;
 
                 let this = get_this_mut(execute_data)?;
 
