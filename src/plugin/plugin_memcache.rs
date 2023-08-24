@@ -105,7 +105,7 @@ impl Plugin for MemcachePlugin {
                     ApiStyle::OO,
                 ))
             }
-            (None, "memcache_connect" | "memcache_add_server" | "memcache_close") => {
+            (None, "memcache_add_server" | "memcache_close") => {
                 Some(self.hook_memcache_server(None, function_name, ApiStyle::Procedural))
             }
             (Some("Memcache" | "MemcachePool"), f)
@@ -167,7 +167,7 @@ impl MemcachePlugin {
         (
             Box::new(move |request_id, execute_data| {
                 let tag_info = MEMCACHE_EMPTY_METHOD_MAPPING
-                    .get(&*function_name.to_ascii_lowercase())
+                    .get(&*get_tag_key(class_name.as_deref(), &function_name))
                     .unwrap();
 
                 let this = style.get_this_mut(execute_data)?;
@@ -196,7 +196,7 @@ impl MemcachePlugin {
         (
             Box::new(move |request_id, execute_data| {
                 let tag_info = MEMCACHE_KEY_METHOD_MAPPING
-                    .get(&*function_name.to_ascii_lowercase())
+                    .get(&*get_tag_key(class_name.as_deref(), &function_name))
                     .unwrap();
 
                 let key = style
@@ -309,4 +309,11 @@ fn get_peer(this: &mut ZObj) -> String {
         })
         .value()
         .clone()
+}
+
+fn get_tag_key(class_name: Option<&str>, function_name: &str) -> String {
+    match class_name {
+        Some(_) => function_name.to_ascii_lowercase(),
+        None => function_name["memcache_".len()..].to_string(),
+    }
 }
