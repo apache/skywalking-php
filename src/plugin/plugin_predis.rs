@@ -279,7 +279,13 @@ impl PredisPlugin {
                 let host = host.expect_z_str()?.to_str()?;
 
                 let port = parameters.call("__get", [ZVal::from("port")])?;
-                let port = port.expect_long()?;
+                let port = if let Some(port) = port.as_long() {
+                    port.to_string()
+                } else if let Some(port) = port.as_z_str() {
+                    port.to_str().unwrap_or("0").to_string()
+                } else {
+                    "0".to_string()
+                };
 
                 Ok(format!("{}:{}", host, port))
             }
