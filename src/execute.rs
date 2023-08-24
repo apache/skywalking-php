@@ -124,7 +124,13 @@ unsafe extern "C" fn execute_internal(
 
     let result = catch_unwind_result(AssertUnwindSafe(|| before(request_id, execute_data)));
     if let Err(err) = &result {
-        error!(?err, "before execute internal");
+        error!(
+            ?request_id,
+            ?function_name,
+            ?class_name,
+            ?err,
+            "before execute internal"
+        );
     }
 
     ori_execute_internal(Some(execute_data), Some(return_value));
@@ -134,7 +140,13 @@ unsafe extern "C" fn execute_internal(
         if let Err(err) = catch_unwind_result(AssertUnwindSafe(|| {
             after(request_id, data, execute_data, return_value)
         })) {
-            error!(?err, "after execute internal");
+            error!(
+                ?request_id,
+                ?function_name,
+                ?class_name,
+                ?err,
+                "after execute internal"
+            );
         }
     }
 }
@@ -186,7 +198,13 @@ unsafe extern "C" fn execute_ex(execute_data: *mut sys::zend_execute_data) {
 
     let result = catch_unwind_result(AssertUnwindSafe(|| before(request_id, execute_data)));
     if let Err(err) = &result {
-        error!(?err, "before execute ex");
+        error!(
+            ?request_id,
+            ?function_name,
+            ?class_name,
+            ?err,
+            "before execute ex"
+        );
     }
 
     ori_execute_ex(Some(execute_data));
@@ -201,7 +219,13 @@ unsafe extern "C" fn execute_ex(execute_data: *mut sys::zend_execute_data) {
         if let Err(err) = catch_unwind_result(AssertUnwindSafe(|| {
             after(request_id, data, execute_data, return_value)
         })) {
-            error!(?err, "after execute ex");
+            error!(
+                ?request_id,
+                ?function_name,
+                ?class_name,
+                ?err,
+                "after execute ex"
+            );
         }
     }
 }
@@ -404,7 +428,13 @@ pub mod observer {
             match catch_unwind_result(AssertUnwindSafe(|| before(request_id, execute_data))) {
                 Ok(result) => result,
                 Err(err) => {
-                    error!(?err, "run observer_begin hook failed");
+                    error!(
+                        ?request_id,
+                        ?function_name,
+                        ?class_name,
+                        ?err,
+                        "run observer_begin hook failed"
+                    );
                     return;
                 }
             };
@@ -459,7 +489,13 @@ pub mod observer {
         if let Err(err) = catch_unwind_result(AssertUnwindSafe(|| {
             after(request_id, result, execute_data, ret)
         })) {
-            error!(?err, "run observer_end hook failed");
+            error!(
+                ?request_id,
+                ?function_name,
+                ?class_name,
+                ?err,
+                "run observer_end hook failed"
+            );
         };
     }
 }
