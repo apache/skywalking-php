@@ -70,6 +70,7 @@ impl AmqplibPlugin {
         (
             Box::new(move |request_id, execute_data| {
                 validate_num_args(execute_data, 3)?;
+                execute_data.common_num_args()
 
                 let this = get_this_mut(execute_data)?;
 
