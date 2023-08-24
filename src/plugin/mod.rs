@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod style;
 mod plugin_amqplib;
 mod plugin_curl;
+mod plugin_memcache;
 mod plugin_memcached;
 mod plugin_mongodb;
 mod plugin_mysqli;
@@ -23,7 +23,7 @@ mod plugin_pdo;
 mod plugin_predis;
 mod plugin_redis;
 mod plugin_swoole;
-mod plugin_memcache;
+mod style;
 
 use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
 use once_cell::sync::Lazy;
