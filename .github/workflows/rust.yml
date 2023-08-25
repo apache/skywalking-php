@@ -119,7 +119,7 @@ jobs:
             bcmath, calendar, ctype, dom, exif, gettext, iconv, intl, json, mbstring,
             mysqli, mysqlnd, opcache, pdo, pdo_mysql, phar, posix, readline, redis,
             memcached, swoole-${{ matrix.flag.swoole_version }}, xml, xmlreader, xmlwriter,
-            yaml, zip, mongodb
+            yaml, zip, mongodb, memcache
 
       - name: Setup php-fpm for Linux
         if: matrix.os == 'ubuntu-20.04'

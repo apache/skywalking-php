@@ -36,7 +36,7 @@ use std::{
     time::SystemTime,
 };
 use tracing::{debug, error, info, metadata::LevelFilter};
-use tracing_subscriber::FmtSubscriber;
+use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 static IS_ENABLE: Lazy<bool> = Lazy::new(|| {
     if !ini_get::<bool>(SKYWALKING_AGENT_ENABLE) {
@@ -247,8 +247,10 @@ fn try_init_logger() -> anyhow::Result<()> {
 
     let file = open_options.open(path)?;
 
+    let filter = EnvFilter::new(format!("info,skywalking_agent={}", log_level));
+
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(log_level)
+        .with_env_filter(filter)
         .with_ansi(false)
         .with_writer(file)
         .finish();
