@@ -15,6 +15,7 @@ The following plugins provide the distributed tracing capability.
 * [Memcached](https://www.php.net/manual/en/book.memcached.php)
 * [phpredis](https://github.com/phpredis/phpredis)
 * [MongoDB](https://www.php.net/manual/en/set.mongodb.php)
+* [Memcache](https://www.php.net/manual/en/book.memcache.php)
 
 ## Supported PHP library
 

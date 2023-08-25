@@ -35,6 +35,7 @@ SkyWalking PHP Agent requires SkyWalking 8.4+ and PHP 7.2+
   * [x] [predis](https://github.com/predis/predis)
   * [x] [php-amqplib](https://github.com/php-amqplib/php-amqplib) for Message Queuing Producer
   * [x] [MongoDB](https://www.php.net/manual/en/set.mongodb.php)
+  * [x] [Memcache](https://www.php.net/manual/en/book.memcache.php)
 
 * Swoole Ecosystem
 

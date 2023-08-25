@@ -57,6 +57,7 @@ async fn run_e2e() {
     request_fpm_redis().await;
     request_fpm_rabbitmq().await;
     request_fpm_mongodb().await;
+    request_fpm_memcache().await;
     request_swoole_curl().await;
     request_swoole_2_curl().await;
     request_swoole_2_pdo().await;
@@ -65,6 +66,7 @@ async fn run_e2e() {
     request_swoole_2_redis().await;
     request_swoole_2_predis().await;
     request_swoole_2_mongodb().await;
+    request_swoole_2_memcache().await;
     sleep(Duration::from_secs(3)).await;
     request_collector_validate().await;
 }
@@ -150,6 +152,14 @@ async fn request_fpm_mongodb() {
     .await;
 }
 
+async fn request_fpm_memcache() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/memcache.php", PROXY_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
 async fn request_swoole_curl() {
     request_common(
         HTTP_CLIENT.get(format!("http://{}/curl", SWOOLE_SERVER_1_ADDRESS)),
@@ -209,6 +219,14 @@ async fn request_swoole_2_predis() {
 async fn request_swoole_2_mongodb() {
     request_common(
         HTTP_CLIENT.get(format!("http://{}/mongodb", SWOOLE_SERVER_2_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_swoole_2_memcache() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/memcache", SWOOLE_SERVER_2_ADDRESS)),
         "ok",
     )
     .await;
