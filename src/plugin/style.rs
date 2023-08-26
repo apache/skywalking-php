@@ -48,7 +48,6 @@ impl ApiStyle {
         execute_data.get_mut_parameter(index)
     }
 
-    #[allow(dead_code)]
     pub fn validate_num_args(
         self, execute_data: &mut ExecuteData, num: usize,
     ) -> anyhow::Result<()> {
@@ -59,7 +58,7 @@ impl ApiStyle {
         validate_num_args(execute_data, num)
     }
 
-    pub fn generate_peer_name(self, class_name: Option<&str>, function_name: &str) -> String {
+    pub fn generate_operation_name(self, class_name: Option<&str>, function_name: &str) -> String {
         match self {
             ApiStyle::OO => format!("{}->{}", class_name.unwrap_or_default(), function_name),
             ApiStyle::Procedural => function_name.to_owned(),

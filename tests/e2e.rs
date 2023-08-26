@@ -21,11 +21,17 @@ use crate::common::{
 };
 use reqwest::{header::CONTENT_TYPE, RequestBuilder, StatusCode};
 use std::{
+    future::Future,
     panic::{catch_unwind, resume_unwind},
     time::Duration,
 };
-use tokio::{fs::File, runtime::Handle, task, time::sleep};
-use tracing::info;
+use tokio::{
+    fs::{self, File},
+    runtime::Handle,
+    task,
+    time::sleep,
+};
+use tracing::{error, info};
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn e2e() {
@@ -233,7 +239,7 @@ async fn request_swoole_2_memcache() {
 }
 
 async fn request_collector_validate() {
-    request_common(
+    request(
         HTTP_CLIENT
             .post(format!("http://{}/dataValidate", COLLECTOR_HTTP_ADDRESS))
             .header(CONTENT_TYPE, "text/yaml")
@@ -243,14 +249,32 @@ async fn request_collector_validate() {
                     .unwrap(),
             ),
         "success",
+        |content| async move {
+            let result_file = "/tmp/skywalking-agent-collector-validate-result.txt";
+            if let Err(err) = fs::write(result_file, content).await {
+                error!(?err, "write to {} failed", result_file);
+            }
+        },
     )
     .await;
 }
 
 async fn request_common(request_builder: RequestBuilder, actual_content: impl Into<String>) {
+    request(request_builder, actual_content, |content| async move {
+        info!("response content: {}", content);
+    })
+    .await
+}
+
+async fn request<F>(
+    request_builder: RequestBuilder, actual_content: impl Into<String>,
+    handler: impl FnOnce(String) -> F,
+) where
+    F: Future<Output = ()>,
+{
     let response = request_builder.send().await.unwrap();
     let status = response.status();
     let content = response.text().await.unwrap();
-    info!("response content: {}", content);
+    handler(content.clone()).await;
     assert_eq!((status, content), (StatusCode::OK, actual_content.into()));
 }
