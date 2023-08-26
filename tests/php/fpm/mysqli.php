@@ -32,4 +32,16 @@ require_once dirname(__DIR__) . "/vendor/autoload.php";
     Assert::same(count($rs), 2);
 }
 
+{
+    $mysqli = mysqli_connect("127.0.0.1", "root", "password", "skywalking", 3306);
+    $result = mysqli_query($mysqli, "SELECT * FROM `mysql`.`user` WHERE `User` = 'root'");
+    $rs = $result->fetch_all();
+    Assert::same(count($rs), 2);
+}
+
+{
+    $mysqli = mysqli_init();
+    @mysqli_real_connect($mysqli, "127.0.0.1", "root", "password_incorrect", "skywalking", 3306);
+}
+
 echo "ok";

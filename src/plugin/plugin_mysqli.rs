@@ -13,25 +13,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::{log_exception, Plugin};
+use super::{log_exception, style::ApiStyle, Plugin};
 use crate::{
     component::COMPONENT_PHP_MYSQLI_ID,
     context::RequestContext,
-    execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook},
+    execute::{AfterExecuteHook, BeforeExecuteHook},
 };
-use anyhow::Context;
-use dashmap::DashMap;
-use once_cell::sync::Lazy;
-use phper::{objects::ZObj, sys};
+use phper::{
+    alloc::ToRefOwned,
+    functions::call,
+    objects::ZObj,
+    values::{ExecuteData, ZVal},
+};
 use skywalking::{
     proto::v3::SpanLayer,
     trace::span::{HandleSpanObject, Span},
 };
-use tracing::debug;
-
-static MYSQL_MAP: Lazy<DashMap<u32, MySQLInfo>> = Lazy::new(Default::default);
-
-static DTOR_MAP: Lazy<DashMap<u32, sys::zend_object_dtor_obj_t>> = Lazy::new(Default::default);
+use tracing::{debug, error};
 
 #[derive(Default, Clone)]
 pub struct MySQLImprovedPlugin;
@@ -44,16 +42,42 @@ impl Plugin for MySQLImprovedPlugin {
 
     #[inline]
     fn function_name_prefix(&self) -> Option<&'static str> {
-        None
+        Some("mysqli_")
     }
 
     fn hook(
         &self, class_name: Option<&str>, function_name: &str,
     ) -> Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)> {
         match (class_name, function_name) {
-            (Some("mysqli"), "__construct") => Some(self.hook_mysqli_construct()),
-            (Some("mysqli"), f) if ["query"].contains(&f) => {
-                Some(self.hook_mysqli_methods(function_name))
+            (Some("mysqli"), "__construct" | "real_connect") => {
+                Some(self.hook_mysqli_connect(class_name, function_name, ApiStyle::OO))
+            }
+            (None, "mysqli_connect" | "mysqli_real_connect") => {
+                Some(self.hook_mysqli_connect(class_name, function_name, ApiStyle::Procedural))
+            }
+            (Some("mysqli"), f)
+                if [
+                    "query",
+                    "execute_query",
+                    "multi_query",
+                    "real_query",
+                    "prepare",
+                ]
+                .contains(&f) =>
+            {
+                Some(self.hook_mysqli_methods(class_name, function_name, ApiStyle::OO))
+            }
+            (None, f)
+                if [
+                    "mysqli_query",
+                    "mysqli_execute_query",
+                    "mysqli_multi_query",
+                    "mysqli_real_query",
+                    "mysqli_prepare",
+                ]
+                .contains(&f) =>
+            {
+                Some(self.hook_mysqli_methods(class_name, function_name, ApiStyle::Procedural))
             }
             _ => None,
         }
@@ -61,45 +85,53 @@ impl Plugin for MySQLImprovedPlugin {
 }
 
 impl MySQLImprovedPlugin {
-    fn hook_mysqli_construct(&self) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
+    fn hook_mysqli_connect(
+        &self, class_name: Option<&str>, function_name: &str, style: ApiStyle,
+    ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
+        let class_name = class_name.map(ToOwned::to_owned);
+        let function_name = function_name.to_owned();
         (
-            Box::new(|request_id, execute_data| {
-                let this = get_this_mut(execute_data)?;
-                let handle = this.handle();
-                hack_dtor(this, Some(mysqli_dtor));
+            Box::new(move |request_id, execute_data| {
+                // Sometimes the connection is failed. Therefore, first assemble the peer from
+                // the parameters to prevent assembly failure in the after hook.
+                let peer = get_peer_by_parameters(execute_data, style);
 
-                let mut info: MySQLInfo = MySQLInfo {
-                    hostname: "127.0.0.1".to_string(),
-                    port: 3306,
-                };
-
-                let num_args = execute_data.num_args();
-                if num_args >= 1 {
-                    // host only
-                    let hostname = execute_data.get_parameter(0);
-                    let hostname = hostname
-                        .as_z_str()
-                        .context("hostname isn't str")?
-                        .to_str()?;
-                    debug!(hostname, "mysqli hostname");
-
-                    info.hostname = hostname.to_owned();
-                }
-                if num_args >= 5 {
-                    let port = execute_data.get_parameter(4);
-                    let port = port.as_long().context("port isn't str")?;
-                    debug!(port, "mysqli port");
-                    info.port = port
-                }
-
-                let span = create_mysqli_exit_span(request_id, "mysqli", "__construct", &info)?;
-
-                MYSQL_MAP.insert(handle, info);
+                let span = create_mysqli_exit_span(
+                    request_id,
+                    class_name.as_deref(),
+                    &function_name,
+                    &peer,
+                    style,
+                )?;
 
                 Ok(Box::new(span))
             }),
-            Box::new(move |_, span, _, _| {
+            Box::new(move |_, span, execute_data, return_value| {
                 let mut span = span.downcast::<Span>().unwrap();
+
+                // Reset the peer here, it should be more precise.
+                if let Some(b) = return_value.as_bool() {
+                    if !b {
+                        span.span_object_mut().is_error = true;
+                    }
+                }
+                if let Some(this) = return_value.as_mut_z_obj() {
+                    if let Some(peer) = get_peer_by_this(this) {
+                        span.span_object_mut().peer = peer;
+                    }
+                } else {
+                    match style.get_this_mut(execute_data) {
+                        Ok(this) => {
+                            if let Some(peer) = get_peer_by_this(this) {
+                                span.span_object_mut().peer = peer;
+                            }
+                        }
+                        Err(err) => {
+                            error!(?err, "reset peer failed");
+                        }
+                    }
+                }
+
                 log_exception(&mut *span);
                 Ok(())
             }),
@@ -107,19 +139,25 @@ impl MySQLImprovedPlugin {
     }
 
     fn hook_mysqli_methods(
-        &self, function_name: &str,
+        &self, class_name: Option<&str>, function_name: &str, style: ApiStyle,
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
+        let class_name = class_name.map(ToOwned::to_owned);
         let function_name = function_name.to_owned();
         (
             Box::new(move |request_id, execute_data| {
-                let this = get_this_mut(execute_data)?;
+                let this = style.get_this_mut(execute_data)?;
                 let handle = this.handle();
 
-                debug!(handle, function_name, "call mysqli method");
+                debug!(handle, class_name, function_name, "call mysqli method");
 
-                let mut span = with_info(handle, |info| {
-                    create_mysqli_exit_span(request_id, "mysqli", &function_name, info)
-                })?;
+                let peer = &get_peer_by_this(this).unwrap_or_default();
+                let mut span = create_mysqli_exit_span(
+                    request_id,
+                    class_name.as_deref(),
+                    &function_name,
+                    peer,
+                    style,
+                )?;
 
                 if execute_data.num_args() >= 1 {
                     if let Some(statement) = execute_data.get_parameter(0).as_z_str() {
@@ -129,8 +167,13 @@ impl MySQLImprovedPlugin {
 
                 Ok(Box::new(span) as _)
             }),
-            Box::new(move |_, span, _, _| {
+            Box::new(move |_, span, _, return_value| {
                 let mut span = span.downcast::<Span>().unwrap();
+                if let Some(b) = return_value.as_bool() {
+                    if !b {
+                        span.span_object_mut().is_error = true;
+                    }
+                }
                 log_exception(&mut *span);
                 Ok(())
             }),
@@ -139,12 +182,13 @@ impl MySQLImprovedPlugin {
 }
 
 fn create_mysqli_exit_span(
-    request_id: Option<i64>, class_name: &str, function_name: &str, info: &MySQLInfo,
+    request_id: Option<i64>, class_name: Option<&str>, function_name: &str, peer: &str,
+    style: ApiStyle,
 ) -> anyhow::Result<Span> {
     RequestContext::try_with_global_ctx(request_id, |ctx| {
         let mut span = ctx.create_exit_span(
-            &format!("{}->{}", class_name, function_name),
-            &format!("{}:{}", info.hostname, info.port),
+            &style.generate_operation_name(class_name, function_name),
+            peer,
         );
 
         let span_object = span.span_object_mut();
@@ -156,38 +200,60 @@ fn create_mysqli_exit_span(
     })
 }
 
-fn with_info<T>(handle: u32, f: impl FnOnce(&MySQLInfo) -> anyhow::Result<T>) -> anyhow::Result<T> {
-    MYSQL_MAP
-        .get(&handle)
-        .map(|r| f(r.value()))
-        .context("info not exists")?
-}
-
-struct MySQLInfo {
-    hostname: String,
-    port: i64,
-}
-
-fn hack_dtor(this: &mut ZObj, new_dtor: sys::zend_object_dtor_obj_t) {
+fn get_peer_by_this(this: &mut ZObj) -> Option<String> {
     let handle = this.handle();
 
-    unsafe {
-        let ori_dtor = (*(*this.as_mut_ptr()).handlers).dtor_obj;
-        DTOR_MAP.insert(handle, ori_dtor);
-        (*((*this.as_mut_ptr()).handlers as *mut sys::zend_object_handlers)).dtor_obj = new_dtor;
-    }
+    debug!(handle, "start to call mysqli_get_host_info");
+
+    let host_info = match call("mysqli_get_host_info", [ZVal::from(this.to_ref_owned())]) {
+        Ok(host_info) => host_info,
+        Err(err) => {
+            error!(handle, ?err, "call mysqli_get_host_info failed");
+            return None;
+        }
+    };
+
+    host_info
+        .as_z_str()
+        .and_then(|info| info.to_str().ok())
+        .and_then(|info| info.split(' ').next())
+        .map(ToOwned::to_owned)
+        .map(|mut info| {
+            if !info.contains(':') {
+                info.push_str(":3306");
+            }
+            info
+        })
 }
 
-unsafe extern "C" fn mysqli_dtor(object: *mut sys::zend_object) {
-    debug!("call mysqli dtor");
-    dtor(object);
-}
+fn get_peer_by_parameters(execute_data: &mut ExecuteData, style: ApiStyle) -> String {
+    let mut peer = "".to_owned();
 
-unsafe extern "C" fn dtor(object: *mut sys::zend_object) {
-    let handle = ZObj::from_ptr(object).handle();
-
-    MYSQL_MAP.remove(&handle);
-    if let Some((_, Some(dtor))) = DTOR_MAP.remove(&handle) {
-        dtor(object);
+    if style.validate_num_args(execute_data, 1).is_ok() {
+        peer.push_str(
+            style
+                .get_mut_parameter(execute_data, 0)
+                .as_z_str()
+                .and_then(|s| s.to_str().ok())
+                .unwrap_or_default(),
+        );
     }
+
+    if !peer.is_empty() {
+        let port = style.get_mut_parameter(execute_data, 4);
+
+        #[allow(clippy::manual_map)]
+        let port = if let Some(port) = port.as_z_str() {
+            port.to_str().ok().map(ToOwned::to_owned)
+        } else if let Some(port) = port.as_long() {
+            Some(port.to_string())
+        } else {
+            None
+        };
+
+        peer.push(':');
+        peer.push_str(port.as_deref().unwrap_or("3306"));
+    }
+
+    peer
 }

@@ -249,7 +249,7 @@ fn create_exit_span(
 ) -> anyhow::Result<Span> {
     RequestContext::try_with_global_ctx(request_id, |ctx| {
         let mut span = ctx.create_exit_span(
-            &style.generate_peer_name(class_name, function_name),
+            &style.generate_operation_name(class_name, function_name),
             remote_peer,
         );
 
