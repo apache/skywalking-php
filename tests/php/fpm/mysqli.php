@@ -40,6 +40,7 @@ require_once dirname(__DIR__) . "/vendor/autoload.php";
 }
 
 {
+    mysqli_report(MYSQLI_REPORT_OFF);
     $mysqli = mysqli_init();
     @mysqli_real_connect($mysqli, "127.0.0.1", "root", "password_incorrect", "skywalking", 3306);
 }
