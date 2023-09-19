@@ -37,7 +37,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/curl.enter.php",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9011",
                   refType: CrossProcess,
                   parentSpanId: 1,
                   parentTraceSegmentId: "not null",
@@ -68,7 +68,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/curl.enter.php",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9011",
                   refType: CrossProcess,
                   parentSpanId: 2,
                   parentTraceSegmentId: "not null",
@@ -99,7 +99,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/curl.enter.php",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9011",
                   refType: CrossProcess,
                   parentSpanId: 3,
                   parentTraceSegmentId: "not null",
@@ -130,7 +130,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/curl.enter.php",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9011",
                   refType: CrossProcess,
                   parentSpanId: 4,
                   parentTraceSegmentId: "not null",
@@ -158,7 +158,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/guzzle.php",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9011",
                   refType: CrossProcess,
                   parentSpanId: 1,
                   parentTraceSegmentId: "not null",
@@ -285,7 +285,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/curl-multi.enter.php",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9011",
                   refType: CrossProcess,
                   parentSpanId: 1,
                   parentTraceSegmentId: "not null",
@@ -316,7 +316,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/curl-multi.enter.php",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9011",
                   refType: CrossProcess,
                   parentSpanId: 3,
                   parentTraceSegmentId: "not null",
@@ -347,7 +347,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/curl-multi.enter.php",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9011",
                   refType: CrossProcess,
                   parentSpanId: 2,
                   parentTraceSegmentId: "not null",
@@ -1474,7 +1474,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/curl.enter.php",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9012",
                   refType: CrossProcess,
                   parentSpanId: 5,
                   parentTraceSegmentId: "not null",
@@ -1505,7 +1505,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/curl",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9501",
                   refType: CrossProcess,
                   parentSpanId: 1,
                   parentTraceSegmentId: "not null",
@@ -1581,7 +1581,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/curl",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9502",
                   refType: CrossProcess,
                   parentSpanId: 2,
                   parentTraceSegmentId: "not null",
@@ -1609,7 +1609,7 @@ segmentItems:
             refs:
               - {
                   parentEndpoint: "GET:/curl",
-                  networkAddress: "",
+                  networkAddress: "127.0.0.1:9502",
                   refType: CrossProcess,
                   parentSpanId: 1,
                   parentTraceSegmentId: "not null",
