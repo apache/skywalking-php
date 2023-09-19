@@ -402,7 +402,7 @@ impl CurlPlugin {
     }
 
     fn inject_sw_header(request_id: Option<i64>, ch: ZVal, info: &CurlInfo) -> crate::Result<()> {
-        let sw_header = RequestContext::try_get_sw_header(request_id)?;
+        let sw_header = RequestContext::try_get_sw_header(request_id, &info.peer)?;
         let mut val = CURL_HEADERS
             .with(|headers| headers.borrow_mut().remove(&info.cid))
             .unwrap_or_else(|| ZVal::from(ZArray::new()));
