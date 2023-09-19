@@ -16,7 +16,7 @@
 use crate::{
     channel::Reporter,
     execute::{register_execute_functions, register_observer_handlers},
-    util::{get_sapi_module_name, IPS},
+    util::{get_sapi_module_name, get_str_ini_with_default, IPS},
     worker::init_worker,
     *,
 };
@@ -28,7 +28,6 @@ use skywalking::{
     trace::tracer::{self, Tracer},
 };
 use std::{
-    borrow::ToOwned,
     ffi::{CStr, OsStr},
     fs::{self, OpenOptions},
     os::unix::prelude::OsStrExt,
@@ -37,14 +36,31 @@ use std::{
     time::SystemTime,
 };
 use tracing::{debug, error, info, metadata::LevelFilter};
-use tracing_subscriber::FmtSubscriber;
+use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
-pub static SERVICE_NAME: Lazy<String> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SERVICE_NAME)
-        .and_then(|s| s.to_str().ok())
-        .map(ToOwned::to_owned)
-        .unwrap_or_default()
+static IS_ENABLE: Lazy<bool> = Lazy::new(|| {
+    if !ini_get::<bool>(SKYWALKING_AGENT_ENABLE) {
+        return false;
+    }
+
+    let sapi = get_sapi_module_name().to_bytes();
+
+    if sapi == b"fpm-fcgi" {
+        return true;
+    }
+
+    if sapi == b"cli" && get_module_registry().exists("swoole") {
+        return true;
+    }
+
+    false
 });
+
+pub static SERVER_ADDR: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SERVER_ADDR));
+
+pub static SERVICE_NAME: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SERVICE_NAME));
 
 pub static SERVICE_INSTANCE: Lazy<String> =
     Lazy::new(|| RandomGenerator::generate() + "@" + &IPS[0]);
@@ -76,35 +92,19 @@ pub static SOCKET_FILE_PATH: Lazy<PathBuf> = Lazy::new(|| {
     dir
 });
 
-pub static AUTHENTICATION: Lazy<String> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_AUTHENTICATION)
-        .and_then(|s| s.to_str().ok())
-        .map(ToOwned::to_owned)
-        .unwrap_or_default()
-});
+pub static AUTHENTICATION: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_AUTHENTICATION));
 
 pub static ENABLE_TLS: Lazy<bool> = Lazy::new(|| ini_get::<bool>(SKYWALKING_AGENT_ENABLE_TLS));
 
-pub static SSL_TRUSTED_CA_PATH: Lazy<String> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SSL_TRUSTED_CA_PATH)
-        .and_then(|s| s.to_str().ok())
-        .map(ToOwned::to_owned)
-        .unwrap_or_default()
-});
+pub static SSL_TRUSTED_CA_PATH: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SSL_TRUSTED_CA_PATH));
 
-pub static SSL_KEY_PATH: Lazy<String> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SSL_KEY_PATH)
-        .and_then(|s| s.to_str().ok())
-        .map(ToOwned::to_owned)
-        .unwrap_or_default()
-});
+pub static SSL_KEY_PATH: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SSL_KEY_PATH));
 
-pub static SSL_CERT_CHAIN_PATH: Lazy<String> = Lazy::new(|| {
-    ini_get::<Option<&CStr>>(SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH)
-        .and_then(|s| s.to_str().ok())
-        .map(ToOwned::to_owned)
-        .unwrap_or_default()
-});
+pub static SSL_CERT_CHAIN_PATH: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SSL_CERT_CHAIN_PATH));
 
 pub static HEARTBEAT_PERIOD: Lazy<i64> =
     Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_HEARTBEAT_PERIOD));
@@ -116,6 +116,18 @@ pub static PROPERTIES_REPORT_PERIOD_FACTOR: Lazy<i64> =
 pub static ENABLE_ZEND_OBSERVER: Lazy<bool> = Lazy::new(|| {
     sys::PHP_MAJOR_VERSION >= 8 && ini_get::<bool>(SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER)
 });
+
+pub static WORKER_THREADS: Lazy<i64> =
+    Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_WORKER_THREADS));
+
+pub static REPORTER_TYPE: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_REPORTER_TYPE));
+
+pub static KAFKA_BOOTSTRAP_SERVERS: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_KAFKA_BOOTSTRAP_SERVERS));
+
+pub static KAFKA_PRODUCER_CONFIG: Lazy<String> =
+    Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_KAFKA_PRODUCER_CONFIG));
 
 /// For PHP 8.2+, zend observer api are now also called for internal functions.
 ///
@@ -129,45 +141,49 @@ pub fn init() {
         return;
     }
 
+    // Initialize configuration properties.
+    Lazy::force(&SERVER_ADDR);
+    Lazy::force(&SERVICE_NAME);
+    Lazy::force(&SERVICE_INSTANCE);
+    Lazy::force(&SKYWALKING_VERSION);
+    Lazy::force(&RUNTIME_DIR);
+    Lazy::force(&SOCKET_FILE_PATH);
+    Lazy::force(&AUTHENTICATION);
+    Lazy::force(&ENABLE_TLS);
+    Lazy::force(&SSL_TRUSTED_CA_PATH);
+    Lazy::force(&SSL_KEY_PATH);
+    Lazy::force(&SSL_CERT_CHAIN_PATH);
+    Lazy::force(&HEARTBEAT_PERIOD);
+    Lazy::force(&PROPERTIES_REPORT_PERIOD_FACTOR);
+    Lazy::force(&ENABLE_ZEND_OBSERVER);
+    Lazy::force(&WORKER_THREADS);
+    Lazy::force(&REPORTER_TYPE);
+    Lazy::force(&KAFKA_BOOTSTRAP_SERVERS);
+    Lazy::force(&KAFKA_PRODUCER_CONFIG);
+
     if let Err(err) = try_init_logger() {
         eprintln!("skywalking_agent: initialize logger failed: {}", err);
     }
 
     // Skywalking agent info.
-    let service_name = Lazy::force(&SERVICE_NAME);
-    let service_instance = Lazy::force(&SERVICE_INSTANCE);
-    let skywalking_version = Lazy::force(&SKYWALKING_VERSION);
-    let authentication = Lazy::force(&AUTHENTICATION);
-    let heartbeat_period = Lazy::force(&HEARTBEAT_PERIOD);
-    let properties_report_period_factor = Lazy::force(&PROPERTIES_REPORT_PERIOD_FACTOR);
     info!(
-        service_name,
-        service_instance,
-        skywalking_version,
-        authentication,
-        heartbeat_period,
-        properties_report_period_factor,
+        service_name = &*SERVICE_NAME,
+        service_instance = &*SERVICE_INSTANCE,
+        skywalking_version = &*SKYWALKING_VERSION,
+        heartbeat_period = &*HEARTBEAT_PERIOD,
+        properties_report_period_factor = &*PROPERTIES_REPORT_PERIOD_FACTOR,
         "Starting skywalking agent"
     );
 
     // Skywalking version check.
-    if *skywalking_version < 8 {
+    let skywalking_version = *SKYWALKING_VERSION;
+    if skywalking_version < 8 {
         error!(
             skywalking_version,
             "The skywalking agent only supports versions after skywalking 8"
         );
         return;
     }
-
-    // Initialize TLS if enabled.
-    let enable_tls = Lazy::force(&ENABLE_TLS);
-    let ssl_trusted_ca_path = Lazy::force(&SSL_TRUSTED_CA_PATH);
-    let ssl_key_path = Lazy::force(&SSL_KEY_PATH);
-    let ssl_cert_chain_path = Lazy::force(&SSL_CERT_CHAIN_PATH);
-    debug!(
-        enable_tls,
-        ssl_trusted_ca_path, ssl_key_path, ssl_cert_chain_path, "Skywalking TLS info"
-    );
 
     // Initialize runtime directory.
     if RUNTIME_DIR.as_os_str().is_empty() {
@@ -180,12 +196,11 @@ pub fn init() {
     }
 
     // Initialize Agent worker.
-    Lazy::force(&SOCKET_FILE_PATH);
     init_worker();
 
     tracer::set_global_tracer(Tracer::new(
-        service_name,
-        service_instance,
+        &*SERVICE_NAME,
+        &*SERVICE_INSTANCE,
         Reporter::new(&*SOCKET_FILE_PATH),
     ));
 
@@ -232,8 +247,10 @@ fn try_init_logger() -> anyhow::Result<()> {
 
     let file = open_options.open(path)?;
 
+    let filter = EnvFilter::new(format!("info,skywalking_agent={}", log_level));
+
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(log_level)
+        .with_env_filter(filter)
         .with_ansi(false)
         .with_writer(file)
         .finish();
@@ -243,27 +260,12 @@ fn try_init_logger() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[inline]
 fn get_module_registry() -> &'static ZArr {
     unsafe { ZArr::from_ptr(&sys::module_registry) }
 }
 
+#[inline]
 pub fn is_enable() -> bool {
-    static IS_ENABLE: Lazy<bool> = Lazy::new(|| {
-        if !ini_get::<bool>(SKYWALKING_AGENT_ENABLE) {
-            return false;
-        }
-
-        let sapi = get_sapi_module_name().to_bytes();
-
-        if sapi == b"fpm-fcgi" {
-            return true;
-        }
-
-        if sapi == b"cli" && get_module_registry().exists("swoole") {
-            return true;
-        }
-
-        false
-    });
     *IS_ENABLE
 }

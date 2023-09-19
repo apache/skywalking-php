@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 18
+    segmentSize: 19
     segments:
       - segmentId: "not null"
         spans:
@@ -834,6 +834,45 @@ segmentItems:
                   key: db.statement,
                   value: "SELECT * FROM `mysql`.`user` WHERE `User` = 'root'",
                 }
+          - operationName: mysqli_connect
+            parentSpanId: 0
+            spanId: 5
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8004
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+          - operationName: mysqli_query
+            parentSpanId: 0
+            spanId: 6
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8004
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
+          - operationName: mysqli_real_connect
+            parentSpanId: 0
+            spanId: 7
+            spanLayer: Database
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8004
+            isError: true
+            spanType: Exit
+            peer: 127.0.0.1:3306
+            skipAnalysis: false
+            tags:
+              - { key: db.type, value: mysql }
           - operationName: GET:/mysqli.php
             parentSpanId: -1
             spanId: 0
@@ -1253,6 +1292,151 @@ segmentItems:
               - { key: url, value: "http://127.0.0.1:9011/mongodb.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
+      - segmentId: "not null"
+        spans:
+          - operationName: MemcachePool->set
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: set }
+              - { key: cache.op, value: write }
+              - { key: cache.key, value: foo }
+          - operationName: MemcachePool->set
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: set }
+              - { key: cache.op, value: write }
+              - { key: cache.key, value: bar }
+          - operationName: MemcachePool->get
+            parentSpanId: 0
+            spanId: 3
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: get }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: foo }
+          - operationName: MemcachePool->get
+            parentSpanId: 0
+            spanId: 4
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: get }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: bar }
+          - operationName: MemcachePool->get
+            parentSpanId: 0
+            spanId: 5
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: true
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: get }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: not-exists }
+          - operationName: memcache_set
+            parentSpanId: 0
+            spanId: 6
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: set }
+              - { key: cache.op, value: write }
+              - { key: cache.key, value: foo }
+          - operationName: memcache_get
+            parentSpanId: 0
+            spanId: 7
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: get }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: foo }
+          - operationName: memcache_get
+            parentSpanId: 0
+            spanId: 8
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: true
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: get }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: not-exists }
+          - operationName: GET:/memcache.php
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: "http://127.0.0.1:9011/memcache.php" }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
   - serviceName: skywalking-agent-test-2
     segmentSize: 1
     segments:
@@ -1375,7 +1559,7 @@ segmentItems:
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
   - serviceName: skywalking-agent-test-2-swoole
-    segmentSize: 9
+    segmentSize: 10
     segments:
       - segmentId: "not null"
         spans:
@@ -1777,5 +1961,54 @@ segmentItems:
             skipAnalysis: false
             tags:
               - { key: url, value: "http://127.0.0.1:9502/mongodb" }
+              - { key: http.method, value: GET }
+              - { key: http.status_code, value: "200" }
+      - segmentId: "not null"
+        spans:
+          - operationName: MemcachePool->set
+            parentSpanId: 0
+            spanId: 1
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: set }
+              - { key: cache.op, value: write }
+              - { key: cache.key, value: foo000 }
+          - operationName: MemcachePool->get
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: Cache
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 20
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:11211
+            skipAnalysis: false
+            tags:
+              - { key: cache.type, value: memcache }
+              - { key: cache.cmd, value: get }
+              - { key: cache.op, value: read }
+              - { key: cache.key, value: foo000 }
+          - operationName: GET:/memcache
+            parentSpanId: -1
+            spanId: 0
+            spanLayer: Http
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 8001
+            isError: false
+            spanType: Entry
+            peer: ""
+            skipAnalysis: false
+            tags:
+              - { key: url, value: "http://127.0.0.1:9502/memcache" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }

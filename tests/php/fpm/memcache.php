@@ -15,34 +15,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
 use Webmozart\Assert\Assert;
 
 require_once dirname(__DIR__) . "/vendor/autoload.php";
 
 {
-    $mysqli = new mysqli("127.0.0.1", "root", "password", "skywalking", 3306);
-    $result = $mysqli->query("SELECT 1");
-    Assert::notFalse($result);
+    $mc = new Memcache();
+    $mc->connect("127.0.0.1", 11211);
+
+    $mc->set("foo", "Hello!");
+    $mc->set("bar", "Memcached...");
+
+    Assert::same($mc->get("foo"), 'Hello!');
+    Assert::same($mc->get("bar"), "Memcached...");
+
+    Assert::false($mc->get("not-exists"));
 }
 
 {
-    $mysqli = new mysqli("127.0.0.1", "root", "password", "skywalking", 3306);
-    $result = $mysqli->query("SELECT * FROM `mysql`.`user` WHERE `User` = 'root'");
-    $rs = $result->fetch_all();
-    Assert::same(count($rs), 2);
-}
+    $mc = memcache_connect("127.0.0.1", 11211);
 
-{
-    $mysqli = mysqli_connect("127.0.0.1", "root", "password", "skywalking", 3306);
-    $result = mysqli_query($mysqli, "SELECT * FROM `mysql`.`user` WHERE `User` = 'root'");
-    $rs = $result->fetch_all();
-    Assert::same(count($rs), 2);
-}
+    memcache_set($mc, "foo", "Hello!!");
 
-{
-    mysqli_report(MYSQLI_REPORT_OFF);
-    $mysqli = mysqli_init();
-    @mysqli_real_connect($mysqli, "127.0.0.1", "root", "password_incorrect", "skywalking", 3306);
+    Assert::same(memcache_get($mc, "foo"), 'Hello!!');
+
+    Assert::false(memcache_get($mc, "not-exists"));
 }
 
 echo "ok";

@@ -21,11 +21,17 @@ use crate::common::{
 };
 use reqwest::{header::CONTENT_TYPE, RequestBuilder, StatusCode};
 use std::{
+    future::Future,
     panic::{catch_unwind, resume_unwind},
     time::Duration,
 };
-use tokio::{fs::File, runtime::Handle, task, time::sleep};
-use tracing::info;
+use tokio::{
+    fs::{self, File},
+    runtime::Handle,
+    task,
+    time::sleep,
+};
+use tracing::{error, info};
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 1)]
 async fn e2e() {
@@ -57,6 +63,7 @@ async fn run_e2e() {
     request_fpm_redis().await;
     request_fpm_rabbitmq().await;
     request_fpm_mongodb().await;
+    request_fpm_memcache().await;
     request_swoole_curl().await;
     request_swoole_2_curl().await;
     request_swoole_2_pdo().await;
@@ -65,6 +72,7 @@ async fn run_e2e() {
     request_swoole_2_redis().await;
     request_swoole_2_predis().await;
     request_swoole_2_mongodb().await;
+    request_swoole_2_memcache().await;
     sleep(Duration::from_secs(3)).await;
     request_collector_validate().await;
 }
@@ -150,6 +158,14 @@ async fn request_fpm_mongodb() {
     .await;
 }
 
+async fn request_fpm_memcache() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/memcache.php", PROXY_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
 async fn request_swoole_curl() {
     request_common(
         HTTP_CLIENT.get(format!("http://{}/curl", SWOOLE_SERVER_1_ADDRESS)),
@@ -214,8 +230,16 @@ async fn request_swoole_2_mongodb() {
     .await;
 }
 
-async fn request_collector_validate() {
+async fn request_swoole_2_memcache() {
     request_common(
+        HTTP_CLIENT.get(format!("http://{}/memcache", SWOOLE_SERVER_2_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_collector_validate() {
+    request(
         HTTP_CLIENT
             .post(format!("http://{}/dataValidate", COLLECTOR_HTTP_ADDRESS))
             .header(CONTENT_TYPE, "text/yaml")
@@ -225,14 +249,32 @@ async fn request_collector_validate() {
                     .unwrap(),
             ),
         "success",
+        |content| async move {
+            let result_file = "/tmp/skywalking-agent-collector-validate-result.txt";
+            if let Err(err) = fs::write(result_file, content).await {
+                error!(?err, "write to {} failed", result_file);
+            }
+        },
     )
     .await;
 }
 
 async fn request_common(request_builder: RequestBuilder, actual_content: impl Into<String>) {
+    request(request_builder, actual_content, |content| async move {
+        info!("response content: {}", content);
+    })
+    .await
+}
+
+async fn request<F>(
+    request_builder: RequestBuilder, actual_content: impl Into<String>,
+    handler: impl FnOnce(String) -> F,
+) where
+    F: Future<Output = ()>,
+{
     let response = request_builder.send().await.unwrap();
     let status = response.status();
     let content = response.text().await.unwrap();
-    info!("response content: {}", content);
+    handler(content.clone()).await;
     assert_eq!((status, content), (StatusCode::OK, actual_content.into()));
 }

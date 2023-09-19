@@ -106,6 +106,16 @@ $http->on('request', function ($request, $response) {
             }
             break;
 
+        case '/memcache':
+            {
+                $mc = new Memcache();
+                $mc->addServer("127.0.0.1", 11211);
+
+                $mc->set("foo000", "bar000");
+                Assert::same($mc->get("foo000"), 'bar000');
+            }
+            break;
+
         default:
             throw new DomainException("Unknown operation");
         }
