@@ -30,7 +30,7 @@ mod tag;
 mod util;
 mod worker;
 
-use phper::{ini::Policy, modules::Module, php_get_module};
+use phper::{functions::Argument, ini::Policy, modules::Module, php_get_module};
 
 use crate::request::HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME;
 pub use errors::{Error, Result};
@@ -193,6 +193,13 @@ pub fn get_module() -> Module {
         HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME,
         request::skywalking_hack_swoole_on_request,
     );
+
+    module
+        .add_function(
+            "skywalking_set_operation_name",
+            request::skywalking_set_operation_name,
+        )
+        .argument(Argument::by_val("name"));
 
     module
 }

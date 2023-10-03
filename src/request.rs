@@ -332,3 +332,14 @@ fn finish_request_context(request_id: Option<i64>, status_code: i32) -> crate::R
 
     Ok(())
 }
+
+pub fn skywalking_set_operation_name(args: &mut [ZVal]) -> phper::Result<()> {
+    let name = args[0].expect_z_str()?.to_str()?;
+
+    let _ = RequestContext::try_with_global(None, |ctx| {
+        ctx.entry_span.span_object_mut().operation_name = name.to_string();
+        Ok(())
+    });
+
+    Ok(())
+}
