@@ -178,6 +178,10 @@ jobs:
         if: matrix.os == 'macos-12'
         run: |
           brew install docker
+          brew install docker-compose
+          mkdir -p ~/.docker/cli-plugins
+          ln -sfn $(brew --prefix)/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+
           colima start
 
           # For test containers to find the Colima socket
