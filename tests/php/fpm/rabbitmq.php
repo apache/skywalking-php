@@ -23,8 +23,7 @@ use PhpAmqpLib\Wire\AMQPTable;
 
 require_once dirname(__DIR__) . "/vendor/autoload.php";
 
-$connection = new AMQPStreamConnection(
-    "127.0.0.1", 5672, 'guest', 'guest', '/', false, 'AMQPLAIN', null, 'en_US', 10.0, 10.0);
+$connection = new AMQPStreamConnection("127.0.0.1", 5672, 'guest', 'guest');
 $channel = $connection->channel();
 
 $channel->queue_declare('queue_test', false, false, false, false);

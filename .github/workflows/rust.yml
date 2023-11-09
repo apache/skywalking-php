@@ -203,6 +203,9 @@ jobs:
         env:
           ENABLE_ZEND_OBSERVER: ${{ matrix.flag.enable_zend_observer }}
         continue-on-error: true
+      
+      - run: docker compose ps
+      - run: docker compose logs rabbitmq
 
       # Rebuild the mixture when cargo test failed.
       - name: Docker compose restart
