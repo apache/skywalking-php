@@ -190,7 +190,7 @@ jobs:
 
       # Build mixture for cargo test.
       - name: Docker compose
-        run: docker compose up -d
+        run: docker compose up -d --wait
 
       # Try cargo test.
       - name: Cargo test
