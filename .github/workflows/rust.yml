@@ -203,7 +203,7 @@ jobs:
         env:
           ENABLE_ZEND_OBSERVER: ${{ matrix.flag.enable_zend_observer }}
         continue-on-error: true
-      
+
       # Rebuild the mixture when cargo test failed.
       - name: Docker compose restart
         if: steps.cargo-test-step.outcome != 'success'
