@@ -45,7 +45,7 @@ services:
       - "11211:11211"
 
   rabbitmq:
-    image: rabbitmq:3.11.13
+    image: rabbitmq:3.12.8
     ports:
       - "5672:5672"
     environment:
