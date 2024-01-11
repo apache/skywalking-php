@@ -75,23 +75,23 @@ jobs:
             enable_zend_observer: "On"
             cargo_features: ""
           - php_version: "8.1"
-            swoole_version: "5.0.0"
+            swoole_version: "5.1.1"
             enable_zend_observer: "Off"
             cargo_features: ""
           - php_version: "8.1"
-            swoole_version: "5.0.0"
+            swoole_version: "5.1.1"
             enable_zend_observer: "On"
             cargo_features: ""
           - php_version: "8.2"
-            swoole_version: "5.0.0"
+            swoole_version: "5.1.1"
             enable_zend_observer: "Off"
             cargo_features: ""
           - php_version: "8.2"
-            swoole_version: "5.0.0"
+            swoole_version: "5.1.1"
             enable_zend_observer: "On"
             cargo_features: ""
           - php_version: "8.2"
-            swoole_version: "5.0.0"
+            swoole_version: "5.1.1"
             enable_zend_observer: "On"
             cargo_features: "--features kafka-reporter"
 
@@ -111,7 +111,7 @@ jobs:
         run: brew install protobuf
 
       - name: Setup PHP
-        uses: shivammathur/setup-php@2.26.0
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.flag.php_version }}
           tools: php-config, composer:v2
