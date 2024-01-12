@@ -32,6 +32,11 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=password
       - MYSQL_DATABASE=skywalking
+    healthcheck:
+      test: [ "CMD", "mysqlcheck", "-h127.0.0.1", "-P3306", "-uroot", "-ppassword", "--all-databases" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: bitnami/redis:7.0.4
