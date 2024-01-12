@@ -26,7 +26,7 @@ services:
       retries: 10
 
   mysql:
-    image: mysql:5.7.39
+    image: mysql:5.7.42-debian
     ports:
       - "3306:3306"
     environment:
