@@ -235,6 +235,7 @@ jobs:
       - name: View logs
         if: always()
         run: |
+          docker compose ps
           cat /tmp/*.log
 
   fmt:
