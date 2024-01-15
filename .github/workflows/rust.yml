@@ -185,9 +185,9 @@ jobs:
           brew install colima
           colima start
 
-          # For test containers to find the Colima socket
-          # https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#cannot-connect-to-the-docker-daemon-at-unixvarrundockersock-is-the-docker-daemon-running
-          sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
+          # # For test containers to find the Colima socket
+          # # https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#cannot-connect-to-the-docker-daemon-at-unixvarrundockersock-is-the-docker-daemon-running
+          # sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
 
           colima list
 
@@ -212,7 +212,9 @@ jobs:
       # Rebuild the mixture when cargo test failed.
       - name: Docker compose restart
         if: steps.cargo-test-step.outcome != 'success'
-        run: docker compose restart
+        run: |
+          docker compose restart
+          docker compose ps
 
       # Delay before retry.
       - name: Delay
