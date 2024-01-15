@@ -21,8 +21,9 @@ services:
       - "12800:12800"
     healthcheck:
       test: [ "CMD", "curl", "http://127.0.0.1:12800/healthCheck" ]
-      interval: 5s
+      interval: 10s
       timeout: 5s
+      retries: 10
 
   mysql:
     image: mysql:5.7.39
@@ -45,12 +46,17 @@ services:
       - "11211:11211"
 
   rabbitmq:
-    image: rabbitmq:3.11.13
+    image: rabbitmq:3.12.8
     ports:
       - "5672:5672"
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_running" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   mongo:
     image: mongo:4.4.10

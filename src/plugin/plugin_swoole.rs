@@ -55,7 +55,12 @@ impl SwooleServerPlugin {
                 validate_num_args(execute_data, 2)?;
 
                 let on = execute_data.get_parameter(0);
-                if !on.as_z_str().map(|s| s == b"request").unwrap_or_default() {
+                if !on
+                    .as_z_str()
+                    .and_then(|s| s.to_str().ok())
+                    .map(|s| s.to_lowercase() == "request")
+                    .unwrap_or_default()
+                {
                     return Ok(Box::new(()));
                 }
 
