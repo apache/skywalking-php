@@ -26,12 +26,17 @@ services:
       retries: 10
 
   mysql:
-    image: mysql:5.7.39
+    image: mysql:5.7.42-debian
     ports:
       - "3306:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=password
       - MYSQL_DATABASE=skywalking
+    healthcheck:
+      test: [ "CMD", "mysqlcheck", "-h127.0.0.1", "-P3306", "-uroot", "-ppassword", "--all-databases" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   redis:
     image: bitnami/redis:7.0.4
