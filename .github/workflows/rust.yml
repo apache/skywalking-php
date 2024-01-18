@@ -182,7 +182,6 @@ jobs:
           mkdir -p ~/.docker/cli-plugins
           ln -sfn $(brew --prefix)/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
 
-          brew install colima@0.6.2
           colima start
 
           # For test containers to find the Colima socket
