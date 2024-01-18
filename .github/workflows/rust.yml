@@ -51,7 +51,8 @@ jobs:
       matrix:
         os:
           - ubuntu-20.04
-          - macos-12
+          # TODO Temporarily remove macos and wait for the docker container's connection refused problem to be resolved.
+          # - macos-12
         flag:
           # Many composer dependencies need PHP 7.2+
           - php_version: "7.2"
