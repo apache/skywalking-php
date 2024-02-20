@@ -32,7 +32,10 @@ use std::{
 use tracing::{error, instrument, trace, warn};
 use url::Url;
 
+const INJECT_CONTEXT_SERVICE_NAME: &str = "SW_SERVICE_NAME";
+const INJECT_CONTEXT_INSTANCE_NAME: &str = "SW_INSTANCE_NAME";
 const INJECT_CONTEXT_TRACE_ID: &str = "SW_TRACE_ID";
+const INJECT_CONTEXT_TRACE_SEGMENT_ID: &str = "SW_TRACE_SEGMENT_ID";
 
 #[instrument(skip_all)]
 pub fn init() {
@@ -80,11 +83,8 @@ fn request_shutdown_for_fpm() -> crate::Result<()> {
 
 fn inject_server_var_for_fpm() -> crate::Result<()> {
     if *INJECT_CONTEXT {
-        let trace_id =
-            RequestContext::try_with_global_ctx(None, |ctx| Ok(ctx.trace_id().to_owned()))?;
-
         let server = get_mut_page_request_server()?;
-        server.insert(INJECT_CONTEXT_TRACE_ID, trace_id);
+        inject_server_var(None, server)?;
     }
 
     Ok(())
@@ -275,10 +275,7 @@ fn request_shutdown_for_swoole(response: &mut ZVal) -> crate::Result<()> {
 
 fn inject_server_var_for_swoole(request_id: Option<i64>, server: &mut ZArr) -> crate::Result<()> {
     if *INJECT_CONTEXT {
-        let trace_id =
-            RequestContext::try_with_global_ctx(request_id, |ctx| Ok(ctx.trace_id().to_owned()))?;
-
-        server.insert(INJECT_CONTEXT_TRACE_ID, trace_id);
+        inject_server_var(request_id, server)?;
     }
 
     Ok(())
@@ -378,4 +375,14 @@ fn finish_request_context(request_id: Option<i64>, status_code: i32) -> crate::R
     drop(tracing_context);
 
     Ok(())
+}
+
+fn inject_server_var(request_id: Option<i64>, server: &mut ZArr) -> crate::Result<()> {
+    Ok(RequestContext::try_with_global_ctx(request_id, |ctx| {
+        server.insert(INJECT_CONTEXT_SERVICE_NAME, ctx.service());
+        server.insert(INJECT_CONTEXT_INSTANCE_NAME, ctx.service_instance());
+        server.insert(INJECT_CONTEXT_TRACE_ID, ctx.trace_id());
+        server.insert(INJECT_CONTEXT_TRACE_SEGMENT_ID, ctx.trace_segment_id());
+        Ok(())
+    })?)
 }
