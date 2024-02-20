@@ -246,9 +246,6 @@ fn request_init_for_swoole(request: &mut ZVal) -> crate::Result<()> {
 
     create_request_context(Some(fd), header.as_deref(), &method, &url)?;
 
-    drop(headers);
-    drop(server);
-
     let server = request
         .get_mut_property("server")
         .as_mut_z_arr()
