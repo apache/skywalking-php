@@ -24,7 +24,10 @@ For `php-fpm` mode:
 ```php
 <?php
 
+echo $_SERVER["SW_SERVICE_NAME"]; // get service name
+echo $_SERVER["SW_INSTANCE_NAME"]; // get instance name
 echo $_SERVER["SW_TRACE_ID"]; // get trace id
+echo $_SERVER["SW_TRACE_SEGMENT_ID"]; // get trace segment id
 ```
 
 For `swoole` mode:
@@ -35,6 +38,9 @@ For `swoole` mode:
 $http = new Swoole\Http\Server('127.0.0.1', 9501);
 
 $http->on('request', function ($request, $response) {
+    echo $request->server["SW_SERVICE_NAME"]; // get service name
+    echo $request->server["SW_INSTANCE_NAME"]; // get instance name
     echo $request->server["SW_TRACE_ID"]; // get trace id
+    echo $request->server["SW_TRACE_SEGMENT_ID"]; // get trace segment id
 });
 ```
