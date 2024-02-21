@@ -16,7 +16,7 @@
 use crate::{
     component::COMPONENT_PHP_ID,
     context::RequestContext,
-    module::{is_enable, SKYWALKING_VERSION},
+    module::{is_enable, INJECT_CONTEXT, SKYWALKING_VERSION},
     util::{catch_unwind_result, get_sapi_module_name, z_val_to_string},
 };
 use anyhow::{anyhow, Context};
@@ -31,6 +31,10 @@ use std::{
 };
 use tracing::{error, instrument, trace, warn};
 use url::Url;
+
+const INJECT_CONTEXT_SERVICE_NAME: &str = "SW_SERVICE_NAME";
+const INJECT_CONTEXT_INSTANCE_NAME: &str = "SW_INSTANCE_NAME";
+const INJECT_CONTEXT_TRACE_ID: &str = "SW_TRACE_ID";
 
 #[instrument(skip_all)]
 pub fn init() {
@@ -65,13 +69,24 @@ fn request_init_for_fpm() -> crate::Result<()> {
     let url = get_page_request_url(server)?;
     let method = get_page_request_method(server);
 
-    create_request_context(None, header.as_deref(), &method, &url)
+    create_request_context(None, header.as_deref(), &method, &url)?;
+
+    inject_server_var_for_fpm()
 }
 
 fn request_shutdown_for_fpm() -> crate::Result<()> {
     let status_code = unsafe { sg!(sapi_headers).http_response_code };
 
     finish_request_context(None, status_code)
+}
+
+fn inject_server_var_for_fpm() -> crate::Result<()> {
+    if *INJECT_CONTEXT {
+        let server = get_mut_page_request_server()?;
+        inject_server_var(None, server)?;
+    }
+
+    Ok(())
 }
 
 #[allow(clippy::useless_conversion)]
@@ -145,6 +160,17 @@ fn get_page_request_server<'a>() -> anyhow::Result<&'a ZArr> {
     }
 }
 
+fn get_mut_page_request_server<'a>() -> anyhow::Result<&'a mut ZArr> {
+    unsafe {
+        let symbol_table = ZArr::from_mut_ptr(&mut eg!(symbol_table));
+        let carrier = symbol_table
+            .get_mut("_SERVER")
+            .and_then(|carrier| carrier.as_mut_z_arr())
+            .context("$_SERVER is null")?;
+        Ok(carrier)
+    }
+}
+
 pub const HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME: &str =
     "skywalking_hack_swoole_on_request_please_do_not_use";
 
@@ -193,7 +219,9 @@ pub fn skywalking_hack_swoole_on_request(args: &mut [ZVal]) -> phper::Result<ZVa
 }
 
 fn request_init_for_swoole(request: &mut ZVal) -> crate::Result<()> {
-    let request = request.as_z_obj().context("swoole request isn't object")?;
+    let request = request
+        .as_mut_z_obj()
+        .context("swoole request isn't object")?;
 
     let fd = request
         .get_property("fd")
@@ -215,7 +243,14 @@ fn request_init_for_swoole(request: &mut ZVal) -> crate::Result<()> {
     let method = get_swoole_request_method(server);
     let url = get_swoole_request_url(server, headers)?;
 
-    create_request_context(Some(fd), header.as_deref(), &method, &url)
+    create_request_context(Some(fd), header.as_deref(), &method, &url)?;
+
+    let server = request
+        .get_mut_property("server")
+        .as_mut_z_arr()
+        .context("swoole request server not exists")?;
+
+    inject_server_var_for_swoole(Some(fd), server)
 }
 
 fn request_shutdown_for_swoole(response: &mut ZVal) -> crate::Result<()> {
@@ -235,6 +270,14 @@ fn request_shutdown_for_swoole(response: &mut ZVal) -> crate::Result<()> {
             .map(|(_, status)| status)
             .unwrap_or(200),
     )
+}
+
+fn inject_server_var_for_swoole(request_id: Option<i64>, server: &mut ZArr) -> crate::Result<()> {
+    if *INJECT_CONTEXT {
+        inject_server_var(request_id, server)?;
+    }
+
+    Ok(())
 }
 
 fn get_swoole_request_header(header: &ZArr) -> Option<String> {
@@ -331,4 +374,13 @@ fn finish_request_context(request_id: Option<i64>, status_code: i32) -> crate::R
     drop(tracing_context);
 
     Ok(())
+}
+
+fn inject_server_var(request_id: Option<i64>, server: &mut ZArr) -> crate::Result<()> {
+    Ok(RequestContext::try_with_global_ctx(request_id, |ctx| {
+        server.insert(INJECT_CONTEXT_SERVICE_NAME, ctx.service());
+        server.insert(INJECT_CONTEXT_INSTANCE_NAME, ctx.service_instance());
+        server.insert(INJECT_CONTEXT_TRACE_ID, ctx.trace_id());
+        Ok(())
+    })?)
 }

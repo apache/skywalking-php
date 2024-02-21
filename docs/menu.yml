@@ -28,6 +28,8 @@ catalog:
         path: "/en/configuration/ini-settings"
       - name: "Zend Observer"
         path: "/en/configuration/zend-observer"
+      - name: "Context injection"
+        path: "/en/configuration/context-injection"
   - name: "Reporter"
     catalog:
       - name: "Kafka Reporter"
