@@ -35,7 +35,6 @@ use url::Url;
 const INJECT_CONTEXT_SERVICE_NAME: &str = "SW_SERVICE_NAME";
 const INJECT_CONTEXT_INSTANCE_NAME: &str = "SW_INSTANCE_NAME";
 const INJECT_CONTEXT_TRACE_ID: &str = "SW_TRACE_ID";
-const INJECT_CONTEXT_TRACE_SEGMENT_ID: &str = "SW_TRACE_SEGMENT_ID";
 
 #[instrument(skip_all)]
 pub fn init() {
@@ -382,7 +381,6 @@ fn inject_server_var(request_id: Option<i64>, server: &mut ZArr) -> crate::Resul
         server.insert(INJECT_CONTEXT_SERVICE_NAME, ctx.service());
         server.insert(INJECT_CONTEXT_INSTANCE_NAME, ctx.service_instance());
         server.insert(INJECT_CONTEXT_TRACE_ID, ctx.trace_id());
-        server.insert(INJECT_CONTEXT_TRACE_SEGMENT_ID, ctx.trace_segment_id());
         Ok(())
     })?)
 }
