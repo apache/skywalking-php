@@ -44,6 +44,9 @@ const SKYWALKING_AGENT_SKYWALKING_VERSION: &str = "skywalking_agent.skywalking_v
 /// skywalking server address.
 const SKYWALKING_AGENT_SERVER_ADDR: &str = "skywalking_agent.server_addr";
 
+/// skywalking instance name.
+const SKYWALKING_AGENT_INSTANCE_NAME: &str = "skywalking_agent.instance_name";
+
 /// skywalking app service name.
 const SKYWALKING_AGENT_SERVICE_NAME: &str = "skywalking_agent.service_name";
 
@@ -120,6 +123,11 @@ pub fn get_module() -> Module {
     module.add_ini(
         SKYWALKING_AGENT_SERVER_ADDR,
         "127.0.0.1:11800".to_string(),
+        Policy::System,
+    );
+    module.add_ini(
+        SKYWALKING_AGENT_INSTANCE_NAME,
+        "".to_string(),
         Policy::System,
     );
     module.add_ini(
