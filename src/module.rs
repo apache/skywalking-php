@@ -72,7 +72,7 @@ pub static SERVICE_INSTANCE: Lazy<String> = Lazy::new(|| {
     let defined_instance_name = defined_instance_name.trim();
 
     if !defined_instance_name.is_empty() {
-       service_instance = defined_instance_name;
+        service_instance = defined_instance_name;
     }
     service_instance.to_string()
 });
