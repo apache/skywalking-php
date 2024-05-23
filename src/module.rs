@@ -62,8 +62,20 @@ pub static SERVER_ADDR: Lazy<String> =
 pub static SERVICE_NAME: Lazy<String> =
     Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SERVICE_NAME));
 
-pub static SERVICE_INSTANCE: Lazy<String> =
-    Lazy::new(|| RandomGenerator::generate() + "@" + &IPS[0]);
+pub static SERVICE_INSTANCE: Lazy<String> = Lazy::new(|| {
+    let rnd_hostname = RandomGenerator::generate() + "@" + &IPS[0];
+    let mut service_instance = rnd_hostname.as_str();
+
+    let defined_instance_name = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_INSTANCE_NAME)
+        .and_then(|s| s.to_str().ok())
+        .unwrap_or_default();
+    let defined_instance_name = defined_instance_name.trim();
+
+    if !defined_instance_name.is_empty() {
+        service_instance = defined_instance_name;
+    }
+    service_instance.to_string()
+});
 
 pub static SKYWALKING_VERSION: Lazy<i64> =
     Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_SKYWALKING_VERSION));
