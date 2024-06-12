@@ -56,18 +56,18 @@ impl RequestContext {
         Self::try_with_global(request_id, |ctx| f(&mut ctx.tracing_context))
     }
 
-    pub fn try_get_sw_header(request_id: Option<i64>) -> crate::Result<String> {
+    pub fn try_get_sw_header(request_id: Option<i64>, peer: &str) -> crate::Result<String> {
         Ok(Self::try_with_global(request_id, |req_ctx| {
-            let span_object = req_ctx.get_primary_span().span_object();
             Ok(encode_propagation(
                 &req_ctx.tracing_context,
-                &span_object.operation_name,
-                &span_object.peer,
+                &req_ctx.get_primary_span().span_object().operation_name,
+                peer,
             ))
         })?)
     }
 
     /// Primary endpoint name is used for endpoint dependency.
+    #[inline]
     fn get_primary_span(&self) -> &Span {
         &self.entry_span
     }

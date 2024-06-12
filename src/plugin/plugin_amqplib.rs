@@ -98,7 +98,7 @@ impl AmqplibPlugin {
                     &routing_key,
                 )?;
 
-                Self::inject_sw_header(request_id, execute_data)?;
+                Self::inject_sw_header(request_id, execute_data, &peer)?;
 
                 Ok(Box::new(span))
             }),
@@ -146,11 +146,11 @@ impl AmqplibPlugin {
     }
 
     fn inject_sw_header(
-        request_id: Option<i64>, execute_data: &mut ExecuteData,
+        request_id: Option<i64>, execute_data: &mut ExecuteData, peer: &str,
     ) -> crate::Result<()> {
         const HEADER_NAME: &str = "application_headers";
 
-        let sw_header = RequestContext::try_get_sw_header(request_id)?;
+        let sw_header = RequestContext::try_get_sw_header(request_id, peer)?;
 
         let message = execute_data
             .get_mut_parameter(0)

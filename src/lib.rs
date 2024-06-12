@@ -44,6 +44,9 @@ const SKYWALKING_AGENT_SKYWALKING_VERSION: &str = "skywalking_agent.skywalking_v
 /// skywalking server address.
 const SKYWALKING_AGENT_SERVER_ADDR: &str = "skywalking_agent.server_addr";
 
+/// skywalking instance name.
+const SKYWALKING_AGENT_INSTANCE_NAME: &str = "skywalking_agent.instance_name";
+
 /// skywalking app service name.
 const SKYWALKING_AGENT_SERVICE_NAME: &str = "skywalking_agent.service_name";
 
@@ -100,6 +103,12 @@ const SKYWALKING_AGENT_KAFKA_BOOTSTRAP_SERVERS: &str = "skywalking_agent.kafka_b
 /// Only available when the reporter type is `kafka`.
 const SKYWALKING_AGENT_KAFKA_PRODUCER_CONFIG: &str = "skywalking_agent.kafka_producer_config";
 
+/// Whether to enable automatic injection of skywalking context variables (such
+/// as `SW_TRACE_ID`). For `php-fpm` mode, it will be injected into the
+/// `$_SERVER` variable. For `swoole` mode, it will be injected into the
+/// `$request->server` variable.
+const SKYWALKING_AGENT_INJECT_CONTEXT: &str = "skywalking_agent.inject_context";
+
 #[php_get_module]
 pub fn get_module() -> Module {
     let mut module = Module::new(
@@ -114,6 +123,11 @@ pub fn get_module() -> Module {
     module.add_ini(
         SKYWALKING_AGENT_SERVER_ADDR,
         "127.0.0.1:11800".to_string(),
+        Policy::System,
+    );
+    module.add_ini(
+        SKYWALKING_AGENT_INSTANCE_NAME,
+        "".to_string(),
         Policy::System,
     );
     module.add_ini(
@@ -180,6 +194,7 @@ pub fn get_module() -> Module {
         "{}".to_string(),
         Policy::System,
     );
+    module.add_ini(SKYWALKING_AGENT_INJECT_CONTEXT, false, Policy::System);
 
     // Hooks.
     module.on_module_init(module::init);

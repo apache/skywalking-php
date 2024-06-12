@@ -20,7 +20,6 @@ The text of each license is the standard Apache 2.0 license.
 The text of each license is also included in licenses/LICENSE-[project].txt.
 {{ end }}
 
-    {{- range .Deps }}
-    https://crates.io/crates/{{ .Name }}/{{ .Version }} {{ .Version }} {{ .LicenseID }}
-    {{- end }}
+{{- range .Deps }}{{ if ne .Name "skywalking-php"  }}
+    https://crates.io/crates/{{ .Name }}/{{ .Version }} {{ .Version }} {{ .LicenseID }}{{ end }}{{- end }}
 {{ end }}

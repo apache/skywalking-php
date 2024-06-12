@@ -62,8 +62,20 @@ pub static SERVER_ADDR: Lazy<String> =
 pub static SERVICE_NAME: Lazy<String> =
     Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_SERVICE_NAME));
 
-pub static SERVICE_INSTANCE: Lazy<String> =
-    Lazy::new(|| RandomGenerator::generate() + "@" + &IPS[0]);
+pub static SERVICE_INSTANCE: Lazy<String> = Lazy::new(|| {
+    let rnd_hostname = RandomGenerator::generate() + "@" + &IPS[0];
+    let mut service_instance = rnd_hostname.as_str();
+
+    let defined_instance_name = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_INSTANCE_NAME)
+        .and_then(|s| s.to_str().ok())
+        .unwrap_or_default();
+    let defined_instance_name = defined_instance_name.trim();
+
+    if !defined_instance_name.is_empty() {
+        service_instance = defined_instance_name;
+    }
+    service_instance.to_string()
+});
 
 pub static SKYWALKING_VERSION: Lazy<i64> =
     Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_SKYWALKING_VERSION));
@@ -129,6 +141,9 @@ pub static KAFKA_BOOTSTRAP_SERVERS: Lazy<String> =
 pub static KAFKA_PRODUCER_CONFIG: Lazy<String> =
     Lazy::new(|| get_str_ini_with_default(SKYWALKING_AGENT_KAFKA_PRODUCER_CONFIG));
 
+pub static INJECT_CONTEXT: Lazy<bool> =
+    Lazy::new(|| ini_get::<bool>(SKYWALKING_AGENT_INJECT_CONTEXT));
+
 /// For PHP 8.2+, zend observer api are now also called for internal functions.
 ///
 /// Refer to this commit: <https://github.com/php/php-src/commit/625f1649639c2b9a9d76e4d42f88c264ddb8447d>
@@ -160,6 +175,7 @@ pub fn init() {
     Lazy::force(&REPORTER_TYPE);
     Lazy::force(&KAFKA_BOOTSTRAP_SERVERS);
     Lazy::force(&KAFKA_PRODUCER_CONFIG);
+    Lazy::force(&INJECT_CONTEXT);
 
     if let Err(err) = try_init_logger() {
         eprintln!("skywalking_agent: initialize logger failed: {}", err);
