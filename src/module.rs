@@ -93,6 +93,13 @@ pub static RUNTIME_DIR: Lazy<PathBuf> = Lazy::new(|| {
 
 pub static SOCKET_FILE_PATH: Lazy<PathBuf> = Lazy::new(|| {
     let mut dir = RUNTIME_DIR.clone();
+    if let Some(sock_file) = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_RUNTIME_FILE) {
+        let sock_file_bytes = sock_file.to_bytes();
+        if !sock_file_bytes.is_empty() {
+            dir.push(format!("{}", sock_file.to_str().ok().unwrap().to_string()));
+            return dir
+        }
+    }
 
     let dur = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)

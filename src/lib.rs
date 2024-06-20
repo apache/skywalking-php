@@ -62,6 +62,9 @@ const SKYWALKING_AGENT_LOG_FILE: &str = "skywalking_agent.log_file";
 /// Skywalking agent runtime directory.
 const SKYWALKING_AGENT_RUNTIME_DIR: &str = "skywalking_agent.runtime_dir";
 
+/// Skywalking agent runtime file.
+const SKYWALKING_AGENT_RUNTIME_FILE: &str = "skywalking_agent.runtime_file";
+
 /// Skywalking agent authentication token.
 const SKYWALKING_AGENT_AUTHENTICATION: &str = "skywalking_agent.authentication";
 
@@ -149,6 +152,11 @@ pub fn get_module() -> Module {
     module.add_ini(
         SKYWALKING_AGENT_RUNTIME_DIR,
         "/tmp/skywalking-agent".to_string(),
+        Policy::System,
+    );
+    module.add_ini(
+        SKYWALKING_AGENT_RUNTIME_FILE,
+        "".to_string(),
         Policy::System,
     );
     module.add_ini(
