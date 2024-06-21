@@ -33,7 +33,7 @@ use std::{
     os::unix::prelude::OsStrExt,
     path::{Path, PathBuf},
     str::FromStr,
-    time::SystemTime,
+    // time::SystemTime,
 };
 use tracing::{debug, error, info, metadata::LevelFilter};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
@@ -94,13 +94,20 @@ pub static RUNTIME_DIR: Lazy<PathBuf> = Lazy::new(|| {
 pub static SOCKET_FILE_PATH: Lazy<PathBuf> = Lazy::new(|| {
     let mut dir = RUNTIME_DIR.clone();
 
-    let dur = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .expect("Get timestamp failed")
-        .as_micros();
+    // let dur = SystemTime::now()
+    //     .duration_since(SystemTime::UNIX_EPOCH)
+    //     .expect("Get timestamp failed")
+    //     .as_micros();
 
-    dir.push(format!("{:x}.sock", dur));
+    // dir.push(format!("{:x}.sock", dur));
+    dir.push("agent.sock");
+    dir
+});
 
+pub static AGENT_PID_FILE_PATH: Lazy<PathBuf> = Lazy::new(|| {
+    let mut dir = RUNTIME_DIR.clone();
+
+    dir.push("agent.pid");
     dir
 });
 
