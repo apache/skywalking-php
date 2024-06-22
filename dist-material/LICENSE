@@ -259,6 +259,7 @@ The following components are provided under the Apache-2.0 OR ISC OR MIT License
 The text of each license is also included in licenses/LICENSE-[project].txt.
 
     https://crates.io/crates/rustls/0.20.8 0.20.8 Apache-2.0 OR ISC OR MIT
+    https://crates.io/crates/rustls-native-certs/0.6.3 0.6.3 Apache-2.0 OR ISC OR MIT
     https://crates.io/crates/rustls-pemfile/1.0.3 1.0.3 Apache-2.0 OR ISC OR MIT
     https://crates.io/crates/sct/0.7.0 0.7.0 Apache-2.0 OR ISC OR MIT
 
