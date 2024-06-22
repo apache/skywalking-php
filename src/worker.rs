@@ -33,6 +33,8 @@ use std::{
     cmp::Ordering, error::Error, fs, io, marker::PhantomData, num::NonZeroUsize, process::exit,
     thread::available_parallelism, time::Duration,
 };
+
+use fslock::LockFile;
 use tokio::{
     net::UnixListener,
     runtime::{self, Runtime},
@@ -42,6 +44,7 @@ use tokio::{
 };
 use tonic::async_trait;
 use tracing::{debug, error, info, warn};
+use crate::module::AGENT_PID_FILE_PATH;
 
 pub fn init_worker() {
     let worker_threads = worker_threads();
@@ -56,10 +59,31 @@ pub fn init_worker() {
             Ordering::Less => {
                 error!("fork failed");
             }
+
             Ordering::Equal => {
                 // Ensure worker process exits when master process exists.
                 #[cfg(target_os = "linux")]
-                libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGTERM);
+                // libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGTERM);
+
+                let mut pid_lock =
+                    LockFile::open(&*AGENT_PID_FILE_PATH).unwrap();
+                if !pid_lock.try_lock_with_pid().unwrap() {
+                    println!("process has running...");
+                    return;
+                }
+
+
+                match fs::metadata(&*SOCKET_FILE_PATH) {
+                    Ok(_) => {
+                        if let Err(err) = fs::remove_file(&*SOCKET_FILE_PATH) {
+                            error!(?err, "Remove socket file failed");
+                        }
+                    }
+                    Err(_) => {
+
+                    }
+                }
+
 
                 // Run the worker in subprocess.
                 let rt = new_tokio_runtime(worker_threads);
@@ -129,7 +153,7 @@ async fn start_worker() -> anyhow::Result<()> {
                                     Err(err) => match err.downcast_ref::<io::Error>() {
                                         Some(e) if e.kind() == io::ErrorKind::UnexpectedEof => {
                                             debug!("Leaving channel_receive loop");
-                                            return;
+                                            continue;
                                         }
                                         _ => {
                                             error!(?err, "channel_receive failed");
