@@ -28,7 +28,7 @@ mod reporter;
 mod request;
 mod tag;
 mod util;
-mod worker;
+pub mod worker;
 
 use phper::{ini::Policy, modules::Module, php_get_module};
 

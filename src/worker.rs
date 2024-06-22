@@ -31,7 +31,7 @@ use skywalking::{
 };
 use std::{
     cmp::Ordering, error::Error, fs, io, marker::PhantomData, num::NonZeroUsize, process::exit,
-    thread::available_parallelism, time::Duration,
+    thread::available_parallelism, time::Duration, path::PathBuf,
 };
 use tokio::{
     net::UnixListener,
@@ -63,7 +63,7 @@ pub fn init_worker() {
 
                 // Run the worker in subprocess.
                 let rt = new_tokio_runtime(worker_threads);
-                match rt.block_on(start_worker()) {
+                match rt.block_on(start_worker(SOCKET_FILE_PATH.to_path_buf())) {
                     Ok(_) => {
                         exit(0);
                     }
@@ -87,7 +87,7 @@ fn worker_threads() -> usize {
     }
 }
 
-fn new_tokio_runtime(worker_threads: usize) -> Runtime {
+pub fn new_tokio_runtime(worker_threads: usize) -> Runtime {
     runtime::Builder::new_multi_thread()
         .thread_name("sw: worker")
         .enable_all()
@@ -96,7 +96,7 @@ fn new_tokio_runtime(worker_threads: usize) -> Runtime {
         .unwrap()
 }
 
-async fn start_worker() -> anyhow::Result<()> {
+pub async fn start_worker(socket_file: PathBuf) -> anyhow::Result<()> {
     debug!("Starting worker...");
 
     // Ensure to cleanup resources when worker exits.
@@ -106,11 +106,9 @@ async fn start_worker() -> anyhow::Result<()> {
     let mut sig_term = signal(SignalKind::terminate())?;
     let mut sig_int = signal(SignalKind::interrupt())?;
 
-    let socket_file = &*SOCKET_FILE_PATH;
-
     let fut = async move {
         debug!(?socket_file, "Bind unix stream");
-        let listener = UnixListener::bind(socket_file)?;
+        let listener = UnixListener::bind(&socket_file)?;
         change_permission(socket_file, 0o777);
 
         let (tx, rx) = mpsc::channel::<CollectItem>(255);
