@@ -109,6 +109,8 @@ const SKYWALKING_AGENT_KAFKA_PRODUCER_CONFIG: &str = "skywalking_agent.kafka_pro
 /// `$request->server` variable.
 const SKYWALKING_AGENT_INJECT_CONTEXT: &str = "skywalking_agent.inject_context";
 
+const SKYWALKING_AGENT_TOKEN: &str = "skywalking_agent.token";
+
 #[php_get_module]
 pub fn get_module() -> Module {
     let mut module = Module::new(
@@ -195,6 +197,12 @@ pub fn get_module() -> Module {
         Policy::System,
     );
     module.add_ini(SKYWALKING_AGENT_INJECT_CONTEXT, false, Policy::System);
+
+    module.add_ini(
+        SKYWALKING_AGENT_TOKEN,
+        "{}".to_string(),
+        Policy::System,
+    );
 
     // Hooks.
     module.on_module_init(module::init);
