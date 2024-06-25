@@ -77,6 +77,14 @@ pub static SERVICE_INSTANCE: Lazy<String> = Lazy::new(|| {
     service_instance.to_string()
 });
 
+pub static TOKEN_NAME: Lazy<String> = Lazy::new(|| {
+    let defined_token_name = ini_get::<Option<&CStr>>(SKYWALKING_AGENT_TOKEN)
+        .and_then(|s| s.to_str().ok())
+        .unwrap_or_default();
+
+    defined_token_name.to_string()
+});
+
 pub static SKYWALKING_VERSION: Lazy<i64> =
     Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_SKYWALKING_VERSION));
 

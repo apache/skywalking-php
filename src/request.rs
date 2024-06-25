@@ -31,6 +31,7 @@ use std::{
 };
 use tracing::{error, instrument, trace, warn};
 use url::Url;
+use crate::module::TOKEN_NAME;
 
 const INJECT_CONTEXT_SERVICE_NAME: &str = "SW_SERVICE_NAME";
 const INJECT_CONTEXT_INSTANCE_NAME: &str = "SW_INSTANCE_NAME";
@@ -345,6 +346,7 @@ fn create_request_context(
 
     let span_object = span.span_object_mut();
     span_object.component_id = COMPONENT_PHP_ID;
+    span_object.add_tag("token", &*TOKEN_NAME);
     span_object.add_tag("url", url.to_string());
     span_object.add_tag("http.method", method);
 
