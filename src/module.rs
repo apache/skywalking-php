@@ -82,7 +82,7 @@ pub static TOKEN_NAME: Lazy<String> = Lazy::new(|| {
         .and_then(|s| s.to_str().ok())
         .unwrap_or_default();
 
-    defined_token_name.to_string()
+    defined_token_name.to_string()k
 });
 
 pub static SKYWALKING_VERSION: Lazy<i64> =
