@@ -29,6 +29,7 @@ use skywalking::{
 };
 use std::collections::HashSet;
 use tracing::debug;
+use crate::module::TOKEN_NAME;
 
 pub static REDIS_READ_COMMANDS: Lazy<HashSet<&str>> = Lazy::new(|| {
     [
@@ -233,6 +234,7 @@ impl PredisPlugin {
                 span_object.set_span_layer(SpanLayer::Cache);
                 span_object.component_id = COMPONENT_PHP_PREDIS_ID;
                 span_object.add_tag(TAG_CACHE_TYPE, "redis");
+                span_object.add_tag("token", &*TOKEN_NAME);
                 span_object.add_tag(TAG_CACHE_CMD, cmd);
                 if let Some(op) = op {
                     span_object.add_tag(TAG_CACHE_OP, op);

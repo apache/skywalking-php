@@ -32,6 +32,7 @@ use skywalking::{
 use std::{cell::RefCell, collections::HashMap, os::raw::c_long};
 use tracing::{debug, warn};
 use url::Url;
+use crate::module::TOKEN_NAME;
 
 const CURLM_OK: i64 = 0;
 
@@ -425,6 +426,7 @@ impl CurlPlugin {
         })?;
 
         let span_object = span.span_object_mut();
+        span_object.add_tag("token", &*TOKEN_NAME);
         span_object.set_span_layer(SpanLayer::Http);
         span_object.component_id = COMPONENT_PHP_CURL_ID;
         span_object.add_tag("url", &info.raw_url);
@@ -448,10 +450,13 @@ impl CurlPlugin {
                 .context("curl_error is not string")?
                 .to_str()?;
             let span_object = span.span_object_mut();
+            span_object.add_tag("token", &*TOKEN_NAME);
             span_object.is_error = true;
             span_object.add_log(vec![("CURL_ERROR", curl_error)]);
         } else {
-            span.span_object_mut().is_error = http_code >= 400;
+            let span_object = span.span_object_mut();
+            span_object.add_tag("token", &*TOKEN_NAME);
+            span_object.is_error = http_code >= 400;
         }
 
         log_exception(span);

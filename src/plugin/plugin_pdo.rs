@@ -36,6 +36,7 @@ use skywalking::{
 };
 use std::{any::Any, str::FromStr};
 use tracing::{debug, warn};
+use crate::module::TOKEN_NAME;
 
 static DSN_MAP: Lazy<DashMap<u32, Dsn>> = Lazy::new(Default::default);
 static DTOR_MAP: Lazy<DashMap<u32, sys::zend_object_dtor_obj_t>> = Lazy::new(Default::default);
@@ -128,6 +129,8 @@ impl PdoPlugin {
                     create_exit_span_with_dsn(request_id, "PDO", &function_name, dsn)
                 })?;
 
+                span.add_tag("token", &*TOKEN_NAME);
+
                 if execute_data.num_args() >= 1 {
                     if let Some(statement) = execute_data.get_parameter(0).as_z_str() {
                         span.add_tag(TAG_DB_STATEMENT, statement.to_str()?);
@@ -154,6 +157,8 @@ impl PdoPlugin {
                 let mut span = with_dsn(handle, |dsn| {
                     create_exit_span_with_dsn(request_id, "PDOStatement", &function_name, dsn)
                 })?;
+
+                span.add_tag("token", &*TOKEN_NAME);
 
                 if let Some(query) = this.get_property("queryString").as_z_str() {
                     span.add_tag(TAG_DB_STATEMENT, query.to_str()?);
@@ -242,6 +247,7 @@ fn after_hook_when_false(this: &mut ZObj, span: &mut Span) -> crate::Result<()> 
     let error = get_error_info_item(info, 2)?.expect_z_str()?.to_str()?;
 
     let span_object = span.span_object_mut();
+    span_object.add_tag("token", &*TOKEN_NAME);
     span_object.is_error = true;
     span_object.add_log([("SQLSTATE", state), ("Error Code", code), ("Error", error)]);
 
@@ -273,6 +279,7 @@ fn create_exit_span_with_dsn(
             ctx.create_exit_span(&format!("{}->{}", class_name, function_name), &dsn.peer);
 
         let span_object = span.span_object_mut();
+        span_object.add_tag("token", &*TOKEN_NAME);
         span_object.set_span_layer(SpanLayer::Database);
         span_object.component_id = COMPONENT_PHP_PDO_ID;
         span_object.add_tag(TAG_DB_TYPE, &dsn.db_type);

@@ -33,6 +33,7 @@ use skywalking::{
     trace::span::{HandleSpanObject, Span},
 };
 use tracing::{debug, instrument, warn};
+use crate::module::TOKEN_NAME;
 
 /// The method parameters is empty.
 static MEMCACHE_EMPTY_METHOD_MAPPING: Lazy<HashMap<&str, TagInfo<'static>>> = Lazy::new(|| {
@@ -350,6 +351,7 @@ fn create_exit_span(
 
         let span_object = span.span_object_mut();
         span_object.set_span_layer(SpanLayer::Cache);
+        span_object.add_tag("token", &*TOKEN_NAME);
         span_object.component_id = COMPONENT_PHP_MEMCACHED_ID;
         span_object.add_tag(TAG_CACHE_TYPE, "memcache");
         if let Some(cmd) = tag_info.cmd {

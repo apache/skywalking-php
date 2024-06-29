@@ -33,6 +33,7 @@ use skywalking::{
 };
 use std::{any::Any, collections::HashMap};
 use tracing::{debug, error, instrument, warn};
+use crate::module::TOKEN_NAME;
 
 static PEER_MAP: Lazy<DashMap<u32, String>> = Lazy::new(Default::default);
 
@@ -254,6 +255,7 @@ fn create_exit_span(
         );
 
         let span_object = span.span_object_mut();
+        span_object.add_tag("token", &*TOKEN_NAME);
         span_object.set_span_layer(SpanLayer::Cache);
         span_object.component_id = COMPONENT_PHP_MEMCACHED_ID;
         span_object.add_tag(TAG_CACHE_TYPE, "memcache");

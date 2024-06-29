@@ -370,6 +370,7 @@ fn finish_request_context(request_id: Option<i64>, status_code: i32) -> crate::R
     entry_span.add_tag("http.status_code", &status_code.to_string());
     if status_code >= 400 {
         entry_span.span_object_mut().is_error = true;
+        entry_span.add_tag("token", &*TOKEN_NAME);
     }
 
     drop(entry_span);

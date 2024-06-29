@@ -34,6 +34,7 @@ use skywalking::{
 };
 use std::{any::Any, collections::HashMap};
 use tracing::{debug, warn};
+use crate::module::TOKEN_NAME;
 
 static PEER_MAP: Lazy<DashMap<u32, Peer>> = Lazy::new(Default::default);
 
@@ -261,6 +262,7 @@ impl RedisPlugin {
 
                 let span_object = span.span_object_mut();
                 span_object.set_span_layer(SpanLayer::Cache);
+                span_object.add_tag("token", &*TOKEN_NAME);
                 span_object.component_id = COMPONENT_PHP_REDIS_ID;
                 span_object.add_tag(TAG_CACHE_TYPE, "redis");
 
@@ -307,6 +309,7 @@ impl RedisPlugin {
                 let span_object = span.span_object_mut();
                 span_object.set_span_layer(SpanLayer::Cache);
                 span_object.component_id = COMPONENT_PHP_REDIS_ID;
+                span_object.add_tag("token", &*TOKEN_NAME);
                 span_object.add_tag(TAG_CACHE_TYPE, "redis");
                 span_object.add_tag(
                     TAG_CACHE_CMD,
