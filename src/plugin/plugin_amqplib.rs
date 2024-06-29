@@ -32,6 +32,7 @@ use skywalking::{
     proto::v3::SpanLayer,
     trace::span::{HandleSpanObject, Span},
 };
+use crate::module::TOKEN_NAME;
 
 #[derive(Default, Clone)]
 pub struct AmqplibPlugin;
@@ -136,6 +137,7 @@ impl AmqplibPlugin {
         })?;
 
         let span_object = span.span_object_mut();
+        span_object.add_tag("token", &*TOKEN_NAME);
         span_object.set_span_layer(SpanLayer::Mq);
         span_object.component_id = COMPONENT_AMQP_PRODUCER_ID;
         span_object.add_tag(TAG_MQ_BROKER, peer);

@@ -31,6 +31,7 @@ use phper::{eg, objects::ZObj};
 use skywalking::trace::span::HandleSpanObject;
 use std::{collections::HashMap, ops::Deref, sync::Mutex};
 use tracing::error;
+use crate::module::TOKEN_NAME;
 
 // Register plugins here.
 static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
@@ -117,7 +118,7 @@ fn log_exception(span: &mut impl HandleSpanObject) -> Option<&mut ZObj> {
     if let Some(ex) = ex.as_mut() {
         let span_object = span.span_object_mut();
         span_object.is_error = true;
-
+        span_object.add_tag("token", &*TOKEN_NAME);
         let mut logs = Vec::new();
         if let Ok(class_name) = ex.get_class().get_name().to_str() {
             logs.push(("error.kind", class_name.to_owned()));

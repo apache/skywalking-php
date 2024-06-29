@@ -30,6 +30,7 @@ use skywalking::{
 };
 use std::any::Any;
 use tracing::{debug, error};
+use crate::module::TOKEN_NAME;
 
 const MANAGER_CLASS_NAME: &str = r"MongoDB\Driver\Manager";
 
@@ -123,6 +124,7 @@ fn before_manager_crud_hook(
 
     let span_object = span.span_object_mut();
     span_object.set_span_layer(SpanLayer::Database);
+    span_object.add_tag("token", &*TOKEN_NAME);
     span_object.component_id = COMPONENT_MONGODB_ID;
     span_object.add_tag(TAG_DB_TYPE, "MongoDB");
 

@@ -200,7 +200,7 @@ pub fn get_module() -> Module {
 
     module.add_ini(
         SKYWALKING_AGENT_TOKEN,
-        "{}".to_string(),
+        "".to_string(),
         Policy::System,
     );
 

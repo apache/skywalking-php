@@ -30,6 +30,7 @@ use skywalking::{
     trace::span::{HandleSpanObject, Span},
 };
 use tracing::{debug, error};
+use crate::module::TOKEN_NAME;
 
 #[derive(Default, Clone)]
 pub struct MySQLImprovedPlugin;
@@ -159,6 +160,8 @@ impl MySQLImprovedPlugin {
                     style,
                 )?;
 
+                span.add_tag("token", &*TOKEN_NAME);
+
                 if execute_data.num_args() >= 1 {
                     if let Some(statement) = execute_data.get_parameter(0).as_z_str() {
                         span.add_tag("db.statement", statement.to_str()?);
@@ -193,6 +196,7 @@ fn create_mysqli_exit_span(
 
         let span_object = span.span_object_mut();
         span_object.set_span_layer(SpanLayer::Database);
+        span_object.add_tag("token", &*TOKEN_NAME);
         span_object.component_id = COMPONENT_PHP_MYSQLI_ID;
         span_object.add_tag("db.type", "mysql");
 
