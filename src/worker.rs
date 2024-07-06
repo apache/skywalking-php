@@ -153,7 +153,7 @@ async fn start_worker() -> anyhow::Result<()> {
                                     Err(err) => match err.downcast_ref::<io::Error>() {
                                         Some(e) if e.kind() == io::ErrorKind::UnexpectedEof => {
                                             debug!("Leaving channel_receive loop");
-                                            continue;
+                                            return;
                                         }
                                         _ => {
                                             error!(?err, "channel_receive failed");
