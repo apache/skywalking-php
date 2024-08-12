@@ -15,23 +15,16 @@
 
 use crate::{
     channel::{self, TxReporter},
-    module::{
-        HEARTBEAT_PERIOD, PROPERTIES_REPORT_PERIOD_FACTOR, SERVICE_INSTANCE, SERVICE_NAME,
-        SOCKET_FILE_PATH, WORKER_THREADS,
-    },
     reporter::run_reporter,
     util::change_permission,
 };
-
-use once_cell::sync::Lazy;
-
 use skywalking::{
     management::{instance::Properties, manager::Manager},
     reporter::{CollectItem, CollectItemConsume},
 };
 use std::{
-    cmp::Ordering, error::Error, fs, io, marker::PhantomData, num::NonZeroUsize, process::exit,
-    thread::available_parallelism, time::Duration, path::PathBuf,
+    cmp::Ordering, error::Error, fs, io,  process::exit,
+     time::Duration, path::PathBuf,
 };
 use tokio::{
     net::UnixListener,
@@ -41,11 +34,22 @@ use tokio::{
     sync::mpsc::{self, error::TrySendError},
 };
 use tonic::async_trait;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info};
 
-pub fn init_worker() {
-    let worker_threads = worker_threads();
+pub struct WorkerConfiguration {
+    pub socket_file_path: PathBuf,
+    pub worker_threads: usize,
+    pub heart_beat: Option<HeartBeatConfiguration>,
+}
 
+pub struct HeartBeatConfiguration {
+    pub service_instance: String,
+    pub service_name: String,
+    pub heartbeat_period: i64,
+    pub properties_report_period_factor: i64,
+}
+
+pub fn init_worker(config: WorkerConfiguration) {
     unsafe {
         // TODO Shutdown previous worker before fork if there is a PHP-FPM reload
         // operation.
@@ -62,8 +66,8 @@ pub fn init_worker() {
                 libc::prctl(libc::PR_SET_PDEATHSIG, libc::SIGTERM);
 
                 // Run the worker in subprocess.
-                let rt = new_tokio_runtime(worker_threads);
-                match rt.block_on(start_worker(SOCKET_FILE_PATH.to_path_buf())) {
+                let rt = new_tokio_runtime(config.worker_threads);
+                match rt.block_on(start_worker(config)) {
                     Ok(_) => {
                         exit(0);
                     }
@@ -78,15 +82,6 @@ pub fn init_worker() {
     }
 }
 
-fn worker_threads() -> usize {
-    let worker_threads = *WORKER_THREADS;
-    if worker_threads <= 0 {
-        available_parallelism().map(NonZeroUsize::get).unwrap_or(1)
-    } else {
-        worker_threads as usize
-    }
-}
-
 pub fn new_tokio_runtime(worker_threads: usize) -> Runtime {
     runtime::Builder::new_multi_thread()
         .thread_name("sw: worker")
@@ -96,11 +91,13 @@ pub fn new_tokio_runtime(worker_threads: usize) -> Runtime {
         .unwrap()
 }
 
-pub async fn start_worker(socket_file: PathBuf) -> anyhow::Result<()> {
+pub async fn start_worker(config: WorkerConfiguration) -> anyhow::Result<()> {
     debug!("Starting worker...");
+    
+    let socket_file= config.socket_file_path;
 
     // Ensure to cleanup resources when worker exits.
-    let _guard = WorkerExitGuard::default();
+    let _guard = WorkerExitGuard(socket_file.clone());
 
     // Graceful shutdown signal, put it on the top of program.
     let mut sig_term = signal(SignalKind::terminate())?;
@@ -156,7 +153,9 @@ pub async fn start_worker(socket_file: PathBuf) -> anyhow::Result<()> {
             }
         });
 
-        report_properties_and_keep_alive(TxReporter(tx_));
+        if let Some(heart_beat_config) = config.heart_beat {
+            report_properties_and_keep_alive(heart_beat_config, TxReporter(tx_));
+        }
 
         // Run reporter with blocking.
         run_reporter((), Consumer(rx)).await?;
@@ -191,27 +190,20 @@ impl CollectItemConsume for Consumer {
     }
 }
 
-#[derive(Default)]
-struct WorkerExitGuard(PhantomData<()>);
+struct WorkerExitGuard(PathBuf);
 
 impl Drop for WorkerExitGuard {
     fn drop(&mut self) {
-        match Lazy::get(&SOCKET_FILE_PATH) {
-            Some(socket_file) => {
-                info!(?socket_file, "Remove socket file");
-                if let Err(err) = fs::remove_file(socket_file) {
-                    error!(?err, "Remove socket file failed");
-                }
-            }
-            None => {
-                warn!("Socket file not created");
-            }
+        let Self(ref socket_file) = self;
+        info!(?socket_file, "Remove socket file");
+        if let Err(err) = fs::remove_file(socket_file) {
+            error!(?err, "Remove socket file failed");
         }
     }
 }
 
-fn report_properties_and_keep_alive(reporter: TxReporter) {
-    let manager = Manager::new(&*SERVICE_NAME, &*SERVICE_INSTANCE, reporter);
+fn report_properties_and_keep_alive(config: HeartBeatConfiguration, reporter: TxReporter) {
+    let manager = Manager::new(&*config.service_name, &*config.service_instance, reporter);
 
     manager.report_and_keep_alive(
         || {
@@ -224,7 +216,7 @@ fn report_properties_and_keep_alive(reporter: TxReporter) {
             debug!(?props, "Report instance properties");
             props
         },
-        Duration::from_secs(*HEARTBEAT_PERIOD as u64),
-        *PROPERTIES_REPORT_PERIOD_FACTOR as usize,
+        Duration::from_secs(config.heartbeat_period as u64),
+        config.properties_report_period_factor as usize,
     );
 }

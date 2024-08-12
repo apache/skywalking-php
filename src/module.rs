@@ -17,7 +17,7 @@ use crate::{
     channel::Reporter,
     execute::{register_execute_functions, register_observer_handlers},
     util::{get_sapi_module_name, get_str_ini_with_default, IPS},
-    worker::init_worker,
+    worker::{init_worker, WorkerConfiguration, HeartBeatConfiguration},
     *,
 };
 use anyhow::bail;
@@ -33,7 +33,7 @@ use std::{
     os::unix::prelude::OsStrExt,
     path::{Path, PathBuf},
     str::FromStr,
-    time::SystemTime,
+    time::SystemTime, thread::available_parallelism, num::NonZeroUsize,
 };
 use tracing::{debug, error, info, metadata::LevelFilter};
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
@@ -212,7 +212,16 @@ pub fn init() {
     }
 
     // Initialize Agent worker.
-    init_worker();
+    init_worker(WorkerConfiguration {
+        socket_file_path: SOCKET_FILE_PATH.to_path_buf(),
+        worker_threads: worker_threads(),
+        heart_beat: Some(HeartBeatConfiguration {
+            service_instance: SERVICE_INSTANCE.clone(),
+            service_name: SERVICE_NAME.clone(),
+            heartbeat_period: *HEARTBEAT_PERIOD,
+            properties_report_period_factor: *PROPERTIES_REPORT_PERIOD_FACTOR,
+        })
+    });
 
     tracer::set_global_tracer(Tracer::new(
         &*SERVICE_NAME,
@@ -284,4 +293,13 @@ fn get_module_registry() -> &'static ZArr {
 #[inline]
 pub fn is_enable() -> bool {
     *IS_ENABLE
+}
+
+fn worker_threads() -> usize {
+    let worker_threads = *WORKER_THREADS;
+    if worker_threads <= 0 {
+        available_parallelism().map(NonZeroUsize::get).unwrap_or(1)
+    } else {
+        worker_threads as usize
+    }
 }
