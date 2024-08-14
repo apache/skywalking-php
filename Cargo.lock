@@ -2173,8 +2173,8 @@ dependencies = [
  "prost",
  "rdkafka",
  "reqwest",
- "serde_json",
  "skywalking",
+ "skywalking-php-worker",
  "systemstat",
  "thiserror",
  "tokio",
@@ -2183,6 +2183,27 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "url",
+]
+
+[[package]]
+name = "skywalking-php-worker"
+version = "0.8.0-dev"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "clap",
+ "clap_lex",
+ "libc",
+ "once_cell",
+ "prost",
+ "rdkafka",
+ "serde_json",
+ "skywalking",
+ "tokio",
+ "tokio-stream",
+ "tonic",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -2234,18 +2255,6 @@ name = "spin"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
-
-[[package]]
-name = "standalone-skywalking-worker"
-version = "0.8.0-dev"
-dependencies = [
- "anyhow",
- "clap",
- "clap_lex",
- "skywalking-php",
- "tracing",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "strsim"

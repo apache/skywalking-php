@@ -18,13 +18,11 @@ use once_cell::sync::OnceCell;
 use skywalking::reporter::{CollectItem, Report};
 use std::{
     io::Write,
-    mem::size_of,
     ops::DerefMut,
     os::unix::net::UnixStream,
     path::{Path, PathBuf},
     sync::Mutex,
 };
-use tokio::{io::AsyncReadExt, sync::mpsc};
 use tracing::error;
 
 fn channel_send<T>(data: CollectItem, mut sender: T) -> anyhow::Result<()>
@@ -38,18 +36,6 @@ where
     sender.flush()?;
 
     Ok(())
-}
-
-pub async fn channel_receive(receiver: &mut tokio::net::UnixStream) -> anyhow::Result<CollectItem> {
-    let mut size_buf = [0u8; size_of::<usize>()];
-    receiver.read_exact(&mut size_buf).await?;
-    let size = usize::from_le_bytes(size_buf);
-
-    let mut content = vec![0u8; size];
-    receiver.read_exact(&mut content).await?;
-
-    let item = bincode::deserialize(&content)?;
-    Ok(item)
 }
 
 pub struct Reporter {
@@ -80,16 +66,6 @@ impl Report for Reporter {
     fn report(&self, item: CollectItem) {
         if let Err(err) = self.try_report(item) {
             error!(?err, "channel send failed");
-        }
-    }
-}
-
-pub struct TxReporter(pub mpsc::Sender<CollectItem>);
-
-impl Report for TxReporter {
-    fn report(&self, item: CollectItem) {
-        if let Err(err) = self.0.try_send(item) {
-            error!(?err, "Send collect item failed");
         }
     }
 }

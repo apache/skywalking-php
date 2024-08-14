@@ -24,11 +24,10 @@ mod errors;
 mod execute;
 mod module;
 mod plugin;
-mod reporter;
 mod request;
 mod tag;
 mod util;
-pub mod worker;
+mod worker;
 
 use phper::{ini::Policy, modules::Module, php_get_module};
 

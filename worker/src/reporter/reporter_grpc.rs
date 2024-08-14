@@ -13,9 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::module::{
-    AUTHENTICATION, ENABLE_TLS, SERVER_ADDR, SSL_CERT_CHAIN_PATH, SSL_KEY_PATH, SSL_TRUSTED_CA_PATH,
-};
 use anyhow::anyhow;
 use skywalking::reporter::{grpc::GrpcReporter, CollectItemConsume, CollectItemProduce};
 use std::time::Duration;
@@ -23,16 +20,26 @@ use tokio::time::sleep;
 use tonic::transport::{Certificate, Channel, ClientTlsConfig, Endpoint, Identity};
 use tracing::{debug, info, warn};
 
+pub struct GrpcReporterConfiguration {
+    pub authentication: String,
+    pub enable_tls: bool,
+    pub server_addr: String,
+    pub ssl_cert_chain_path: String,
+    pub ssl_key_path: String,
+    pub ssl_trusted_ca_path: String,
+}
+
 pub async fn run_reporter(
-    producer: impl CollectItemProduce, consumer: impl CollectItemConsume,
+    config: GrpcReporterConfiguration, producer: impl CollectItemProduce,
+    consumer: impl CollectItemConsume,
 ) -> anyhow::Result<()> {
-    let endpoint = create_endpoint(&SERVER_ADDR).await?;
+    let endpoint = create_endpoint(&config).await?;
     let channel = connect(endpoint).await;
 
     let mut reporter = GrpcReporter::new_with_pc(channel, producer, consumer);
 
-    if !AUTHENTICATION.is_empty() {
-        reporter = reporter.with_authentication(&*AUTHENTICATION);
+    if !config.authentication.is_empty() {
+        reporter = reporter.with_authentication(config.authentication);
     }
 
     info!("Worker is ready...");
@@ -52,40 +59,40 @@ pub async fn run_reporter(
     Ok(())
 }
 
-async fn create_endpoint(server_addr: &str) -> anyhow::Result<Endpoint> {
-    let scheme = if *ENABLE_TLS { "https" } else { "http" };
+async fn create_endpoint(config: &GrpcReporterConfiguration) -> anyhow::Result<Endpoint> {
+    let scheme = if config.enable_tls { "https" } else { "http" };
 
-    let url = format!("{}://{}", scheme, server_addr);
+    let url = format!("{}://{}", scheme, config.server_addr);
     debug!(url, "Create Endpoint");
     let mut endpoint = Endpoint::from_shared(url)?;
 
     debug!(
-        enable_tls = *ENABLE_TLS,
-        ssl_trusted_ca_path = &*SSL_TRUSTED_CA_PATH,
-        ssl_key_path = &*SSL_KEY_PATH,
-        ssl_cert_chain_path = &*SSL_CERT_CHAIN_PATH,
+        enable_tls = config.enable_tls,
+        ssl_trusted_ca_path = config.ssl_trusted_ca_path,
+        ssl_key_path = config.ssl_key_path,
+        ssl_cert_chain_path = config.ssl_cert_chain_path,
         "Skywalking TLS info"
     );
 
-    if *ENABLE_TLS {
-        let domain_name = server_addr.split(':').next().unwrap_or_default();
+    if config.enable_tls {
+        let domain_name = config.server_addr.split(':').next().unwrap_or_default();
         debug!(domain_name, "Configure TLS domain");
         let mut tls = ClientTlsConfig::new().domain_name(domain_name);
 
-        let ssl_trusted_ca_path = SSL_TRUSTED_CA_PATH.as_str();
+        let ssl_trusted_ca_path = &config.ssl_trusted_ca_path;
         if !ssl_trusted_ca_path.is_empty() {
             debug!(ssl_trusted_ca_path, "Configure TLS CA");
-            let ca_cert = tokio::fs::read(&*SSL_TRUSTED_CA_PATH).await?;
+            let ca_cert = tokio::fs::read(&config.ssl_trusted_ca_path).await?;
             let ca_cert = Certificate::from_pem(ca_cert);
             tls = tls.ca_certificate(ca_cert);
         }
 
-        let ssl_key_path = SSL_KEY_PATH.as_str();
-        let ssl_cert_chain_path = SSL_CERT_CHAIN_PATH.as_str();
+        let ssl_key_path = &config.ssl_key_path;
+        let ssl_cert_chain_path = &config.ssl_cert_chain_path;
         if !ssl_key_path.is_empty() && !ssl_cert_chain_path.is_empty() {
             debug!(ssl_trusted_ca_path, "Configure mTLS");
-            let client_cert = tokio::fs::read(&*SSL_CERT_CHAIN_PATH).await?;
-            let client_key = tokio::fs::read(&*SSL_KEY_PATH).await?;
+            let client_cert = tokio::fs::read(&config.ssl_cert_chain_path).await?;
+            let client_key = tokio::fs::read(&config.ssl_key_path).await?;
             let client_identity = Identity::from_pem(client_cert, client_key);
             tls = tls.identity(client_identity);
         }
