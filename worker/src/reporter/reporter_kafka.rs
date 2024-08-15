@@ -15,7 +15,6 @@
 
 #![cfg(feature = "kafka-reporter")]
 
-use crate::module::{KAFKA_BOOTSTRAP_SERVERS, KAFKA_PRODUCER_CONFIG};
 use anyhow::{bail, Context};
 use skywalking::reporter::{
     kafka::{KafkaReportBuilder, RDKafkaClientConfig},
@@ -23,14 +22,20 @@ use skywalking::reporter::{
 };
 use std::collections::HashMap;
 
+pub struct KafkaReporterConfiguration {
+    pub kafka_bootstrap_servers: String,
+    pub kafka_producer_config: String,
+}
+
 pub async fn run_reporter(
-    producer: impl CollectItemProduce, consumer: impl CollectItemConsume,
+    config: KafkaReporterConfiguration, producer: impl CollectItemProduce,
+    consumer: impl CollectItemConsume,
 ) -> anyhow::Result<()> {
     let mut client_config = RDKafkaClientConfig::new();
 
-    client_config.set("bootstrap.servers", &*KAFKA_BOOTSTRAP_SERVERS);
+    client_config.set("bootstrap.servers", config.kafka_bootstrap_servers);
 
-    let config = serde_json::from_str::<HashMap<String, String>>(&KAFKA_PRODUCER_CONFIG)
+    let config = serde_json::from_str::<HashMap<String, String>>(&config.kafka_producer_config)
         .context("parse kafka producer config failed")?;
     for (key, value) in config {
         client_config.set(key, value);

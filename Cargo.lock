@@ -82,9 +82,9 @@ dependencies = [
 
 [[package]]
 name = "anstyle-wincon"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "180abfa45703aebe0093f79badacc01b8fd4ea2e35118747e5811127f926e188"
+checksum = "c677ab05e09154296dd37acecd46420c17b9713e8366facafa8fc0885167cf4c"
 dependencies = [
  "anstyle",
  "windows-sys 0.48.0",
@@ -365,9 +365,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.3.19"
+version = "4.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fd304a20bff958a57f04c4e96a2e7594cc4490a0e809cbd48bb6437edaa452d"
+checksum = "fb690e81c7840c0d7aade59f242ea3b41b9bc27bcd5997890e7702ae4b32e487"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -376,9 +376,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.3.19"
+version = "4.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01c6a3f08f1fe5662a35cfe393aec09c4df95f60ee93b7556505260f75eee9e1"
+checksum = "5ed2e96bc16d8d740f6f48d663eddf4b8a0983e79210fd55479b7bcd0a69860e"
 dependencies = [
  "anstream",
  "anstyle",
@@ -983,13 +983,13 @@ checksum = "28b29a3cd74f0f4598934efe3aeba42bae0eb4680554128851ebbecb02af14e6"
 
 [[package]]
 name = "is-terminal"
-version = "0.4.9"
+version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb0889898416213fab133e1d33a0e5858a48177452750691bde3666d0fdbaf8b"
+checksum = "f23ff5ef2b80d608d61efee834934d862cd92461afc0560dedf493e4c033738b"
 dependencies = [
  "hermit-abi",
- "rustix",
- "windows-sys 0.48.0",
+ "libc",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -1597,9 +1597,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.66"
+version = "1.0.86"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18fb31db3f9bddb2ea821cde30a9f70117e3f119938b5ee630b7403aa6e2ead9"
+checksum = "5e719e8df665df0d1c8fbfd238015744736151d4445ec0836b8e628aae103b77"
 dependencies = [
  "unicode-ident",
 ]
@@ -2173,8 +2173,8 @@ dependencies = [
  "prost",
  "rdkafka",
  "reqwest",
- "serde_json",
  "skywalking",
+ "skywalking-php-worker",
  "systemstat",
  "thiserror",
  "tokio",
@@ -2183,6 +2183,27 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "url",
+]
+
+[[package]]
+name = "skywalking-php-worker"
+version = "0.8.0-dev"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "clap",
+ "clap_lex",
+ "libc",
+ "once_cell",
+ "prost",
+ "rdkafka",
+ "serde_json",
+ "skywalking",
+ "tokio",
+ "tokio-stream",
+ "tonic",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

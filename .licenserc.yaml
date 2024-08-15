@@ -32,6 +32,7 @@ header:
     - 'config.m4'
     - 'vendor'
     - 'dist-material'
+    - 'target'
 
   comment: on-failure
 

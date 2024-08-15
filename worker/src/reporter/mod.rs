@@ -16,17 +16,29 @@
 mod reporter_grpc;
 mod reporter_kafka;
 
-use crate::module::REPORTER_TYPE;
-use anyhow::bail;
+pub use reporter_grpc::GrpcReporterConfiguration;
+#[cfg(feature = "kafka-reporter")]
+pub use reporter_kafka::KafkaReporterConfiguration;
 use skywalking::reporter::{CollectItemConsume, CollectItemProduce};
 
+pub enum ReporterConfiguration {
+    Grpc(GrpcReporterConfiguration),
+
+    #[cfg(feature = "kafka-reporter")]
+    Kafka(KafkaReporterConfiguration),
+}
+
 pub async fn run_reporter(
-    producer: impl CollectItemProduce, consumer: impl CollectItemConsume,
+    config: ReporterConfiguration, producer: impl CollectItemProduce,
+    consumer: impl CollectItemConsume,
 ) -> anyhow::Result<()> {
-    match REPORTER_TYPE.as_str() {
-        "grpc" => reporter_grpc::run_reporter(producer, consumer).await,
+    match config {
+        ReporterConfiguration::Grpc(config) => {
+            reporter_grpc::run_reporter(config, producer, consumer).await
+        }
         #[cfg(feature = "kafka-reporter")]
-        "kafka" => reporter_kafka::run_reporter(producer, consumer).await,
-        typ => bail!("unknown reporter type, {}", typ),
+        ReporterConfiguration::Kafka(config) => {
+            reporter_kafka::run_reporter(config, producer, consumer).await
+        }
     }
 }

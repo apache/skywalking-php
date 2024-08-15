@@ -24,7 +24,6 @@ mod errors;
 mod execute;
 mod module;
 mod plugin;
-mod reporter;
 mod request;
 mod tag;
 mod util;

@@ -16,12 +16,12 @@
 [package]
 name = "scripts"
 version = "0.0.0"
-authors = ["Apache Software Foundation", "jmjoy <jmjoy@apache.org>", "Yanlong He <heyanlong@apache.org>"]
+authors = { workspace = true }
 description = "The Scripts of Apache SkyWalking PHP Agent."
-edition = "2021"
-rust-version = "1.58"
-repository = "https://github.com/apache/skywalking-php"
-license = "Apache-2.0"
+edition = { workspace = true }
+rust-version = { workspace = true }
+repository = { workspace = true }
+license = { workspace = true }
 publish = false
 
 [dependencies]

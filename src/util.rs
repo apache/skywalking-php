@@ -18,9 +18,7 @@ use once_cell::sync::Lazy;
 use phper::{ini::ini_get, sys, values::ZVal};
 use std::{
     ffi::CStr,
-    os::unix::prelude::OsStrExt,
     panic::{catch_unwind, UnwindSafe},
-    path::Path,
 };
 use systemstat::{IpAddr, Platform, System};
 
@@ -85,16 +83,6 @@ pub fn catch_unwind_result<F: FnOnce() -> crate::Result<R> + UnwindSafe, R>(
 
 pub fn get_sapi_module_name() -> &'static CStr {
     unsafe { CStr::from_ptr(sys::sapi_module.name) }
-}
-
-pub fn change_permission(f: impl AsRef<Path>, mode: libc::mode_t) {
-    let f = f.as_ref().as_os_str().as_bytes();
-    let mut path = Vec::with_capacity(f.len() + 1);
-    path.extend_from_slice(f);
-    path.push(b'\0');
-    unsafe {
-        libc::chmod(path.as_ptr().cast(), mode);
-    }
 }
 
 pub fn get_str_ini_with_default(name: &str) -> String {
