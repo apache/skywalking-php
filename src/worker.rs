@@ -49,7 +49,7 @@ pub fn init_worker() {
                 let reporter_config = match REPORTER_TYPE.as_str() {
                     "grpc" => ReporterConfiguration::Grpc(GrpcReporterConfiguration {
                         authentication: AUTHENTICATION.clone(),
-                        enable_tls: ENABLE_TLS.clone(),
+                        enable_tls: *ENABLE_TLS,
                         server_addr: SERVER_ADDR.clone(),
                         ssl_cert_chain_path: SSL_CERT_CHAIN_PATH.clone(),
                         ssl_key_path: SSL_KEY_PATH.clone(),
