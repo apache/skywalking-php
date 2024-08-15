@@ -85,5 +85,6 @@ EOF
     scripts:scripts \
     src:src \
     tests:tests \
+    worker:worker \
     ])
 fi
