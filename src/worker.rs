@@ -14,9 +14,9 @@
 // limitations under the License.
 
 use crate::module::{
-    AUTHENTICATION, ENABLE_TLS, HEARTBEAT_PERIOD, PROPERTIES_REPORT_PERIOD_FACTOR, REPORTER_TYPE,
-    SERVER_ADDR, SERVICE_INSTANCE, SERVICE_NAME, SOCKET_FILE_PATH, SSL_CERT_CHAIN_PATH,
-    SSL_KEY_PATH, SSL_TRUSTED_CA_PATH, WORKER_THREADS,
+    is_standalone_reporter_type, AUTHENTICATION, ENABLE_TLS, HEARTBEAT_PERIOD,
+    PROPERTIES_REPORT_PERIOD_FACTOR, REPORTER_TYPE, SERVER_ADDR, SERVICE_INSTANCE, SERVICE_NAME,
+    SOCKET_FILE_PATH, SSL_CERT_CHAIN_PATH, SSL_KEY_PATH, SSL_TRUSTED_CA_PATH, WORKER_THREADS,
 };
 #[cfg(feature = "kafka-reporter")]
 use crate::module::{KAFKA_BOOTSTRAP_SERVERS, KAFKA_PRODUCER_CONFIG};
@@ -31,6 +31,10 @@ use std::{cmp::Ordering, num::NonZeroUsize, process::exit, thread::available_par
 use tracing::error;
 
 pub fn init_worker() {
+    if is_standalone_reporter_type() {
+        return;
+    }
+
     unsafe {
         // TODO Shutdown previous worker before fork if there is a PHP-FPM reload
         // operation.

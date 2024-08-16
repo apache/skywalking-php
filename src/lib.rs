@@ -91,7 +91,8 @@ const SKYWALKING_AGENT_PROPERTIES_REPORT_PERIOD_FACTOR: &str =
 /// PHP8's jit.
 const SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER: &str = "skywalking_agent.enable_zend_observer";
 
-/// Reporter type, optional values are `grpc` and `kafka`, default is `grpc`.
+/// Reporter type, optional values are `grpc`, `kafka` and `standalone`, default
+/// is `grpc`.
 const SKYWALKING_AGENT_REPORTER_TYPE: &str = "skywalking_agent.reporter_type";
 
 /// A list of host/port pairs to use for establishing the initial connection to
@@ -107,6 +108,10 @@ const SKYWALKING_AGENT_KAFKA_PRODUCER_CONFIG: &str = "skywalking_agent.kafka_pro
 /// `$_SERVER` variable. For `swoole` mode, it will be injected into the
 /// `$request->server` variable.
 const SKYWALKING_AGENT_INJECT_CONTEXT: &str = "skywalking_agent.inject_context";
+
+/// Unix domain socket file path of standalone skywalking php worker. Only
+/// available when `reporter_type` is `standalone`.
+const SKYWALKING_AGENT_STANDALONE_SOCKET_PATH: &str = "skywalking_agent.standalone_socket_path";
 
 #[php_get_module]
 pub fn get_module() -> Module {
@@ -194,6 +199,11 @@ pub fn get_module() -> Module {
         Policy::System,
     );
     module.add_ini(SKYWALKING_AGENT_INJECT_CONTEXT, false, Policy::System);
+    module.add_ini(
+        SKYWALKING_AGENT_STANDALONE_SOCKET_PATH,
+        "".to_string(),
+        Policy::System,
+    );
 
     // Hooks.
     module.on_module_init(module::init);

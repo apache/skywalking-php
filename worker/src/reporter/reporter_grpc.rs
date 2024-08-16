@@ -21,9 +21,9 @@ use tonic::transport::{Certificate, Channel, ClientTlsConfig, Endpoint, Identity
 use tracing::{debug, info, warn};
 
 pub struct GrpcReporterConfiguration {
+    pub server_addr: String,
     pub authentication: String,
     pub enable_tls: bool,
-    pub server_addr: String,
     pub ssl_cert_chain_path: String,
     pub ssl_key_path: String,
     pub ssl_trusted_ca_path: String,
