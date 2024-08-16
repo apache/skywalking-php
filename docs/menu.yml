@@ -34,6 +34,8 @@ catalog:
     catalog:
       - name: "Kafka Reporter"
         path: "/en/reporter/kafka-reporter"
+      - name: "Standalone Reporter"
+        path: "/en/reporter/standalone-reporter"
   - name: "Contribution"
     catalog:
       - name: "Compiling Guidance"

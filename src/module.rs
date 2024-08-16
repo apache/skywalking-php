@@ -92,6 +92,12 @@ pub static RUNTIME_DIR: Lazy<PathBuf> = Lazy::new(|| {
 });
 
 pub static SOCKET_FILE_PATH: Lazy<PathBuf> = Lazy::new(|| {
+    if is_standalone_reporter_type() {
+        return PathBuf::from(get_str_ini_with_default(
+            SKYWALKING_AGENT_STANDALONE_SOCKET_PATH,
+        ));
+    }
+
     let mut dir = RUNTIME_DIR.clone();
 
     let dur = SystemTime::now()
@@ -263,7 +269,9 @@ fn try_init_logger() -> anyhow::Result<()> {
 
     let file = open_options.open(path)?;
 
-    let filter = EnvFilter::new(format!("info,skywalking_agent={}", log_level));
+    let filter = EnvFilter::new(format!(
+        "info,skywalking_agent={log_level},skywalking_php_worker={log_level}"
+    ));
 
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(filter)
@@ -284,4 +292,9 @@ fn get_module_registry() -> &'static ZArr {
 #[inline]
 pub fn is_enable() -> bool {
     *IS_ENABLE
+}
+
+#[inline]
+pub fn is_standalone_reporter_type() -> bool {
+    REPORTER_TYPE.as_str() == "standalone"
 }
