@@ -48,7 +48,7 @@ jobs:
       matrix:
         os:
           - ubuntu-20.04
-          - macos-12
+          # - macos-12
         version:
           - php: "8.2"
             swoole: "5.1.1"
