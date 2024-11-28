@@ -30,7 +30,7 @@ pub struct SwooleServerPlugin;
 impl Plugin for SwooleServerPlugin {
     #[inline]
     fn class_names(&self) -> Option<&'static [&'static str]> {
-        Some(&["Swoole\\Server"])
+        Some(&[r"Swoole\Server", r"Swoole\Coroutine\Http\Server"])
     }
 
     #[inline]
@@ -39,10 +39,11 @@ impl Plugin for SwooleServerPlugin {
     }
 
     fn hook(
-        &self, _class_name: Option<&str>, function_name: &str,
+        &self, class_name: Option<&str>, function_name: &str,
     ) -> Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)> {
-        match function_name {
-            "on" => Some(self.hook_on()),
+        match (class_name, function_name) {
+            (Some(r"Swoole\Server"), "on") => Some(self.hook_on()),
+            (Some(r"Swoole\Coroutine\Http\Server"), "handle") => Some(self.hook_handle()),
             _ => None,
         }
     }
@@ -64,24 +65,42 @@ impl SwooleServerPlugin {
                     return Ok(Box::new(()));
                 }
 
-                // Hack the closure with the
-                // [`crate::request::skywalking_hack_swoole_on_request`].
                 let closure = execute_data.get_mut_parameter(1);
-                let ori_closure = replace(
-                    closure,
-                    ZVal::from(ZString::new(HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME)),
-                );
-
-                ORI_SWOOLE_ON_REQUEST.store(
-                    Box::into_raw(Box::new(ori_closure)).cast(),
-                    Ordering::Relaxed,
-                );
-                IS_SWOOLE.store(true, Ordering::Relaxed);
+                Self::hack_callback(closure);
 
                 Ok(Box::new(()))
             }),
             Noop::noop(),
         )
+    }
+
+    fn hook_handle(&self) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
+        (
+            Box::new(|_, execute_data| {
+                validate_num_args(execute_data, 2)?;
+
+                let closure = execute_data.get_mut_parameter(1);
+                Self::hack_callback(closure);
+
+                Ok(Box::new(()))
+            }),
+            Noop::noop(),
+        )
+    }
+
+    /// Hack the closure with the
+    /// [`crate::request::skywalking_hack_swoole_on_request`].
+    fn hack_callback(closure: &mut ZVal) {
+        let ori_closure = replace(
+            closure,
+            ZVal::from(ZString::new(HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME)),
+        );
+
+        ORI_SWOOLE_ON_REQUEST.store(
+            Box::into_raw(Box::new(ori_closure)).cast(),
+            Ordering::Relaxed,
+        );
+        IS_SWOOLE.store(true, Ordering::Relaxed);
     }
 }
 
