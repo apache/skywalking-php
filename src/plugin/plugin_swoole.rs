@@ -30,7 +30,11 @@ pub struct SwooleServerPlugin;
 impl Plugin for SwooleServerPlugin {
     #[inline]
     fn class_names(&self) -> Option<&'static [&'static str]> {
-        Some(&[r"Swoole\Server", r"Swoole\Coroutine\Http\Server"])
+        Some(&[
+            r"Swoole\Server",
+            r"Swoole\Http\Server",
+            r"Swoole\Coroutine\Http\Server",
+        ])
     }
 
     #[inline]
@@ -42,7 +46,7 @@ impl Plugin for SwooleServerPlugin {
         &self, class_name: Option<&str>, function_name: &str,
     ) -> Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)> {
         match (class_name, function_name) {
-            (Some(r"Swoole\Server"), "on") => Some(self.hook_on()),
+            (Some(r"Swoole\Server" | r"Swoole\Http\Server"), "on") => Some(self.hook_on()),
             (Some(r"Swoole\Coroutine\Http\Server"), "handle") => Some(self.hook_handle()),
             _ => None,
         }
