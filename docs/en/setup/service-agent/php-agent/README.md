@@ -6,7 +6,7 @@
 
 ## Requirements
 
-- GCC
+- GCC / Clang
 - Rustc 1.65+
 - Cargo
 - Libclang 9.0+
@@ -31,28 +31,17 @@ apk add gcc make musl-dev llvm15-dev clang15-dev protobuf-c-compiler
 
 The officially recommended way to install Rust is via [`rustup`](https://www.rust-lang.org/tools/install).
 
-But because the source code toolchain is override by `rust-toolchain.toml`,
-so if you don't need multi version Rust, we recommend to install Rust by these
-way:
-
-1. Install through OS package manager (The Rust version in the source must be >= 1.65).
-
-2. Through [standalone installers](https://forge.rust-lang.org/infra/other-installation-methods.html#standalone-installers).
-
-   For linux x86_64 user:
-
-   ```shell
-   wget https://static.rust-lang.org/dist/rust-1.65.0-x86_64-unknown-linux-gnu.tar.gz
-   tar zxvf rust-1.65.0-x86_64-unknown-linux-gnu.tar.gz
-   cd rust-1.65.0-x86_64-unknown-linux-gnu
-   ./install.sh
-   ```
-
-3. Through `rustup` but set `default-toolchain` to none.
-
-   ```shell
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none
-   ```
+> **Notice:** Because the source code toolchain is override by `rust-toolchain.toml`,
+> so if you don't need multi version Rust, we recommend to install Rust by these
+> way:
+> 
+> 1. Install through OS package manager (The Rust version in the source must be >= 1.65).
+> 
+> 2. Through `rustup` but set `default-toolchain` to none.
+> 
+>    ```shell
+>    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain none
+>    ```
 
 ## Install
 
@@ -86,6 +75,12 @@ make install
 
 ## Configure
 
+For scenarios where php-fpm runs in the foreground (`php-fpm -F`), or where a PHP script starts
+a single Swoole server, you can use the `grpc` reporter mode.
+
+For scenarios where php-fpm runs as a daemon, or where a PHP script forks multiple Swoole servers,
+it is recommended to use the `standalone` reporter mode.
+
 Configure skywalking agent in your `php.ini`.
 
 ```ini
@@ -94,6 +89,9 @@ extension = skywalking_agent.so
 
 ; Enable skywalking_agent extension or not.
 skywalking_agent.enable = Off
+
+; Reporter type, optional values are `grpc`, `kafka` and `standalone`.
+skywalking_agent.reporter_type = grpc
 
 ; Log file path.
 skywalking_agent.log_file = /tmp/skywalking-agent.log
@@ -124,5 +122,6 @@ php-fpm -F -d "skywalking_agent.enable=On"
 ```
 
 > **Notice:** It is necessary to keep the `php-fpm` process running in the foreground
-> (by specifying the > `-F` parameter, etc.), running `php-fpm` as a daemon will cause the
-> `skywalking-agent` reporter process immediately exit.
+> (by specifying the `-F` parameter, etc.), or switch to using the `standalone` reporter mode.
+> Running `php-fpm` as a daemon in `grpc` reporter mode will cause the `skywalking-agent` reporter
+> process immediately exit.
