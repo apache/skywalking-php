@@ -21,7 +21,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.8.0-dev"
+version = "0.8.0"
 authors = ["Apache Software Foundation", "jmjoy <jmjoy@apache.org>", "Yanlong He <heyanlong@apache.org>"]
 edition = "2021"
 rust-version = "1.65"
