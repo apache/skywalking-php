@@ -35,8 +35,9 @@ use std::{
     str::FromStr,
     time::SystemTime,
 };
+use time::format_description::well_known::Rfc3339;
 use tracing::{debug, error, info, metadata::LevelFilter};
-use tracing_subscriber::{EnvFilter, FmtSubscriber};
+use tracing_subscriber::{fmt::time::OffsetTime, EnvFilter, FmtSubscriber};
 
 static IS_ENABLE: Lazy<bool> = Lazy::new(|| {
     if !ini_get::<bool>(SKYWALKING_AGENT_ENABLE) {
@@ -255,7 +256,7 @@ fn try_init_logger() -> anyhow::Result<()> {
         .unwrap_or_default();
     let log_file = log_file.trim();
     if log_file.is_empty() {
-        bail!("log file cant't be empty when log enabled");
+        bail!("log file can't be empty when log enabled");
     }
 
     let path = Path::new(log_file);
@@ -277,6 +278,10 @@ fn try_init_logger() -> anyhow::Result<()> {
         .with_env_filter(filter)
         .with_ansi(false)
         .with_writer(file)
+        .with_timer(
+            OffsetTime::local_rfc_3339()
+                .unwrap_or_else(|_| OffsetTime::new(time::UtcOffset::UTC, Rfc3339)),
+        )
         .finish();
 
     tracing::subscriber::set_global_default(subscriber)?;
