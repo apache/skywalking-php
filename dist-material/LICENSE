@@ -362,6 +362,7 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/native-tls/0.2.11 0.2.11 Apache-2.0 OR MIT
     https://crates.io/crates/num-traits/0.2.16 0.2.16 Apache-2.0 OR MIT
     https://crates.io/crates/num_cpus/1.16.0 1.16.0 Apache-2.0 OR MIT
+    https://crates.io/crates/num_threads/0.1.7 0.1.7 Apache-2.0 OR MIT
     https://crates.io/crates/object/0.31.1 0.31.1 Apache-2.0 OR MIT
     https://crates.io/crates/once_cell/1.18.0 1.18.0 Apache-2.0 OR MIT
     https://crates.io/crates/openssl-macros/0.1.1 0.1.1 Apache-2.0 OR MIT
@@ -426,6 +427,7 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/thread_local/1.1.4 1.1.4 Apache-2.0 OR MIT
     https://crates.io/crates/time/0.3.23 0.3.23 Apache-2.0 OR MIT
     https://crates.io/crates/time-core/0.1.1 0.1.1 Apache-2.0 OR MIT
+    https://crates.io/crates/time-macros/0.2.10 0.2.10 Apache-2.0 OR MIT
     https://crates.io/crates/tokio-io-timeout/1.2.0 1.2.0 Apache-2.0 OR MIT
     https://crates.io/crates/tokio-rustls/0.23.4 0.23.4 Apache-2.0 OR MIT
     https://crates.io/crates/toml_datetime/0.6.3 0.6.3 Apache-2.0 OR MIT
