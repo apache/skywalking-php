@@ -104,7 +104,7 @@ jobs:
 
       - name: Install dependencies for Linux
         if: matrix.os == 'ubuntu-24.04'
-        run: sudo apt-get update && sudo apt-get install -y llvm-10-dev libclang-10-dev protobuf-compiler libsasl2-dev
+        run: sudo apt-get update && sudo apt-get install -y llvm-18-dev libclang-18-dev protobuf-compiler libsasl2-dev
 
       - name: Install protobuf for Macos
         if: matrix.os == 'macos-14'
@@ -182,6 +182,7 @@ jobs:
           mkdir -p ~/.docker/cli-plugins
           ln -sfn $(brew --prefix)/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
 
+          brew install colima
           colima start
 
           # For test containers to find the Colima socket
