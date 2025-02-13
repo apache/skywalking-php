@@ -28,7 +28,7 @@ env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: "1"
   RUSTFLAGS: "-D warnings"
-  LLVM_CONFIG_PATH: llvm-config-10
+  LLVM_CONFIG_PATH: llvm-config-18
   RUST_STABLE_TOOLCHAIN: "1.65"
   RUST_NIGHTLY_TOOLCHAIN: "nightly-2023-07-12"
 
@@ -37,7 +37,7 @@ jobs:
     needs:
       - test
       - fmt
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Check results
         run: |
@@ -50,9 +50,9 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-20.04
+          - ubuntu-24.04
           # TODO Temporarily remove macos and wait for the docker container's connection refused problem to be resolved.
-          # - macos-12
+          # - macos-14
         flag:
           # Many composer dependencies need PHP 7.2+
           - php_version: "7.2"
@@ -103,17 +103,13 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: Install libclang and protobuf for Linux
-        if: matrix.os == 'ubuntu-20.04'
-        run: sudo apt-get install -y llvm-10-dev libclang-10-dev protobuf-compiler
+      - name: Install dependencies for Linux
+        if: matrix.os == 'ubuntu-24.04'
+        run: sudo apt-get update && sudo apt-get install -y llvm-18-dev libclang-18-dev protobuf-compiler libsasl2-dev
 
       - name: Install protobuf for Macos
-        if: matrix.os == 'macos-12'
+        if: matrix.os == 'macos-14'
         run: brew install protobuf
-
-      - name: Install libsasl2
-        if: matrix.os == 'ubuntu-20.04'
-        run: sudo apt-get install -y libsasl2-dev
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -127,7 +123,7 @@ jobs:
             yaml, zip, mongodb, memcache
 
       - name: Setup php-fpm for Linux
-        if: matrix.os == 'ubuntu-20.04'
+        if: matrix.os == 'ubuntu-24.04'
         run: |
           sudo apt-get install -y php${{ matrix.flag.php_version }}-fpm
           sudo ln -sf /usr/sbin/php-fpm${{ matrix.flag.php_version }} /usr/sbin/php-fpm
@@ -180,13 +176,14 @@ jobs:
         run: composer install --working-dir=tests/php
 
       - name: Setup docker (missing on MacOS)
-        if: matrix.os == 'macos-12'
+        if: matrix.os == 'macos-14'
         run: |
           brew install docker
           brew install docker-compose
           mkdir -p ~/.docker/cli-plugins
           ln -sfn $(brew --prefix)/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
 
+          brew install colima
           colima start
 
           # For test containers to find the Colima socket
@@ -248,7 +245,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-20.04
+          - ubuntu-24.04
 
     runs-on: ${{ matrix.os }}
     steps:
