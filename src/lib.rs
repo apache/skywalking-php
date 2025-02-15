@@ -22,6 +22,7 @@ mod component;
 mod context;
 mod errors;
 mod execute;
+mod log;
 mod module;
 mod plugin;
 mod request;
@@ -113,6 +114,10 @@ const SKYWALKING_AGENT_INJECT_CONTEXT: &str = "skywalking_agent.inject_context";
 /// available when `reporter_type` is `standalone`.
 const SKYWALKING_AGENT_STANDALONE_SOCKET_PATH: &str = "skywalking_agent.standalone_socket_path";
 
+/// The log level reported to SkyWalking, based on PSR-3, one of `Off`, `Debug`,
+/// `Info`, Notice`, Warning`, Error`, Critical`, Alert`, Emergency`.
+const SKYWALKING_AGENT_PSR_LOGGING_LEVEL: &str = "skywalking_agent.psr_logging_level";
+
 #[php_get_module]
 pub fn get_module() -> Module {
     let mut module = Module::new(
@@ -201,6 +206,11 @@ pub fn get_module() -> Module {
     module.add_ini(SKYWALKING_AGENT_INJECT_CONTEXT, false, Policy::System);
     module.add_ini(
         SKYWALKING_AGENT_STANDALONE_SOCKET_PATH,
+        "".to_string(),
+        Policy::System,
+    );
+    module.add_ini(
+        SKYWALKING_AGENT_PSR_LOGGING_LEVEL,
         "".to_string(),
         Policy::System,
     );

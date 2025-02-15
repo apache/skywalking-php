@@ -21,20 +21,25 @@ mod plugin_mongodb;
 mod plugin_mysqli;
 mod plugin_pdo;
 mod plugin_predis;
+mod plugin_psr3;
 mod plugin_redis;
 mod plugin_swoole;
 mod style;
 
-use crate::execute::{AfterExecuteHook, BeforeExecuteHook};
+use crate::{
+    execute::{AfterExecuteHook, BeforeExecuteHook},
+    log::PsrLogLevel,
+    module::PSR_LOGGING_LEVEL,
+};
 use once_cell::sync::Lazy;
-use phper::{eg, objects::ZObj};
+use phper::{classes::ClassEntry, eg, objects::ZObj};
 use skywalking::trace::span::HandleSpanObject;
 use std::{collections::HashMap, ops::Deref, sync::Mutex};
 use tracing::error;
 
 // Register plugins here.
 static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
-    vec![
+    let mut plugins: Vec<Box<DynPlugin>> = vec![
         Box::<plugin_curl::CurlPlugin>::default(),
         Box::<plugin_pdo::PdoPlugin>::default(),
         Box::<plugin_mysqli::MySQLImprovedPlugin>::default(),
@@ -46,7 +51,11 @@ static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
         Box::<plugin_amqplib::AmqplibPlugin>::default(),
         Box::<plugin_mongodb::MongodbPlugin>::default(),
         Box::<plugin_memcache::MemcachePlugin>::default(),
-    ]
+    ];
+    if *PSR_LOGGING_LEVEL > PsrLogLevel::Off {
+        plugins.push(Box::<plugin_psr3::Psr3Plugin>::default());
+    }
+    plugins
 });
 
 pub type DynPlugin = dyn Plugin + Send + Sync + 'static;
@@ -55,6 +64,10 @@ pub trait Plugin {
     fn class_names(&self) -> Option<&'static [&'static str]>;
 
     fn function_name_prefix(&self) -> Option<&'static str>;
+
+    fn parent_classes(&self) -> Option<Vec<Option<&'static ClassEntry>>> {
+        None
+    }
 
     fn hook(
         &self, class_name: Option<&str>, function_name: &str,
@@ -92,19 +105,31 @@ pub fn select_plugin_hook(
 fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'static DynPlugin> {
     let mut selected_plugin = None;
 
-    for plugin in &*PLUGINS {
+    'plugin: for plugin in &*PLUGINS {
         if let Some(class_name) = class_name {
             if let Some(plugin_class_names) = plugin.class_names() {
                 if plugin_class_names.contains(&class_name) {
                     selected_plugin = Some(plugin);
-                    break;
+                    break 'plugin;
+                }
+            }
+            if let Some(parent_classes) = plugin.parent_classes() {
+                if let Ok(class) = ClassEntry::from_globals(class_name) {
+                    for parent_class in parent_classes {
+                        if let Some(parent_class) = parent_class {
+                            if class.is_instance_of(parent_class) {
+                                selected_plugin = Some(plugin);
+                                break 'plugin;
+                            }
+                        }
+                    }
                 }
             }
         }
         if let Some(function_name_prefix) = plugin.function_name_prefix() {
             if function_name.starts_with(function_name_prefix) {
                 selected_plugin = Some(plugin);
-                break;
+                break 'plugin;
             }
         }
     }

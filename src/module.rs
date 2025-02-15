@@ -16,6 +16,7 @@
 use crate::{
     channel::Reporter,
     execute::{register_execute_functions, register_observer_handlers},
+    log::PsrLogLevel,
     util::{get_sapi_module_name, get_str_ini_with_default, IPS},
     worker::init_worker,
     *,
@@ -25,6 +26,7 @@ use once_cell::sync::Lazy;
 use phper::{arrays::ZArr, ini::ini_get, sys};
 use skywalking::{
     common::random_generator::RandomGenerator,
+    logging::logger::{self, Logger},
     trace::tracer::{self, Tracer},
 };
 use std::{
@@ -33,6 +35,7 @@ use std::{
     os::unix::prelude::OsStrExt,
     path::{Path, PathBuf},
     str::FromStr,
+    sync::Arc,
     time::SystemTime,
 };
 use time::format_description::well_known::Rfc3339;
@@ -158,6 +161,12 @@ pub static INJECT_CONTEXT: Lazy<bool> =
 pub const IS_ZEND_OBSERVER_CALLED_FOR_INTERNAL: bool =
     sys::PHP_MAJOR_VERSION > 8 || (sys::PHP_MAJOR_VERSION == 8 && sys::PHP_MINOR_VERSION >= 2);
 
+pub static PSR_LOGGING_LEVEL: Lazy<PsrLogLevel> = Lazy::new(|| {
+    get_str_ini_with_default(SKYWALKING_AGENT_PSR_LOGGING_LEVEL)
+        .as_str()
+        .into()
+});
+
 pub fn init() {
     if !is_enable() {
         return;
@@ -183,6 +192,7 @@ pub fn init() {
     Lazy::force(&KAFKA_BOOTSTRAP_SERVERS);
     Lazy::force(&KAFKA_PRODUCER_CONFIG);
     Lazy::force(&INJECT_CONTEXT);
+    Lazy::force(&PSR_LOGGING_LEVEL);
 
     if let Err(err) = try_init_logger() {
         eprintln!("skywalking_agent: initialize logger failed: {}", err);
@@ -221,11 +231,15 @@ pub fn init() {
     // Initialize Agent worker.
     init_worker();
 
+    let reporter = Arc::new(Reporter::new(&*SOCKET_FILE_PATH));
+
     tracer::set_global_tracer(Tracer::new(
         &*SERVICE_NAME,
         &*SERVICE_INSTANCE,
-        Reporter::new(&*SOCKET_FILE_PATH),
+        reporter.clone(),
     ));
+
+    logger::set_global_logger(Logger::new(&*SERVICE_NAME, &*SERVICE_INSTANCE, reporter));
 
     // Hook functions.
     register_execute_functions();

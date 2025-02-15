@@ -44,3 +44,9 @@ impl From<String> for Error {
         Self::Anyhow(anyhow!("{}", e))
     }
 }
+
+impl From<&str> for Error {
+    fn from(e: &str) -> Self {
+        Self::Anyhow(anyhow!("{}", e))
+    }
+}
