@@ -20,16 +20,6 @@ use Monolog\Handler\StreamHandler;
 
 require_once dirname(__DIR__) . "/vendor/autoload.php";
 
-$logger = new Logger('my_logger');
-
-$logger->info('This is a INFO level log.');
-$logger->warning('This is a WARNING level log.');
-$logger->error(new MyString('This is a ERROR level log.'), [
-    "foo" => 123, "bar" => false, "baz" => new MyString("test"),
-]);
-
-echo "ok";
-
 class MyString {
     private $str;
 
@@ -40,3 +30,13 @@ class MyString {
         return $this->str;
     }
 }
+
+$logger = new Logger('my_logger');
+
+$logger->info('This is a INFO level log.');
+$logger->warning('This is a WARNING level log.');
+$logger->error(new MyString('This is a ERROR level log.'), [
+    "foo" => 123, "bar" => false, "baz" => new MyString("test"),
+]);
+
+echo "ok";
