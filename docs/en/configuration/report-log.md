@@ -26,7 +26,7 @@ The possible values for this configuration are:
 
 ### Default Value
 
-The default value for `skywalking_agent.psr_logging_level` is set to `Off`, which means no logs will be reported to SkyWalking unless specified otherwise.
+The default value for `skywalking_agent.psr_logging_level` is set to `Off`, which means no log will be reported to SkyWalking unless specified otherwise.
 
 ## How It Works
 
