@@ -115,12 +115,11 @@ fn select_plugin(class_name: Option<&str>, function_name: &str) -> Option<&'stat
             }
             if let Some(parent_classes) = plugin.parent_classes() {
                 if let Ok(class) = ClassEntry::from_globals(class_name) {
-                    for parent_class in parent_classes {
-                        if let Some(parent_class) = parent_class {
-                            if class.is_instance_of(parent_class) {
-                                selected_plugin = Some(plugin);
-                                break 'plugin;
-                            }
+                    // Iterate parent_classes and skip None.
+                    for parent_class in parent_classes.into_iter().flatten() {
+                        if class.is_instance_of(parent_class) {
+                            selected_plugin = Some(plugin);
+                            break 'plugin;
                         }
                     }
                 }

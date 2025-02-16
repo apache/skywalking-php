@@ -64,6 +64,7 @@ async fn run_e2e() {
     request_fpm_rabbitmq().await;
     request_fpm_mongodb().await;
     request_fpm_memcache().await;
+    request_fpm_monolog().await;
     request_swoole_curl().await;
     request_swoole_2_curl().await;
     request_swoole_2_pdo().await;
@@ -161,6 +162,14 @@ async fn request_fpm_mongodb() {
 async fn request_fpm_memcache() {
     request_common(
         HTTP_CLIENT.get(format!("http://{}/memcache.php", PROXY_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_fpm_monolog() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/monolog.php", PROXY_SERVER_1_ADDRESS)),
         "ok",
     )
     .await;

@@ -119,7 +119,7 @@ impl Psr3Plugin {
                 Self::handle_log(
                     class_name.clone(),
                     function_name.clone(),
-                    log_level.clone(),
+                    log_level,
                     request_id,
                     message,
                     context,
