@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 19
+    segmentSize: 20
     segments:
       - segmentId: "not null"
         spans:
@@ -1437,6 +1437,23 @@ segmentItems:
               - { key: url, value: "http://127.0.0.1:9011/memcache.php" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
+      - segmentId: 'not null'
+        spans:
+        - operationName: GET:/monolog.php
+          parentSpanId: -1
+          spanId: 0
+          spanLayer: Http
+          startTime: gt 0
+          endTime: gt 0
+          componentId: 8001
+          isError: false
+          spanType: Entry
+          peer: ''
+          skipAnalysis: false
+          tags:
+          - {key: url, value: 'http://127.0.0.1:9011/monolog.php'}
+          - {key: http.method, value: GET}
+          - {key: http.status_code, value: '200'}
   - serviceName: skywalking-agent-test-2
     segmentSize: 1
     segments:
@@ -2012,3 +2029,33 @@ segmentItems:
               - { key: url, value: "http://127.0.0.1:9502/memcache" }
               - { key: http.method, value: GET }
               - { key: http.status_code, value: "200" }
+
+logItems:
+- serviceName: skywalking-agent-test-1
+  logSize: 2
+  logs:
+  - timestamp: gt 0
+    endpoint: GET:/monolog.php
+    body:
+      type: ''
+      content: {text: This is a WARNING level log.}
+    traceContext: {traceId: "not null", traceSegmentId: "not null", spanId: 0}
+    tags:
+      data:
+      - {key: level, value: WARNING}
+      - {key: logger, value: Monolog\Logger}
+    layer: ''
+  - timestamp: gt 0
+    endpoint: GET:/monolog.php
+    body:
+      type: ''
+      content: {text: This is a ERROR level log.}
+    traceContext: {traceId: "not null", traceSegmentId: "not null", spanId: 0}
+    tags:
+      data:
+      - {key: level, value: ERROR}
+      - {key: logger, value: Monolog\Logger}
+      - {key: foo, value: '123'}
+      - {key: bar, value: 'false'}
+      - {key: baz, value: test}
+    layer: ''

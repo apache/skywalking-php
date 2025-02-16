@@ -309,6 +309,8 @@ fn setup_php_fpm(index: usize, fpm_addr: &str) -> Child {
             "skywalking_agent.enable_zend_observer={}",
             *ENABLE_ZEND_OBSERVER
         ),
+        "-d",
+        "skywalking_agent.psr_logging_level=Warning",
     ];
     info!(cmd = args.join(" "), "start command");
     let child = Command::new(&args[0])

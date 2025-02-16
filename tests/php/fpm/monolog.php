@@ -1,3 +1,5 @@
+<?php
+
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -13,40 +15,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use anyhow::anyhow;
-use std::{result, str::Utf8Error};
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 
-pub type Result<T> = result::Result<T, Error>;
+require_once dirname(__DIR__) . "/vendor/autoload.php";
 
-#[derive(Debug, thiserror::Error)]
-pub enum Error {
-    #[error(transparent)]
-    PHPer(#[from] phper::Error),
+class MyString {
+    private $str;
 
-    #[error(transparent)]
-    Anyhow(#[from] anyhow::Error),
-}
-
-impl From<Utf8Error> for Error {
-    fn from(e: Utf8Error) -> Self {
-        Self::Anyhow(e.into())
+    public function __construct($str) {
+        $this->str = $str;
+    }
+    public function __toString() {
+        return $this->str;
     }
 }
 
-impl From<url::ParseError> for Error {
-    fn from(e: url::ParseError) -> Self {
-        Self::Anyhow(e.into())
-    }
-}
+$logger = new Logger('my_logger');
 
-impl From<String> for Error {
-    fn from(e: String) -> Self {
-        Self::Anyhow(anyhow!("{}", e))
-    }
-}
+$logger->info('This is a INFO level log.');
+$logger->warning('This is a WARNING level log.');
+$logger->error(new MyString('This is a ERROR level log.'), [
+    "foo" => 123, "bar" => false, "baz" => new MyString("test"),
+]);
 
-impl From<&str> for Error {
-    fn from(e: &str) -> Self {
-        Self::Anyhow(anyhow!("{}", e))
-    }
-}
+echo "ok";

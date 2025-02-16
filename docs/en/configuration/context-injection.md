@@ -1,4 +1,4 @@
-# Context injection
+# Context Injection
 
 If you want to fetch the SkyWalking Context in your PHP code, which is super helpful for debugging and observability,
 You can enable the configuration item `skywalking_agent.inject_context`.
