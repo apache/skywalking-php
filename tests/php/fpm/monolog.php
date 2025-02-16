@@ -28,6 +28,8 @@ $logger->error(new MyString('This is a ERROR level log.'), [
     "foo" => 123, "bar" => false, "baz" => new MyString("test"),
 ]);
 
+echo "ok";
+
 class MyString {
     private $str;
 
