@@ -149,7 +149,7 @@ async fn setup_http_proxy_server(http_addr: &str, fpm_addr: &'static str) {
     info!(?state, "start http proxy server");
 
     let app = Router::new()
-        .route("/*path", any(http_proxy_fpm_handler))
+        .route("/{*path}", any(http_proxy_fpm_handler))
         .layer(Extension(state.clone()));
 
     let listener = tokio::net::TcpListener::bind(&state.http_addr)
