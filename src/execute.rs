@@ -357,146 +357,155 @@ pub mod observer {
     pub unsafe extern "C" fn observer_handler(
         execute_data: *mut sys::zend_execute_data,
     ) -> sys::zend_observer_fcall_handlers {
-        let Some(execute_data) = ExecuteData::try_from_mut_ptr(execute_data) else {
-            return Default::default();
-        };
-
-        let (function_name, class_name) = match get_function_and_class_name(execute_data) {
-            Ok(x) => x,
-            Err(err) => {
-                error!(?err, "get function and class name failed");
+        unsafe {
+            let Some(execute_data) = ExecuteData::try_from_mut_ptr(execute_data) else {
                 return Default::default();
-            }
-        };
+            };
 
-        trace!(
-            ?function_name,
-            ?class_name,
-            "observer_handler function and class name"
-        );
-
-        let Some(function_name) = function_name else {
-            return Default::default();
-        };
-
-        if function_name == HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME {
-            return Default::default();
-        }
-
-        if select_plugin_hook(class_name.as_deref(), &function_name).is_none() {
-            return Default::default();
-        }
-
-        sys::zend_observer_fcall_handlers {
-            begin: Some(observer_begin),
-            end: Some(observer_end),
-        }
-    }
-
-    unsafe extern "C" fn observer_begin(execute_data: *mut sys::zend_execute_data) {
-        let Some(execute_data) = ExecuteData::try_from_mut_ptr(execute_data) else {
-            return;
-        };
-        trace!(execute_data_ptr=?execute_data.as_ptr(), "start observer_begin");
-
-        let Ok((function_name, class_name)) = get_function_and_class_name(execute_data) else {
-            return;
-        };
-
-        trace!(
-            ?function_name,
-            ?class_name,
-            "observer_begin function and class name"
-        );
-
-        let Some(function_name) = function_name else {
-            return;
-        };
-
-        let Some((before, _)) = select_plugin_hook(class_name.as_deref(), &function_name) else {
-            return;
-        };
-
-        let request_id = infer_request_id(execute_data);
-        trace!(
-            ?request_id,
-            ?function_name,
-            ?class_name,
-            "observer_begin infer request id"
-        );
-
-        let result =
-            match catch_unwind_result(AssertUnwindSafe(|| before(request_id, execute_data))) {
-                Ok(result) => result,
+            let (function_name, class_name) = match get_function_and_class_name(execute_data) {
+                Ok(x) => x,
                 Err(err) => {
-                    error!(
-                        ?request_id,
-                        ?function_name,
-                        ?class_name,
-                        ?err,
-                        "run observer_begin hook failed"
-                    );
-                    return;
+                    error!(?err, "get function and class name failed");
+                    return Default::default();
                 }
             };
 
-        RESULT_MAP.insert(execute_data.as_ptr(), result);
+            trace!(
+                ?function_name,
+                ?class_name,
+                "observer_handler function and class name"
+            );
+
+            let Some(function_name) = function_name else {
+                return Default::default();
+            };
+
+            if function_name == HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME {
+                return Default::default();
+            }
+
+            if select_plugin_hook(class_name.as_deref(), &function_name).is_none() {
+                return Default::default();
+            }
+
+            sys::zend_observer_fcall_handlers {
+                begin: Some(observer_begin),
+                end: Some(observer_end),
+            }
+        }
     }
 
-    unsafe extern "C" fn observer_end(
-        execute_data: *mut sys::zend_execute_data, retval: *mut sys::zval,
-    ) {
-        let Some(execute_data) = ExecuteData::try_from_mut_ptr(execute_data) else {
-            return;
-        };
-        trace!(execute_data_ptr=?execute_data.as_ptr(), "start observer_end");
+    #[allow(static_mut_refs)]
+    unsafe extern "C" fn observer_begin(execute_data: *mut sys::zend_execute_data) {
+        unsafe {
+            let Some(execute_data) = ExecuteData::try_from_mut_ptr(execute_data) else {
+                return;
+            };
+            trace!(execute_data_ptr=?execute_data.as_ptr(), "start observer_begin");
 
-        let Some((_, result)) = RESULT_MAP.remove(&execute_data.as_ptr()) else {
-            return;
-        };
+            let Ok((function_name, class_name)) = get_function_and_class_name(execute_data) else {
+                return;
+            };
 
-        let mut null = ZVal::from(());
-        let ret = match ZVal::try_from_mut_ptr(retval) {
-            Some(ret) => ret,
-            None => &mut null,
-        };
+            trace!(
+                ?function_name,
+                ?class_name,
+                "observer_begin function and class name"
+            );
 
-        let Ok((function_name, class_name)) = get_function_and_class_name(execute_data) else {
-            return;
-        };
+            let Some(function_name) = function_name else {
+                return;
+            };
 
-        trace!(
-            ?function_name,
-            ?class_name,
-            "observer_end function and class name"
-        );
+            let Some((before, _)) = select_plugin_hook(class_name.as_deref(), &function_name)
+            else {
+                return;
+            };
 
-        let Some(function_name) = function_name else {
-            return;
-        };
-
-        let Some((_, after)) = select_plugin_hook(class_name.as_deref(), &function_name) else {
-            return;
-        };
-
-        let request_id = infer_request_id(execute_data);
-        trace!(
-            ?request_id,
-            ?function_name,
-            ?class_name,
-            "observer_end infer request id"
-        );
-
-        if let Err(err) = catch_unwind_result(AssertUnwindSafe(|| {
-            after(request_id, result, execute_data, ret)
-        })) {
-            error!(
+            let request_id = infer_request_id(execute_data);
+            trace!(
                 ?request_id,
                 ?function_name,
                 ?class_name,
-                ?err,
-                "run observer_end hook failed"
+                "observer_begin infer request id"
             );
-        };
+
+            let result =
+                match catch_unwind_result(AssertUnwindSafe(|| before(request_id, execute_data))) {
+                    Ok(result) => result,
+                    Err(err) => {
+                        error!(
+                            ?request_id,
+                            ?function_name,
+                            ?class_name,
+                            ?err,
+                            "run observer_begin hook failed"
+                        );
+                        return;
+                    }
+                };
+
+            RESULT_MAP.insert(execute_data.as_ptr(), result);
+        }
+    }
+
+    #[allow(static_mut_refs)]
+    unsafe extern "C" fn observer_end(
+        execute_data: *mut sys::zend_execute_data, retval: *mut sys::zval,
+    ) {
+        unsafe {
+            let Some(execute_data) = ExecuteData::try_from_mut_ptr(execute_data) else {
+                return;
+            };
+            trace!(execute_data_ptr=?execute_data.as_ptr(), "start observer_end");
+
+            let Some((_, result)) = RESULT_MAP.remove(&execute_data.as_ptr()) else {
+                return;
+            };
+
+            let mut null = ZVal::from(());
+            let ret = match ZVal::try_from_mut_ptr(retval) {
+                Some(ret) => ret,
+                None => &mut null,
+            };
+
+            let Ok((function_name, class_name)) = get_function_and_class_name(execute_data) else {
+                return;
+            };
+
+            trace!(
+                ?function_name,
+                ?class_name,
+                "observer_end function and class name"
+            );
+
+            let Some(function_name) = function_name else {
+                return;
+            };
+
+            let Some((_, after)) = select_plugin_hook(class_name.as_deref(), &function_name) else {
+                return;
+            };
+
+            let request_id = infer_request_id(execute_data);
+            trace!(
+                ?request_id,
+                ?function_name,
+                ?class_name,
+                "observer_end infer request id"
+            );
+
+            if let Err(err) = catch_unwind_result(AssertUnwindSafe(|| {
+                after(request_id, result, execute_data, ret)
+            })) {
+                error!(
+                    ?request_id,
+                    ?function_name,
+                    ?class_name,
+                    ?err,
+                    "run observer_end hook failed"
+                );
+            };
+        }
     }
 }

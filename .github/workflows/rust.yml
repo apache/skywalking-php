@@ -30,7 +30,7 @@ env:
   RUSTFLAGS: "-D warnings"
   LLVM_CONFIG_PATH: llvm-config-18
   RUST_STABLE_TOOLCHAIN: "1.85"
-  RUST_NIGHTLY_TOOLCHAIN: "nightly-2023-07-12"
+  RUST_NIGHTLY_TOOLCHAIN: "nightly-2025-03-18"
 
 jobs:
   required:
