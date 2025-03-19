@@ -18,7 +18,7 @@ pub mod reporter;
 
 use crate::{
     channel::TxReporter,
-    reporter::{run_reporter, ReporterConfiguration},
+    reporter::{ReporterConfiguration, run_reporter},
 };
 use skywalking::{
     management::{instance::Properties, manager::Manager},
@@ -35,7 +35,7 @@ use tokio::{
     net::UnixListener,
     runtime::{self, Runtime},
     select,
-    signal::unix::{signal, SignalKind},
+    signal::unix::{SignalKind, signal},
     sync::mpsc::{self, error::TrySendError},
 };
 use tonic::async_trait;
@@ -166,7 +166,7 @@ struct WorkerExitGuard(PathBuf);
 
 impl Drop for WorkerExitGuard {
     fn drop(&mut self) {
-        let Self(ref socket_file) = self;
+        let &mut Self(ref socket_file) = self;
         info!(?socket_file, "Remove socket file");
         if let Err(err) = fs::remove_file(socket_file) {
             error!(?err, "Remove socket file failed");

@@ -74,6 +74,7 @@ pub trait Plugin {
     ) -> Option<(Box<BeforeExecuteHook>, Box<AfterExecuteHook>)>;
 }
 
+#[allow(static_mut_refs)] // TODO: Swith to use thread_local
 pub fn select_plugin_hook(
     class_name: Option<&str>, function_name: &str,
 ) -> Option<(&'static BeforeExecuteHook, &'static AfterExecuteHook)> {

@@ -14,7 +14,7 @@
 // limitations under the License.
 
 use crate::{
-    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
+    execute::{AfterExecuteHook, BeforeExecuteHook, Noop, get_this_mut, validate_num_args},
     plugin::Plugin,
     request::{
         HACK_SWOOLE_ON_REQUEST_FUNCTION_NAME, IS_SWOOLE, ORI_SWOOLE_ON_REQUEST,

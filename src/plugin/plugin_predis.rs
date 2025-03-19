@@ -17,7 +17,7 @@ use super::Plugin;
 use crate::{
     component::COMPONENT_PHP_PREDIS_ID,
     context::RequestContext,
-    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook},
+    execute::{AfterExecuteHook, BeforeExecuteHook, get_this_mut, validate_num_args},
     plugin::log_exception,
     tag::{TAG_CACHE_CMD, TAG_CACHE_KEY, TAG_CACHE_OP, TAG_CACHE_TYPE},
 };
@@ -279,12 +279,12 @@ impl PredisPlugin {
                 let host = host.expect_z_str()?.to_str()?;
 
                 let port = parameters.call("__get", [ZVal::from("port")])?;
-                let port = if let Some(port) = port.as_long() {
-                    port.to_string()
-                } else if let Some(port) = port.as_z_str() {
-                    port.to_str().unwrap_or("0").to_string()
-                } else {
-                    "0".to_string()
+                let port = match port.as_long() {
+                    Some(port) => port.to_string(),
+                    _ => match port.as_z_str() {
+                        Some(port) => port.to_str().unwrap_or("0").to_string(),
+                        _ => "0".to_string(),
+                    },
                 };
 
                 Ok(format!("{}:{}", host, port))

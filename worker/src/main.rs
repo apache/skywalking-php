@@ -15,9 +15,9 @@
 
 use clap::Parser;
 use skywalking_php_worker::{
-    new_tokio_runtime,
+    WorkerConfiguration, new_tokio_runtime,
     reporter::{GrpcReporterConfiguration, KafkaReporterConfiguration, ReporterConfiguration},
-    start_worker, WorkerConfiguration,
+    start_worker,
 };
 use std::{num::NonZeroUsize, path::PathBuf, thread::available_parallelism};
 use tracing::log::LevelFilter;

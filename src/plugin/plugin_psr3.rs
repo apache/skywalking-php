@@ -47,7 +47,7 @@ impl Plugin for Psr3Plugin {
 
     fn parent_classes(&self) -> Option<Vec<Option<&'static phper::classes::ClassEntry>>> {
         Some(vec![
-            ClassEntry::from_globals(r"Psr\Log\LoggerInterface").ok()
+            ClassEntry::from_globals(r"Psr\Log\LoggerInterface").ok(),
         ])
     }
 
@@ -57,9 +57,7 @@ impl Plugin for Psr3Plugin {
         Box<crate::execute::BeforeExecuteHook>,
         Box<crate::execute::AfterExecuteHook>,
     )> {
-        let Some(class_name) = class_name else {
-            return None;
-        };
+        let class_name = class_name?;
         match &*function_name.to_uppercase() {
             "EMERGENCY" | "ALERT" | "CRITICAL" | "ERROR" | "WARNING" | "NOTICE" | "INFO"
             | "DEBUG" => {
@@ -158,10 +156,9 @@ impl Psr3Plugin {
         if let Some(message) = message.as_z_str() {
             Ok(message.to_str()?.to_string())
         } else if let Some(message) = message.as_mut_z_obj() {
-            if let Some(message) = Self::cast_object_to_string(message)? {
-                Ok(message)
-            } else {
-                Err("message hasn't __toString method".into())
+            match Self::cast_object_to_string(message)? {
+                Some(message) => Ok(message),
+                _ => Err("message hasn't __toString method".into()),
             }
         } else {
             Err("unknown message type".into())

@@ -7,7 +7,7 @@
 ## Requirements
 
 - GCC / Clang
-- Rustc 1.65+
+- Rustc 1.85+
 - Cargo
 - Libclang 9.0+
 - Make
@@ -35,7 +35,7 @@ The officially recommended way to install Rust is via [`rustup`](https://www.rus
 > so if you don't need multi version Rust, we recommend to install Rust by these
 > way:
 > 
-> 1. Install through OS package manager (The Rust version in the source must be >= 1.65).
+> 1. Install through OS package manager (The Rust version in the source must be >= 1.85).
 > 
 > 2. Through `rustup` but set `default-toolchain` to none.
 > 

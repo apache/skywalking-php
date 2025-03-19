@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::{log_exception, style::ApiStyle, Plugin};
+use super::{Plugin, log_exception, style::ApiStyle};
 use crate::{
     component::COMPONENT_PHP_MEMCACHED_ID,
     context::RequestContext,

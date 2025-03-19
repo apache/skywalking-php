@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::{log_exception, Plugin};
+use super::{Plugin, log_exception};
 use crate::{
     component::COMPONENT_PHP_PDO_ID,
     context::RequestContext,
-    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook},
+    execute::{AfterExecuteHook, BeforeExecuteHook, get_this_mut, validate_num_args},
     tag::{TAG_DB_STATEMENT, TAG_DB_TYPE},
 };
 use anyhow::Context;
@@ -179,21 +179,27 @@ fn hack_dtor(this: &mut ZObj, new_dtor: sys::zend_object_dtor_obj_t) {
 }
 
 unsafe extern "C" fn pdo_dtor(object: *mut sys::zend_object) {
-    debug!("call PDO dtor");
-    dtor(object);
+    unsafe {
+        debug!("call PDO dtor");
+        dtor(object);
+    }
 }
 
 unsafe extern "C" fn pdo_statement_dtor(object: *mut sys::zend_object) {
-    debug!("call PDOStatement dtor");
-    dtor(object);
+    unsafe {
+        debug!("call PDOStatement dtor");
+        dtor(object);
+    }
 }
 
 unsafe extern "C" fn dtor(object: *mut sys::zend_object) {
-    let handle = ZObj::from_ptr(object).handle();
+    unsafe {
+        let handle = ZObj::from_ptr(object).handle();
 
-    DSN_MAP.remove(&handle);
-    if let Some((_, Some(dtor))) = DTOR_MAP.remove(&handle) {
-        dtor(object);
+        DSN_MAP.remove(&handle);
+        if let Some((_, Some(dtor))) = DTOR_MAP.remove(&handle) {
+            dtor(object);
+        }
     }
 }
 

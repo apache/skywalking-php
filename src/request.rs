@@ -16,10 +16,10 @@
 use crate::{
     component::COMPONENT_PHP_ID,
     context::RequestContext,
-    module::{is_enable, INJECT_CONTEXT, SKYWALKING_VERSION},
+    module::{INJECT_CONTEXT, SKYWALKING_VERSION, is_enable},
     util::{catch_unwind_result, get_sapi_module_name, z_val_to_string},
 };
-use anyhow::{anyhow, Context};
+use anyhow::{Context, anyhow};
 use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use phper::{arrays::ZArr, eg, pg, sg, sys, values::ZVal};
@@ -151,7 +151,7 @@ fn get_page_request_method(server: &ZArr) -> String {
 
 fn get_page_request_server<'a>() -> anyhow::Result<&'a ZArr> {
     unsafe {
-        let symbol_table = ZArr::from_mut_ptr(&mut eg!(symbol_table));
+        let symbol_table = ZArr::from_mut_ptr(&raw mut eg!(symbol_table));
         let carrier = symbol_table
             .get("_SERVER")
             .and_then(|carrier| carrier.as_z_arr())
@@ -162,7 +162,7 @@ fn get_page_request_server<'a>() -> anyhow::Result<&'a ZArr> {
 
 fn get_mut_page_request_server<'a>() -> anyhow::Result<&'a mut ZArr> {
     unsafe {
-        let symbol_table = ZArr::from_mut_ptr(&mut eg!(symbol_table));
+        let symbol_table = ZArr::from_mut_ptr(&raw mut eg!(symbol_table));
         let carrier = symbol_table
             .get_mut("_SERVER")
             .and_then(|carrier| carrier.as_mut_z_arr())
@@ -365,7 +365,7 @@ fn finish_request_context(request_id: Option<i64>, status_code: i32) -> crate::R
         mut entry_span,
     } = RequestContext::remove_global(request_id).context("request context not exists")?;
 
-    entry_span.add_tag("http.status_code", &status_code.to_string());
+    entry_span.add_tag("http.status_code", status_code.to_string());
     if status_code >= 400 {
         entry_span.span_object_mut().is_error = true;
     }

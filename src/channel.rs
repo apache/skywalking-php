@@ -29,7 +29,7 @@ fn channel_send<T>(data: CollectItem, mut sender: T) -> anyhow::Result<()>
 where
     T: DerefMut<Target = UnixStream>,
 {
-    let content = bincode::serialize(&data)?;
+    let content = bincode::serde::encode_to_vec(&data, bincode::config::standard())?;
 
     sender.write_all(&content.len().to_le_bytes())?;
     sender.write_all(&content)?;

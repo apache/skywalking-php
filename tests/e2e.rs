@@ -19,7 +19,7 @@ use crate::common::{
     COLLECTOR_HTTP_ADDRESS, HTTP_CLIENT, PROXY_SERVER_1_ADDRESS, SWOOLE_SERVER_1_ADDRESS,
     SWOOLE_SERVER_2_ADDRESS,
 };
-use reqwest::{header::CONTENT_TYPE, RequestBuilder, StatusCode};
+use reqwest::{RequestBuilder, StatusCode, header::CONTENT_TYPE};
 use std::{
     future::Future,
     panic::{catch_unwind, resume_unwind},

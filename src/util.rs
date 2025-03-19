@@ -18,7 +18,7 @@ use once_cell::sync::Lazy;
 use phper::{ini::ini_get, sys, values::ZVal};
 use std::{
     ffi::CStr,
-    panic::{catch_unwind, UnwindSafe},
+    panic::{UnwindSafe, catch_unwind},
 };
 use systemstat::{IpAddr, Platform, System};
 
@@ -49,11 +49,7 @@ pub static IPS: Lazy<Vec<String>> = Lazy::new(|| {
                 })
                 .collect::<Vec<_>>();
 
-            if addrs.is_empty() {
-                None
-            } else {
-                Some(addrs)
-            }
+            if addrs.is_empty() { None } else { Some(addrs) }
         })
         .unwrap_or_else(|| vec!["127.0.0.1".to_owned()])
 });
@@ -69,15 +65,13 @@ pub fn catch_unwind_result<F: FnOnce() -> crate::Result<R> + UnwindSafe, R>(
 ) -> crate::Result<R> {
     match catch_unwind(f) {
         Ok(r) => r,
-        Err(e) => {
-            if let Some(s) = e.downcast_ref::<&str>() {
-                Err(anyhow!("paniced: {}", s).into())
-            } else if let Some(s) = e.downcast_ref::<String>() {
-                Err(anyhow!("paniced: {}", s).into())
-            } else {
-                Err(anyhow!("paniced").into())
-            }
-        }
+        Err(e) => match e.downcast_ref::<&str>() {
+            Some(s) => Err(anyhow!("paniced: {}", s).into()),
+            _ => match e.downcast_ref::<String>() {
+                Some(s) => Err(anyhow!("paniced: {}", s).into()),
+                _ => Err(anyhow!("paniced").into()),
+            },
+        },
     }
 }
 
