@@ -17,7 +17,7 @@ use crate::{
     channel::Reporter,
     execute::{register_execute_functions, register_observer_handlers},
     log::PsrLogLevel,
-    util::{get_sapi_module_name, get_str_ini_with_default, IPS},
+    util::{IPS, get_sapi_module_name, get_str_ini_with_default},
     worker::init_worker,
     *,
 };
@@ -40,7 +40,7 @@ use std::{
 };
 use time::format_description::well_known::Rfc3339;
 use tracing::{debug, error, info, metadata::LevelFilter};
-use tracing_subscriber::{fmt::time::OffsetTime, EnvFilter, FmtSubscriber};
+use tracing_subscriber::{EnvFilter, FmtSubscriber, fmt::time::OffsetTime};
 
 static IS_ENABLE: Lazy<bool> = Lazy::new(|| {
     if !ini_get::<bool>(SKYWALKING_AGENT_ENABLE) {
@@ -305,7 +305,7 @@ fn try_init_logger() -> anyhow::Result<()> {
 
 #[inline]
 fn get_module_registry() -> &'static ZArr {
-    unsafe { ZArr::from_ptr(&sys::module_registry) }
+    unsafe { ZArr::from_ptr(&raw const sys::module_registry) }
 }
 
 #[inline]

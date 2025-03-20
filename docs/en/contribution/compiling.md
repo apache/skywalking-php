@@ -20,7 +20,7 @@ brew install php
 
 ## Install Rust Environment
 
-Install Rust 1.65.0+.
+Install Rust 1.85.0+.
 
 For Linux user:
 

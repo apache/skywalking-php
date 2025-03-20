@@ -14,7 +14,7 @@
 // limitations under the License.
 
 use anyhow::anyhow;
-use skywalking::reporter::{grpc::GrpcReporter, CollectItemConsume, CollectItemProduce};
+use skywalking::reporter::{CollectItemConsume, CollectItemProduce, grpc::GrpcReporter};
 use std::time::Duration;
 use tokio::time::sleep;
 use tonic::transport::{Certificate, Channel, ClientTlsConfig, Endpoint, Identity};

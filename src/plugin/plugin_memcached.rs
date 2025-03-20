@@ -15,11 +15,11 @@
 
 use std::{any::Any, collections::HashMap};
 
-use super::{log_exception, Plugin};
+use super::{Plugin, log_exception};
 use crate::{
     component::COMPONENT_PHP_MEMCACHED_ID,
     context::RequestContext,
-    execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook},
+    execute::{AfterExecuteHook, BeforeExecuteHook, get_this_mut},
     tag::{CacheOp, TAG_CACHE_CMD, TAG_CACHE_KEY, TAG_CACHE_OP, TAG_CACHE_TYPE},
 };
 use anyhow::Context;

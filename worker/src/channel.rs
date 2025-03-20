@@ -26,7 +26,7 @@ pub async fn channel_receive(receiver: &mut tokio::net::UnixStream) -> anyhow::R
     let mut content = vec![0u8; size];
     receiver.read_exact(&mut content).await?;
 
-    let item = bincode::deserialize(&content)?;
+    let (item, _) = bincode::serde::decode_from_slice(&content, bincode::config::standard())?;
     Ok(item)
 }
 

@@ -13,17 +13,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use anyhow::{bail, Context};
+use anyhow::{Context, bail};
 use axum::{
+    Extension, Router,
     body::Body,
     extract::ConnectInfo,
     http::{Request, StatusCode},
     response::IntoResponse,
     routing::any,
-    Extension, Router,
 };
 use futures_util::future::join_all;
-use libc::{kill, pid_t, SIGTERM};
+use libc::{SIGTERM, kill, pid_t};
 use once_cell::sync::Lazy;
 use std::{
     env,
@@ -41,7 +41,7 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_stream::StreamExt;
-use tracing::{error, info, instrument, Level};
+use tracing::{Level, error, info, instrument};
 use tracing_subscriber::FmtSubscriber;
 
 pub const PROCESS_LOG_LEVEL: &str = "DEBUG";
@@ -86,8 +86,8 @@ pub struct Fixture {
 pub async fn setup() -> Fixture {
     setup_logging();
     info!(
-        TARGET = &*TARGET,
-        EXT = &*EXT,
+        TARGET = TARGET,
+        EXT = EXT,
         ENABLE_ZEND_OBSERVER = &*ENABLE_ZEND_OBSERVER,
         "setup fixture"
     );
@@ -149,18 +149,24 @@ async fn setup_http_proxy_server(http_addr: &str, fpm_addr: &'static str) {
     info!(?state, "start http proxy server");
 
     let app = Router::new()
-        .route("/*path", any(http_proxy_fpm_handler))
+        .route("/{*path}", any(http_proxy_fpm_handler))
         .layer(Extension(state.clone()));
-    axum::Server::bind(&state.http_addr)
-        .serve(app.into_make_service_with_connect_info::<SocketAddr>())
+
+    let listener = tokio::net::TcpListener::bind(&state.http_addr)
         .await
         .unwrap();
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await
+    .unwrap();
 }
 
 #[instrument(skip_all)]
 async fn http_proxy_fpm_handler(
     ConnectInfo(remote_addr): ConnectInfo<SocketAddr>, Extension(state): Extension<Arc<State>>,
-    mut req: Request<Body>,
+    req: Request<Body>,
 ) -> impl IntoResponse {
     let fut = async move {
         let method = &req.method().to_string();
@@ -173,7 +179,7 @@ async fn http_proxy_fpm_handler(
 
         let mut params = fastcgi_client::Params::default()
             .request_method(method)
-            .query_string(&*query)
+            .query_string(query)
             .server_addr(state.http_addr.ip().to_string())
             .server_port(state.http_addr.port())
             .remote_addr(remote_addr.ip().to_string())
@@ -202,12 +208,13 @@ async fn http_proxy_fpm_handler(
         }
 
         let mut buffer = Vec::new();
-        while let Some(buf) = req.body_mut().next().await {
+        let mut body_stream = req.into_body().into_data_stream();
+        while let Some(buf) = body_stream.next().await {
             let buf = buf.context("read body failed")?;
             buffer.extend_from_slice(&buf);
         }
 
-        let params = params_set_script(params, &path, &query);
+        let params = params_set_script(params, path, query);
 
         info!(?params, "proxy http to php-fpm");
 
@@ -313,7 +320,7 @@ fn setup_php_fpm(index: usize, fpm_addr: &str) -> Child {
         "skywalking_agent.psr_logging_level=Warning",
     ];
     info!(cmd = args.join(" "), "start command");
-    let child = Command::new(&args[0])
+    let child = Command::new(args[0])
         .args(&args[1..])
         .stdin(Stdio::null())
         .stdout(File::create("/tmp/fpm-skywalking-stdout.log").unwrap())
@@ -360,7 +367,7 @@ fn setup_php_swoole(index: usize) -> Child {
         &format!("tests/php/swoole/main.{}.php", index),
     ];
     info!(cmd = args.join(" "), "start command");
-    let child = Command::new(&args[0])
+    let child = Command::new(args[0])
         .args(&args[1..])
         .stdin(Stdio::null())
         .stdout(File::create("/tmp/swoole-skywalking-stdout.log").unwrap())

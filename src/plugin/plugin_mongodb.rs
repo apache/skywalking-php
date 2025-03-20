@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::{log_exception, Plugin};
+use super::{Plugin, log_exception};
 use crate::{
     component::COMPONENT_MONGODB_ID,
     context::RequestContext,
-    execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook},
+    execute::{AfterExecuteHook, BeforeExecuteHook, get_this_mut},
     tag::TAG_DB_TYPE,
 };
 use phper::{

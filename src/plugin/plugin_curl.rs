@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::{log_exception, Plugin};
+use super::{Plugin, log_exception};
 use crate::{
     component::COMPONENT_PHP_CURL_ID,
     context::{RequestContext, SW_HEADER},
-    execute::{validate_num_args, AfterExecuteHook, BeforeExecuteHook, Noop},
+    execute::{AfterExecuteHook, BeforeExecuteHook, Noop, validate_num_args},
 };
 use anyhow::Context;
 use phper::{

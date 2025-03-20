@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::{log_exception, Plugin};
+use super::{Plugin, log_exception};
 use crate::{
     component::COMPONENT_AMQP_PRODUCER_ID,
     context::{RequestContext, SW_HEADER},
-    execute::{get_this_mut, validate_num_args, AfterExecuteHook, BeforeExecuteHook},
+    execute::{AfterExecuteHook, BeforeExecuteHook, get_this_mut, validate_num_args},
     tag::{TAG_MQ_BROKER, TAG_MQ_QUEUE, TAG_MQ_TOPIC},
 };
 use anyhow::Context;

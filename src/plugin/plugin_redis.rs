@@ -13,11 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::{log_exception, Plugin};
+use super::{Plugin, log_exception};
 use crate::{
     component::COMPONENT_PHP_REDIS_ID,
     context::RequestContext,
-    execute::{get_this_mut, AfterExecuteHook, BeforeExecuteHook, Noop},
+    execute::{AfterExecuteHook, BeforeExecuteHook, Noop, get_this_mut},
     tag::{TAG_CACHE_CMD, TAG_CACHE_KEY, TAG_CACHE_OP, TAG_CACHE_TYPE},
 };
 use anyhow::Context;
@@ -341,13 +341,15 @@ fn hack_free(this: &mut ZObj, new_free: sys::zend_object_free_obj_t) {
 }
 
 unsafe extern "C" fn redis_dtor(object: *mut sys::zend_object) {
-    debug!("call Redis free");
+    unsafe {
+        debug!("call Redis free");
 
-    let handle = ZObj::from_ptr(object).handle();
+        let handle = ZObj::from_ptr(object).handle();
 
-    PEER_MAP.remove(&handle);
-    if let Some((_, Some(free))) = FREE_MAP.remove(&handle) {
-        free(object);
+        PEER_MAP.remove(&handle);
+        if let Some((_, Some(free))) = FREE_MAP.remove(&handle) {
+            free(object);
+        }
     }
 }
 

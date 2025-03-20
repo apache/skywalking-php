@@ -15,10 +15,10 @@
 
 #![cfg(feature = "kafka-reporter")]
 
-use anyhow::{bail, Context};
+use anyhow::{Context, bail};
 use skywalking::reporter::{
-    kafka::{KafkaReportBuilder, RDKafkaClientConfig},
     CollectItemConsume, CollectItemProduce,
+    kafka::{KafkaReportBuilder, RDKafkaClientConfig},
 };
 use std::collections::HashMap;
 
