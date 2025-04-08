@@ -39,7 +39,7 @@ prost = "0.13.5"
 rdkafka = { version = "0.37.0", optional = true }
 serde_json = { version = "1.0.140", features = ["preserve_order"] }
 skywalking = { version = "0.8.0", features = ["management"] }
-tokio = { version = "1.44.1", features = ["full"] }
+tokio = { version = "1.44.2", features = ["full"] }
 tokio-stream = "0.1.17"
 tonic = { version = "0.8.3", features = ["tls", "tls-roots"] }
 tracing = { version = "0.1.41", features = ["attributes", "log"] }
