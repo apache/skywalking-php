@@ -2390,7 +2390,7 @@ dependencies = [
 
 [[package]]
 name = "skywalking-php"
-version = "1.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "axum 0.8.3",
@@ -2421,7 +2421,7 @@ dependencies = [
 
 [[package]]
 name = "skywalking-php-worker"
-version = "1.0.0-dev"
+version = "1.0.0"
 dependencies = [
  "anyhow",
  "bincode",
