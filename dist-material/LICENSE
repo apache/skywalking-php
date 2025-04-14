@@ -213,20 +213,17 @@ Apache-2.0 licenses
 ========================================================================
 The following components are provided under the Apache-2.0 License. See project link for details.
 The text of each license is the standard Apache 2.0 license.
-    https://crates.io/crates/bytesize/1.3.2 1.3.2 Apache-2.0
+    https://crates.io/crates/bytesize/1.3.3 1.3.3 Apache-2.0
     https://crates.io/crates/clang-sys/1.8.1 1.8.1 Apache-2.0
     https://crates.io/crates/fastcgi-client/0.9.0 0.9.0 Apache-2.0
-    https://crates.io/crates/openssl/0.10.71 0.10.71 Apache-2.0
-    https://crates.io/crates/prost/0.11.9 0.11.9 Apache-2.0
+    https://crates.io/crates/openssl/0.10.72 0.10.72 Apache-2.0
     https://crates.io/crates/prost/0.13.5 0.13.5 Apache-2.0
-    https://crates.io/crates/prost-build/0.11.9 0.11.9 Apache-2.0
-    https://crates.io/crates/prost-derive/0.11.9 0.11.9 Apache-2.0
+    https://crates.io/crates/prost-build/0.13.5 0.13.5 Apache-2.0
     https://crates.io/crates/prost-derive/0.13.5 0.13.5 Apache-2.0
-    https://crates.io/crates/prost-types/0.11.9 0.11.9 Apache-2.0
+    https://crates.io/crates/prost-types/0.13.5 0.13.5 Apache-2.0
     https://crates.io/crates/sasl2-sys/0.1.22+2.1.28 0.1.22+2.1.28 Apache-2.0
     https://crates.io/crates/scripts/0.0.0 0.0.0 Apache-2.0
-    https://crates.io/crates/skywalking/0.8.0 0.8.0 Apache-2.0
-    https://crates.io/crates/sync_wrapper/0.1.2 0.1.2 Apache-2.0
+    https://crates.io/crates/skywalking/0.9.0 0.9.0 Apache-2.0
     https://crates.io/crates/sync_wrapper/1.0.2 1.0.2 Apache-2.0
 
 ========================================================================
@@ -243,10 +240,8 @@ Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT licenses
 The following components are provided under the Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT License. See project link for details.
 The text of each license is also included in licenses/LICENSE-[project].txt.
 
-    https://crates.io/crates/linux-raw-sys/0.4.15 0.4.15 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
-    https://crates.io/crates/linux-raw-sys/0.9.3 0.9.3 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
-    https://crates.io/crates/rustix/0.38.44 0.38.44 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
-    https://crates.io/crates/rustix/1.0.3 1.0.3 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
+    https://crates.io/crates/linux-raw-sys/0.9.4 0.9.4 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
+    https://crates.io/crates/rustix/1.0.5 1.0.5 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
     https://crates.io/crates/wasi/0.11.0+wasi-snapshot-preview1 0.11.0+wasi-snapshot-preview1 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
     https://crates.io/crates/wasi/0.14.2+wasi-0.2.4 0.14.2+wasi-0.2.4 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
     https://crates.io/crates/wit-bindgen-rt/0.39.0 0.39.0 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
@@ -257,8 +252,8 @@ Apache-2.0 OR BSD-2-Clause OR MIT licenses
 The following components are provided under the Apache-2.0 OR BSD-2-Clause OR MIT License. See project link for details.
 The text of each license is also included in licenses/LICENSE-[project].txt.
 
-    https://crates.io/crates/zerocopy/0.8.23 0.8.23 Apache-2.0 OR BSD-2-Clause OR MIT
-    https://crates.io/crates/zerocopy-derive/0.8.23 0.8.23 Apache-2.0 OR BSD-2-Clause OR MIT
+    https://crates.io/crates/zerocopy/0.8.24 0.8.24 Apache-2.0 OR BSD-2-Clause OR MIT
+    https://crates.io/crates/zerocopy-derive/0.8.24 0.8.24 Apache-2.0 OR BSD-2-Clause OR MIT
 
 ========================================================================
 Apache-2.0 OR BSD-3-Clause OR MIT licenses
@@ -284,12 +279,9 @@ The following components are provided under the Apache-2.0 OR ISC OR MIT License
 The text of each license is also included in licenses/LICENSE-[project].txt.
 
     https://crates.io/crates/hyper-rustls/0.27.5 0.27.5 Apache-2.0 OR ISC OR MIT
-    https://crates.io/crates/rustls/0.20.9 0.20.9 Apache-2.0 OR ISC OR MIT
-    https://crates.io/crates/rustls/0.23.25 0.23.25 Apache-2.0 OR ISC OR MIT
-    https://crates.io/crates/rustls-native-certs/0.6.3 0.6.3 Apache-2.0 OR ISC OR MIT
-    https://crates.io/crates/rustls-pemfile/1.0.4 1.0.4 Apache-2.0 OR ISC OR MIT
+    https://crates.io/crates/rustls/0.23.26 0.23.26 Apache-2.0 OR ISC OR MIT
+    https://crates.io/crates/rustls-native-certs/0.8.1 0.8.1 Apache-2.0 OR ISC OR MIT
     https://crates.io/crates/rustls-pemfile/2.2.0 2.2.0 Apache-2.0 OR ISC OR MIT
-    https://crates.io/crates/sct/0.7.1 0.7.1 Apache-2.0 OR ISC OR MIT
 
 ========================================================================
 Apache-2.0 OR LGPL-2.1-or-later OR MIT licenses
@@ -318,26 +310,24 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/atomic-waker/1.1.2 1.1.2 Apache-2.0 OR MIT
     https://crates.io/crates/autocfg/1.4.0 1.4.0 Apache-2.0 OR MIT
     https://crates.io/crates/backtrace/0.3.74 0.3.74 Apache-2.0 OR MIT
-    https://crates.io/crates/base64/0.13.1 0.13.1 Apache-2.0 OR MIT
-    https://crates.io/crates/base64/0.21.7 0.21.7 Apache-2.0 OR MIT
     https://crates.io/crates/base64/0.22.1 0.22.1 Apache-2.0 OR MIT
-    https://crates.io/crates/bitflags/1.3.2 1.3.2 Apache-2.0 OR MIT
     https://crates.io/crates/bitflags/2.9.0 2.9.0 Apache-2.0 OR MIT
     https://crates.io/crates/block-buffer/0.10.4 0.10.4 Apache-2.0 OR MIT
-    https://crates.io/crates/bstr/1.11.3 1.11.3 Apache-2.0 OR MIT
+    https://crates.io/crates/bstr/1.12.0 1.12.0 Apache-2.0 OR MIT
     https://crates.io/crates/bumpalo/3.17.0 3.17.0 Apache-2.0 OR MIT
-    https://crates.io/crates/cc/1.2.16 1.2.16 Apache-2.0 OR MIT
+    https://crates.io/crates/cc/1.2.19 1.2.19 Apache-2.0 OR MIT
     https://crates.io/crates/cexpr/0.6.0 0.6.0 Apache-2.0 OR MIT
     https://crates.io/crates/cfg-if/1.0.0 1.0.0 Apache-2.0 OR MIT
     https://crates.io/crates/chrono/0.4.40 0.4.40 Apache-2.0 OR MIT
     https://crates.io/crates/chrono-tz/0.9.0 0.9.0 Apache-2.0 OR MIT
     https://crates.io/crates/chrono-tz-build/0.3.0 0.3.0 Apache-2.0 OR MIT
-    https://crates.io/crates/clap/4.5.32 4.5.32 Apache-2.0 OR MIT
-    https://crates.io/crates/clap_builder/4.5.32 4.5.32 Apache-2.0 OR MIT
+    https://crates.io/crates/clap/4.5.36 4.5.36 Apache-2.0 OR MIT
+    https://crates.io/crates/clap_builder/4.5.36 4.5.36 Apache-2.0 OR MIT
     https://crates.io/crates/clap_derive/4.5.32 4.5.32 Apache-2.0 OR MIT
     https://crates.io/crates/clap_lex/0.7.4 0.7.4 Apache-2.0 OR MIT
     https://crates.io/crates/colorchoice/1.0.3 1.0.3 Apache-2.0 OR MIT
     https://crates.io/crates/core-foundation/0.9.4 0.9.4 Apache-2.0 OR MIT
+    https://crates.io/crates/core-foundation/0.10.0 0.10.0 Apache-2.0 OR MIT
     https://crates.io/crates/core-foundation-sys/0.8.7 0.8.7 Apache-2.0 OR MIT
     https://crates.io/crates/cpufeatures/0.2.17 0.2.17 Apache-2.0 OR MIT
     https://crates.io/crates/crossbeam-deque/0.8.6 0.8.6 Apache-2.0 OR MIT
@@ -349,9 +339,9 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/displaydoc/0.2.5 0.2.5 Apache-2.0 OR MIT
     https://crates.io/crates/either/1.15.0 1.15.0 Apache-2.0 OR MIT
     https://crates.io/crates/equivalent/1.0.2 1.0.2 Apache-2.0 OR MIT
-    https://crates.io/crates/errno/0.3.10 0.3.10 Apache-2.0 OR MIT
+    https://crates.io/crates/errno/0.3.11 0.3.11 Apache-2.0 OR MIT
     https://crates.io/crates/fastrand/2.3.0 2.3.0 Apache-2.0 OR MIT
-    https://crates.io/crates/fixedbitset/0.4.2 0.4.2 Apache-2.0 OR MIT
+    https://crates.io/crates/fixedbitset/0.5.7 0.5.7 Apache-2.0 OR MIT
     https://crates.io/crates/fnv/1.0.7 1.0.7 Apache-2.0 OR MIT
     https://crates.io/crates/foreign-types/0.3.2 0.3.2 Apache-2.0 OR MIT
     https://crates.io/crates/foreign-types-shared/0.1.1 0.1.1 Apache-2.0 OR MIT
@@ -370,25 +360,21 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/hashbrown/0.12.3 0.12.3 Apache-2.0 OR MIT
     https://crates.io/crates/hashbrown/0.14.5 0.14.5 Apache-2.0 OR MIT
     https://crates.io/crates/hashbrown/0.15.2 0.15.2 Apache-2.0 OR MIT
-    https://crates.io/crates/heck/0.4.1 0.4.1 Apache-2.0 OR MIT
     https://crates.io/crates/heck/0.5.0 0.5.0 Apache-2.0 OR MIT
-    https://crates.io/crates/home/0.5.11 0.5.11 Apache-2.0 OR MIT
-    https://crates.io/crates/http/0.2.12 0.2.12 Apache-2.0 OR MIT
     https://crates.io/crates/http/1.3.1 1.3.1 Apache-2.0 OR MIT
     https://crates.io/crates/httparse/1.10.1 1.10.1 Apache-2.0 OR MIT
     https://crates.io/crates/httpdate/1.0.3 1.0.3 Apache-2.0 OR MIT
     https://crates.io/crates/humansize/2.1.3 2.1.3 Apache-2.0 OR MIT
-    https://crates.io/crates/hyper-timeout/0.4.1 0.4.1 Apache-2.0 OR MIT
+    https://crates.io/crates/hyper-timeout/0.5.2 0.5.2 Apache-2.0 OR MIT
     https://crates.io/crates/hyper-tls/0.6.0 0.6.0 Apache-2.0 OR MIT
-    https://crates.io/crates/iana-time-zone/0.1.61 0.1.61 Apache-2.0 OR MIT
+    https://crates.io/crates/iana-time-zone/0.1.63 0.1.63 Apache-2.0 OR MIT
     https://crates.io/crates/iana-time-zone-haiku/0.1.2 0.1.2 Apache-2.0 OR MIT
     https://crates.io/crates/idna/1.0.3 1.0.3 Apache-2.0 OR MIT
     https://crates.io/crates/idna_adapter/1.2.0 1.2.0 Apache-2.0 OR MIT
     https://crates.io/crates/indexmap/1.9.3 1.9.3 Apache-2.0 OR MIT
-    https://crates.io/crates/indexmap/2.8.0 2.8.0 Apache-2.0 OR MIT
+    https://crates.io/crates/indexmap/2.9.0 2.9.0 Apache-2.0 OR MIT
     https://crates.io/crates/ipnet/2.11.0 2.11.0 Apache-2.0 OR MIT
     https://crates.io/crates/is_terminal_polyfill/1.70.1 1.70.1 Apache-2.0 OR MIT
-    https://crates.io/crates/itertools/0.10.5 0.10.5 Apache-2.0 OR MIT
     https://crates.io/crates/itertools/0.13.0 0.13.0 Apache-2.0 OR MIT
     https://crates.io/crates/itertools/0.14.0 0.14.0 Apache-2.0 OR MIT
     https://crates.io/crates/itoa/1.0.15 1.0.15 Apache-2.0 OR MIT
@@ -397,38 +383,35 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/libc/0.2.171 0.2.171 Apache-2.0 OR MIT
     https://crates.io/crates/libz-sys/1.1.22 1.1.22 Apache-2.0 OR MIT
     https://crates.io/crates/lock_api/0.4.12 0.4.12 Apache-2.0 OR MIT
-    https://crates.io/crates/log/0.4.26 0.4.26 Apache-2.0 OR MIT
-    https://crates.io/crates/match_cfg/0.1.0 0.1.0 Apache-2.0 OR MIT
+    https://crates.io/crates/log/0.4.27 0.4.27 Apache-2.0 OR MIT
     https://crates.io/crates/mime/0.3.17 0.3.17 Apache-2.0 OR MIT
     https://crates.io/crates/minimal-lexical/0.2.1 0.2.1 Apache-2.0 OR MIT
-    https://crates.io/crates/multimap/0.8.3 0.8.3 Apache-2.0 OR MIT
+    https://crates.io/crates/multimap/0.10.0 0.10.0 Apache-2.0 OR MIT
     https://crates.io/crates/native-tls/0.2.14 0.2.14 Apache-2.0 OR MIT
     https://crates.io/crates/num-conv/0.1.0 0.1.0 Apache-2.0 OR MIT
     https://crates.io/crates/num-traits/0.2.19 0.2.19 Apache-2.0 OR MIT
     https://crates.io/crates/num_threads/0.1.7 0.1.7 Apache-2.0 OR MIT
     https://crates.io/crates/object/0.36.7 0.36.7 Apache-2.0 OR MIT
-    https://crates.io/crates/once_cell/1.21.1 1.21.1 Apache-2.0 OR MIT
+    https://crates.io/crates/once_cell/1.21.3 1.21.3 Apache-2.0 OR MIT
     https://crates.io/crates/openssl-macros/0.1.1 0.1.1 Apache-2.0 OR MIT
     https://crates.io/crates/openssl-probe/0.1.6 0.1.6 Apache-2.0 OR MIT
     https://crates.io/crates/parking_lot/0.12.3 0.12.3 Apache-2.0 OR MIT
     https://crates.io/crates/parking_lot_core/0.9.10 0.9.10 Apache-2.0 OR MIT
     https://crates.io/crates/percent-encoding/2.3.1 2.3.1 Apache-2.0 OR MIT
-    https://crates.io/crates/pest/2.7.15 2.7.15 Apache-2.0 OR MIT
-    https://crates.io/crates/pest_derive/2.7.15 2.7.15 Apache-2.0 OR MIT
-    https://crates.io/crates/pest_generator/2.7.15 2.7.15 Apache-2.0 OR MIT
-    https://crates.io/crates/pest_meta/2.7.15 2.7.15 Apache-2.0 OR MIT
-    https://crates.io/crates/petgraph/0.6.5 0.6.5 Apache-2.0 OR MIT
+    https://crates.io/crates/pest/2.8.0 2.8.0 Apache-2.0 OR MIT
+    https://crates.io/crates/pest_derive/2.8.0 2.8.0 Apache-2.0 OR MIT
+    https://crates.io/crates/pest_generator/2.8.0 2.8.0 Apache-2.0 OR MIT
+    https://crates.io/crates/pest_meta/2.8.0 2.8.0 Apache-2.0 OR MIT
+    https://crates.io/crates/petgraph/0.7.1 0.7.1 Apache-2.0 OR MIT
     https://crates.io/crates/pin-project/1.1.10 1.1.10 Apache-2.0 OR MIT
     https://crates.io/crates/pin-project-internal/1.1.10 1.1.10 Apache-2.0 OR MIT
     https://crates.io/crates/pin-project-lite/0.2.16 0.2.16 Apache-2.0 OR MIT
     https://crates.io/crates/pin-utils/0.1.0 0.1.0 Apache-2.0 OR MIT
     https://crates.io/crates/pkg-config/0.3.32 0.3.32 Apache-2.0 OR MIT
-    https://crates.io/crates/portable-atomic/0.3.20 0.3.20 Apache-2.0 OR MIT
     https://crates.io/crates/portable-atomic/1.11.0 1.11.0 Apache-2.0 OR MIT
     https://crates.io/crates/powerfmt/0.2.0 0.2.0 Apache-2.0 OR MIT
     https://crates.io/crates/ppv-lite86/0.2.21 0.2.21 Apache-2.0 OR MIT
-    https://crates.io/crates/prettyplease/0.1.25 0.1.25 Apache-2.0 OR MIT
-    https://crates.io/crates/prettyplease/0.2.31 0.2.31 Apache-2.0 OR MIT
+    https://crates.io/crates/prettyplease/0.2.32 0.2.32 Apache-2.0 OR MIT
     https://crates.io/crates/proc-macro-crate/3.3.0 3.3.0 Apache-2.0 OR MIT
     https://crates.io/crates/proc-macro2/1.0.94 1.0.94 Apache-2.0 OR MIT
     https://crates.io/crates/quote/1.0.40 1.0.40 Apache-2.0 OR MIT
@@ -446,6 +429,7 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/rustversion/1.0.20 1.0.20 Apache-2.0 OR MIT
     https://crates.io/crates/scopeguard/1.2.0 1.2.0 Apache-2.0 OR MIT
     https://crates.io/crates/security-framework/2.11.1 2.11.1 Apache-2.0 OR MIT
+    https://crates.io/crates/security-framework/3.2.0 3.2.0 Apache-2.0 OR MIT
     https://crates.io/crates/security-framework-sys/2.14.0 2.14.0 Apache-2.0 OR MIT
     https://crates.io/crates/serde/1.0.219 1.0.219 Apache-2.0 OR MIT
     https://crates.io/crates/serde_derive/1.0.219 1.0.219 Apache-2.0 OR MIT
@@ -457,24 +441,21 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/signal-hook-registry/1.4.2 1.4.2 Apache-2.0 OR MIT
     https://crates.io/crates/siphasher/1.0.1 1.0.1 Apache-2.0 OR MIT
     https://crates.io/crates/slug/0.1.6 0.1.6 Apache-2.0 OR MIT
-    https://crates.io/crates/smallvec/1.14.0 1.14.0 Apache-2.0 OR MIT
-    https://crates.io/crates/socket2/0.5.8 0.5.8 Apache-2.0 OR MIT
+    https://crates.io/crates/smallvec/1.15.0 1.15.0 Apache-2.0 OR MIT
+    https://crates.io/crates/socket2/0.5.9 0.5.9 Apache-2.0 OR MIT
     https://crates.io/crates/stable_deref_trait/1.2.0 1.2.0 Apache-2.0 OR MIT
-    https://crates.io/crates/syn/1.0.109 1.0.109 Apache-2.0 OR MIT
     https://crates.io/crates/syn/2.0.100 2.0.100 Apache-2.0 OR MIT
     https://crates.io/crates/system-configuration/0.6.1 0.6.1 Apache-2.0 OR MIT
     https://crates.io/crates/system-configuration-sys/0.6.0 0.6.0 Apache-2.0 OR MIT
-    https://crates.io/crates/tempfile/3.19.0 3.19.0 Apache-2.0 OR MIT
+    https://crates.io/crates/tempfile/3.19.1 3.19.1 Apache-2.0 OR MIT
     https://crates.io/crates/thiserror/1.0.69 1.0.69 Apache-2.0 OR MIT
     https://crates.io/crates/thiserror/2.0.12 2.0.12 Apache-2.0 OR MIT
     https://crates.io/crates/thiserror-impl/1.0.69 1.0.69 Apache-2.0 OR MIT
     https://crates.io/crates/thiserror-impl/2.0.12 2.0.12 Apache-2.0 OR MIT
     https://crates.io/crates/thread_local/1.1.8 1.1.8 Apache-2.0 OR MIT
-    https://crates.io/crates/time/0.3.40 0.3.40 Apache-2.0 OR MIT
+    https://crates.io/crates/time/0.3.41 0.3.41 Apache-2.0 OR MIT
     https://crates.io/crates/time-core/0.1.4 0.1.4 Apache-2.0 OR MIT
-    https://crates.io/crates/time-macros/0.2.21 0.2.21 Apache-2.0 OR MIT
-    https://crates.io/crates/tokio-io-timeout/1.2.0 1.2.0 Apache-2.0 OR MIT
-    https://crates.io/crates/tokio-rustls/0.23.4 0.23.4 Apache-2.0 OR MIT
+    https://crates.io/crates/time-macros/0.2.22 0.2.22 Apache-2.0 OR MIT
     https://crates.io/crates/tokio-rustls/0.26.2 0.26.2 Apache-2.0 OR MIT
     https://crates.io/crates/toml_datetime/0.6.8 0.6.8 Apache-2.0 OR MIT
     https://crates.io/crates/toml_edit/0.22.24 0.22.24 Apache-2.0 OR MIT
@@ -505,12 +486,14 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/winapi/0.3.9 0.3.9 Apache-2.0 OR MIT
     https://crates.io/crates/winapi-i686-pc-windows-gnu/0.4.0 0.4.0 Apache-2.0 OR MIT
     https://crates.io/crates/winapi-x86_64-pc-windows-gnu/0.4.0 0.4.0 Apache-2.0 OR MIT
-    https://crates.io/crates/windows/0.52.0 0.52.0 Apache-2.0 OR MIT
-    https://crates.io/crates/windows-core/0.52.0 0.52.0 Apache-2.0 OR MIT
+    https://crates.io/crates/windows-core/0.61.0 0.61.0 Apache-2.0 OR MIT
+    https://crates.io/crates/windows-implement/0.60.0 0.60.0 Apache-2.0 OR MIT
+    https://crates.io/crates/windows-interface/0.59.1 0.59.1 Apache-2.0 OR MIT
     https://crates.io/crates/windows-link/0.1.1 0.1.1 Apache-2.0 OR MIT
     https://crates.io/crates/windows-registry/0.4.0 0.4.0 Apache-2.0 OR MIT
     https://crates.io/crates/windows-result/0.3.2 0.3.2 Apache-2.0 OR MIT
     https://crates.io/crates/windows-strings/0.3.1 0.3.1 Apache-2.0 OR MIT
+    https://crates.io/crates/windows-strings/0.4.0 0.4.0 Apache-2.0 OR MIT
     https://crates.io/crates/windows-sys/0.52.0 0.52.0 Apache-2.0 OR MIT
     https://crates.io/crates/windows-sys/0.59.0 0.59.0 Apache-2.0 OR MIT
     https://crates.io/crates/windows-targets/0.52.6 0.52.6 Apache-2.0 OR MIT
@@ -540,7 +523,7 @@ Apache-2.0 OR MIT OR Zlib licenses
 The following components are provided under the Apache-2.0 OR MIT OR Zlib License. See project link for details.
 The text of each license is also included in licenses/LICENSE-[project].txt.
 
-    https://crates.io/crates/miniz_oxide/0.8.5 0.8.5 Apache-2.0 OR MIT OR Zlib
+    https://crates.io/crates/miniz_oxide/0.8.8 0.8.8 Apache-2.0 OR MIT OR Zlib
 
 ========================================================================
 Apache-2.0) OR MIT AND (MIT licenses
@@ -567,18 +550,8 @@ The following components are provided under the ISC License. See project link fo
 The text of each license is also included in licenses/LICENSE-[project].txt.
 
     https://crates.io/crates/libloading/0.8.6 0.8.6 ISC
-    https://crates.io/crates/rustls-webpki/0.103.0 0.103.0 ISC
-    https://crates.io/crates/untrusted/0.7.1 0.7.1 ISC
+    https://crates.io/crates/rustls-webpki/0.103.1 0.103.1 ISC
     https://crates.io/crates/untrusted/0.9.0 0.9.0 ISC
-    https://crates.io/crates/webpki/0.22.4 0.22.4 ISC
-
-========================================================================
-ISC and OpenSSL and MIT licenses
-========================================================================
-The following components are provided under the ISC and OpenSSL and MIT License. See project link for details.
-The text of each license is also included in licenses/LICENSE-[project].txt.
-
-    https://crates.io/crates/ring/0.16.20 0.16.20 ISC and OpenSSL and MIT
 
 ========================================================================
 MIT licenses
@@ -588,10 +561,10 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
 
     https://crates.io/crates/async-stream/0.3.6 0.3.6 MIT
     https://crates.io/crates/async-stream-impl/0.3.6 0.3.6 MIT
-    https://crates.io/crates/axum/0.6.20 0.6.20 MIT
-    https://crates.io/crates/axum/0.8.1 0.8.1 MIT
-    https://crates.io/crates/axum-core/0.3.4 0.3.4 MIT
-    https://crates.io/crates/axum-core/0.5.0 0.5.0 MIT
+    https://crates.io/crates/axum/0.7.9 0.7.9 MIT
+    https://crates.io/crates/axum/0.8.3 0.8.3 MIT
+    https://crates.io/crates/axum-core/0.4.5 0.4.5 MIT
+    https://crates.io/crates/axum-core/0.5.2 0.5.2 MIT
     https://crates.io/crates/bincode/2.0.1 2.0.1 MIT
     https://crates.io/crates/bincode_derive/2.0.1 2.0.1 MIT
     https://crates.io/crates/bytes/1.10.1 1.10.1 MIT
@@ -601,21 +574,17 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/duct/0.13.7 0.13.7 MIT
     https://crates.io/crates/generic-array/0.14.7 0.14.7 MIT
     https://crates.io/crates/globwalk/0.9.1 0.9.1 MIT
-    https://crates.io/crates/h2/0.3.26 0.3.26 MIT
     https://crates.io/crates/h2/0.4.8 0.4.8 MIT
-    https://crates.io/crates/hostname/0.3.1 0.3.1 MIT
-    https://crates.io/crates/hostname/0.4.0 0.4.0 MIT
-    https://crates.io/crates/http-body/0.4.6 0.4.6 MIT
+    https://crates.io/crates/hostname/0.4.1 0.4.1 MIT
     https://crates.io/crates/http-body/1.0.1 1.0.1 MIT
     https://crates.io/crates/http-body-util/0.1.3 0.1.3 MIT
-    https://crates.io/crates/hyper/0.14.32 0.14.32 MIT
     https://crates.io/crates/hyper/1.6.0 1.6.0 MIT
-    https://crates.io/crates/hyper-util/0.1.10 0.1.10 MIT
+    https://crates.io/crates/hyper-util/0.1.11 0.1.11 MIT
     https://crates.io/crates/matchers/0.1.0 0.1.0 MIT
     https://crates.io/crates/mio/1.0.3 1.0.3 MIT
     https://crates.io/crates/nom/7.1.3 7.1.3 MIT
     https://crates.io/crates/nu-ansi-term/0.46.0 0.46.0 MIT
-    https://crates.io/crates/openssl-sys/0.9.106 0.9.106 MIT
+    https://crates.io/crates/openssl-sys/0.9.107 0.9.107 MIT
     https://crates.io/crates/os_pipe/1.2.1 1.2.1 MIT
     https://crates.io/crates/overload/0.1.1 0.1.1 MIT
     https://crates.io/crates/parse-zoneinfo/0.3.1 0.3.1 MIT
@@ -623,25 +592,23 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/phf_codegen/0.11.3 0.11.3 MIT
     https://crates.io/crates/phf_generator/0.11.3 0.11.3 MIT
     https://crates.io/crates/phf_shared/0.11.3 0.11.3 MIT
-    https://crates.io/crates/rdkafka/0.32.2 0.32.2 MIT
     https://crates.io/crates/rdkafka/0.37.0 0.37.0 MIT
     https://crates.io/crates/rdkafka-sys/4.8.0+2.3.0 4.8.0+2.3.0 MIT
-    https://crates.io/crates/redox_syscall/0.5.10 0.5.10 MIT
+    https://crates.io/crates/redox_syscall/0.5.11 0.5.11 MIT
     https://crates.io/crates/schannel/0.1.27 0.1.27 MIT
     https://crates.io/crates/sharded-slab/0.1.7 0.1.7 MIT
     https://crates.io/crates/shared_child/1.0.1 1.0.1 MIT
     https://crates.io/crates/slab/0.4.9 0.4.9 MIT
-    https://crates.io/crates/spin/0.5.2 0.5.2 MIT
     https://crates.io/crates/strsim/0.11.1 0.11.1 MIT
     https://crates.io/crates/synstructure/0.13.1 0.13.1 MIT
     https://crates.io/crates/tera/1.20.0 1.20.0 MIT
-    https://crates.io/crates/tokio/1.44.1 1.44.1 MIT
+    https://crates.io/crates/tokio/1.44.2 1.44.2 MIT
     https://crates.io/crates/tokio-macros/2.5.0 2.5.0 MIT
     https://crates.io/crates/tokio-native-tls/0.3.1 0.3.1 MIT
     https://crates.io/crates/tokio-stream/0.1.17 0.1.17 MIT
     https://crates.io/crates/tokio-util/0.7.14 0.7.14 MIT
-    https://crates.io/crates/tonic/0.8.3 0.8.3 MIT
-    https://crates.io/crates/tonic-build/0.8.4 0.8.4 MIT
+    https://crates.io/crates/tonic/0.12.3 0.12.3 MIT
+    https://crates.io/crates/tonic-build/0.12.3 0.12.3 MIT
     https://crates.io/crates/tower/0.4.13 0.4.13 MIT
     https://crates.io/crates/tower/0.5.2 0.5.2 MIT
     https://crates.io/crates/tower-layer/0.3.3 0.3.3 MIT
@@ -649,15 +616,13 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/tracing/0.1.41 0.1.41 MIT
     https://crates.io/crates/tracing-attributes/0.1.28 0.1.28 MIT
     https://crates.io/crates/tracing-core/0.1.33 0.1.33 MIT
-    https://crates.io/crates/tracing-futures/0.2.5 0.2.5 MIT
     https://crates.io/crates/tracing-log/0.2.0 0.2.0 MIT
     https://crates.io/crates/tracing-subscriber/0.3.19 0.3.19 MIT
     https://crates.io/crates/try-lock/0.2.5 0.2.5 MIT
     https://crates.io/crates/valuable/0.1.1 0.1.1 MIT
     https://crates.io/crates/virtue/0.0.18 0.0.18 MIT
     https://crates.io/crates/want/0.3.1 0.3.1 MIT
-    https://crates.io/crates/which/4.4.2 4.4.2 MIT
-    https://crates.io/crates/winnow/0.7.4 0.7.4 MIT
+    https://crates.io/crates/winnow/0.7.6 0.7.6 MIT
 
 ========================================================================
 MIT AND BSD-3-Clause licenses
@@ -689,11 +654,11 @@ MulanPSL-2.0 licenses
 The following components are provided under the MulanPSL-2.0 License. See project link for details.
 The text of each license is also included in licenses/LICENSE-[project].txt.
 
-    https://crates.io/crates/phper/0.15.1 0.15.1 MulanPSL-2.0
-    https://crates.io/crates/phper-alloc/0.15.0 0.15.0 MulanPSL-2.0
-    https://crates.io/crates/phper-build/0.15.0 0.15.0 MulanPSL-2.0
-    https://crates.io/crates/phper-macros/0.15.0 0.15.0 MulanPSL-2.0
-    https://crates.io/crates/phper-sys/0.15.0 0.15.0 MulanPSL-2.0
+    https://crates.io/crates/phper/0.16.0 0.16.0 MulanPSL-2.0
+    https://crates.io/crates/phper-alloc/0.15.1 0.15.1 MulanPSL-2.0
+    https://crates.io/crates/phper-build/0.15.1 0.15.1 MulanPSL-2.0
+    https://crates.io/crates/phper-macros/0.15.1 0.15.1 MulanPSL-2.0
+    https://crates.io/crates/phper-sys/0.15.1 0.15.1 MulanPSL-2.0
 
 ========================================================================
 Unicode-3.0 licenses
@@ -704,11 +669,11 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/icu_collections/1.5.0 1.5.0 Unicode-3.0
     https://crates.io/crates/icu_locid/1.5.0 1.5.0 Unicode-3.0
     https://crates.io/crates/icu_locid_transform/1.5.0 1.5.0 Unicode-3.0
-    https://crates.io/crates/icu_locid_transform_data/1.5.0 1.5.0 Unicode-3.0
+    https://crates.io/crates/icu_locid_transform_data/1.5.1 1.5.1 Unicode-3.0
     https://crates.io/crates/icu_normalizer/1.5.0 1.5.0 Unicode-3.0
-    https://crates.io/crates/icu_normalizer_data/1.5.0 1.5.0 Unicode-3.0
+    https://crates.io/crates/icu_normalizer_data/1.5.1 1.5.1 Unicode-3.0
     https://crates.io/crates/icu_properties/1.5.1 1.5.1 Unicode-3.0
-    https://crates.io/crates/icu_properties_data/1.5.0 1.5.0 Unicode-3.0
+    https://crates.io/crates/icu_properties_data/1.5.1 1.5.1 Unicode-3.0
     https://crates.io/crates/icu_provider/1.5.0 1.5.0 Unicode-3.0
     https://crates.io/crates/icu_provider_macros/1.5.0 1.5.0 Unicode-3.0
     https://crates.io/crates/litemap/0.7.5 0.7.5 Unicode-3.0
