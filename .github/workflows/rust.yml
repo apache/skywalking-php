@@ -236,7 +236,7 @@ jobs:
 
       - name: Install Rust Nightly
         run: |
-           rustup toolchain add --profile=minimal $RUST_NIGHTLY_TOOLCHAIN 
+           rustup toolchain add --profile=minimal --component rustfmt $RUST_NIGHTLY_TOOLCHAIN 
            rustup override set $RUST_NIGHTLY_TOOLCHAIN
 
       - name: Cargo fmt
