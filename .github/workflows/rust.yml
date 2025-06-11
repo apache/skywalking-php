@@ -142,36 +142,21 @@ jobs:
           [[ `php-config --version` == ${{ matrix.flag.php_version }}.* ]] || exit 1;
 
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
-          override: true
-          components: clippy
+        run: |
+           rustup toolchain add --profile=minimal --component clippy $RUST_STABLE_TOOLCHAIN
+           rustup override set $RUST_STABLE_TOOLCHAIN
 
-      - name: Setup cargo cache
-        uses: actions/cache@v3
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ matrix.os }}-test-${{ matrix.flag.php_version }}-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ matrix.os }}-test-${{ matrix.flag.php_version }}
 
       - name: Cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
-          command: clippy
-          args: --release --workspace ${{ matrix.flag.cargo_features }}
+        run: |
+          cargo clippy --release --workspace ${{ matrix.flag.cargo_features }}
 
       - name: Cargo build
-        uses: actions-rs/cargo@v1
-        with:
-          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
-          command: build
-          args: --release --workspace ${{ matrix.flag.cargo_features }}
+        run: |
+          cargo build --release --workspace ${{ matrix.flag.cargo_features }}
 
       - name: Composer install
         run: composer install --working-dir=tests/php
@@ -202,11 +187,8 @@ jobs:
       # Try cargo test.
       - name: Cargo test
         id: cargo-test-step
-        uses: actions-rs/cargo@v1
-        with:
-          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
-          command: test
-          args: --release --workspace ${{ matrix.flag.cargo_features }}
+        run: |
+          cargo test --release --workspace ${{ matrix.flag.cargo_features }}
         env:
           ENABLE_ZEND_OBSERVER: ${{ matrix.flag.enable_zend_observer }}
         continue-on-error: true
@@ -226,11 +208,8 @@ jobs:
       # Retry cargo test.
       - name: Cargo test
         if: steps.cargo-test-step.outcome != 'success'
-        uses: actions-rs/cargo@v1
-        with:
-          toolchain: ${{ env.RUST_STABLE_TOOLCHAIN }}
-          command: test
-          args: --release --workspace
+        run: |
+          cargo test --release --workspace
         env:
           ENABLE_ZEND_OBSERVER: ${{ matrix.flag.enable_zend_observer }}
 
@@ -256,15 +235,10 @@ jobs:
           submodules: "recursive"
 
       - name: Install Rust Nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ env.RUST_NIGHTLY_TOOLCHAIN }}
-          override: true
-          components: rustfmt
+        run: |
+           rustup toolchain add --profile=minimal --component rustfmt $RUST_NIGHTLY_TOOLCHAIN 
+           rustup override set $RUST_NIGHTLY_TOOLCHAIN
 
       - name: Cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          toolchain: ${{ env.RUST_NIGHTLY_TOOLCHAIN }}
-          command: fmt
-          args: --all -- --check
+        run: |
+          cargo fmt --all -- --check
