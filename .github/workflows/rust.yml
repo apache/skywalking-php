@@ -143,7 +143,7 @@ jobs:
 
       - name: Install Rust
         run: |
-           rustup toolchain add --profile=minimal $RUST_STABLE_TOOLCHAIN 
+           rustup toolchain add --profile=minimal --component clippy $RUST_STABLE_TOOLCHAIN
            rustup override set $RUST_STABLE_TOOLCHAIN
 
       - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
