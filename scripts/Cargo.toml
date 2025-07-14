@@ -25,9 +25,9 @@ license = { workspace = true }
 publish = false
 
 [dependencies]
-anyhow = "1.0.97"
-chrono = { version = "0.4.40", default-features = false, features = ["std"] }
-clap = { version = "4.5.36", features = ["derive"] }
+anyhow = "1.0.98"
+chrono = { version = "0.4.41", default-features = false, features = ["std"] }
+clap = { version = "4.5.41", features = ["derive"] }
 serde = { version = "1.0.219", features = ["derive"] }
 tera = "1.20.0"
 tracing = "0.1.41"

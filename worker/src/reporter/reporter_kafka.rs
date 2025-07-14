@@ -18,7 +18,7 @@
 use anyhow::{Context, bail};
 use skywalking::reporter::{
     CollectItemConsume, CollectItemProduce,
-    kafka::{KafkaReportBuilder, RDKafkaClientConfig},
+    kafka::{ClientConfig, KafkaReportBuilder},
 };
 use std::collections::HashMap;
 
@@ -31,7 +31,7 @@ pub async fn run_reporter(
     config: KafkaReporterConfiguration, producer: impl CollectItemProduce,
     consumer: impl CollectItemConsume,
 ) -> anyhow::Result<()> {
-    let mut client_config = RDKafkaClientConfig::new();
+    let mut client_config = ClientConfig::new();
 
     client_config.set("bootstrap.servers", config.kafka_bootstrap_servers);
 
