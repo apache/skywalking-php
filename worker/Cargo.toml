@@ -43,7 +43,7 @@ tokio = { version = "1.46.1", features = ["full"] }
 tokio-stream = "0.1.17"
 tonic = { workspace = true }
 tracing = { version = "0.1.41", features = ["attributes", "log"] }
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"], optional = true }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"], optional = true }
 
 [[bin]]
 name = "skywalking-php-worker"
