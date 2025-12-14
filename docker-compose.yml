@@ -39,7 +39,7 @@ services:
       retries: 10
 
   redis:
-    image: bitnami/redis:7.0.4
+    image: bitnami/redis:sha256-35e80e6aabbf403cad283e798e742ee40133135e725dd04c2f3b752423df0bdd
     ports:
       - "6379:6379"
     environment:
