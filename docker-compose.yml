@@ -39,11 +39,10 @@ services:
       retries: 10
 
   redis:
-    image: bitnami/redis:sha256-35e80e6aabbf403cad283e798e742ee40133135e725dd04c2f3b752423df0bdd
+    image: redis:8.4
     ports:
       - "6379:6379"
-    environment:
-      - REDIS_PASSWORD=password
+    command: ["redis-server", "--requirepass", "password"]
 
   memcached:
     image: memcached:1.6.17
