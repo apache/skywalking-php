@@ -83,7 +83,7 @@ jobs:
             swoole_version: "5.1.1"
             cargo_features: ""
           - php_version: "8.5"
-            swoole_version: "6.1.6"
+            swoole_version: "5.1.1"
             cargo_features: ""
 
     runs-on: ${{ matrix.os }}
