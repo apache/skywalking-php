@@ -57,55 +57,33 @@ jobs:
           # Many composer dependencies need PHP 7.2+
           - php_version: "7.2"
             swoole_version: "4.6.7"
-            enable_zend_observer: "Off"
             cargo_features: ""
           - php_version: "7.3"
             swoole_version: "4.7.1"
-            enable_zend_observer: "Off"
             cargo_features: ""
           - php_version: "7.4"
             swoole_version: "4.8.10"
-            enable_zend_observer: "Off"
             cargo_features: ""
           - php_version: "8.0"
             swoole_version: "5.0.0"
-            enable_zend_observer: "Off"
-            cargo_features: ""
-          - php_version: "8.0"
-            swoole_version: "5.0.0"
-            enable_zend_observer: "On"
             cargo_features: ""
           - php_version: "8.1"
             swoole_version: "5.1.1"
-            enable_zend_observer: "Off"
-            cargo_features: ""
-          - php_version: "8.1"
-            swoole_version: "5.1.1"
-            enable_zend_observer: "On"
             cargo_features: ""
           - php_version: "8.2"
             swoole_version: "5.1.1"
-            enable_zend_observer: "Off"
             cargo_features: ""
           - php_version: "8.2"
             swoole_version: "5.1.1"
-            enable_zend_observer: "On"
-            cargo_features: ""
-          - php_version: "8.2"
-            swoole_version: "5.1.1"
-            enable_zend_observer: "On"
             cargo_features: "--features kafka-reporter"
           - php_version: "8.3"
             swoole_version: "5.1.1"
-            enable_zend_observer: "Off"
             cargo_features: ""
           - php_version: "8.4"
             swoole_version: "5.1.1"
-            enable_zend_observer: "Off"
             cargo_features: ""
           - php_version: "8.5"
             swoole_version: "6.1.4"
-            enable_zend_observer: "Off"
             cargo_features: ""
 
     runs-on: ${{ matrix.os }}
@@ -201,8 +179,6 @@ jobs:
         id: cargo-test-step
         run: |
           cargo test --release --workspace ${{ matrix.flag.cargo_features }}
-        env:
-          ENABLE_ZEND_OBSERVER: ${{ matrix.flag.enable_zend_observer }}
         continue-on-error: true
 
       # Rebuild the mixture when cargo test failed.
@@ -222,8 +198,6 @@ jobs:
         if: steps.cargo-test-step.outcome != 'success'
         run: |
           cargo test --release --workspace
-        env:
-          ENABLE_ZEND_OBSERVER: ${{ matrix.flag.enable_zend_observer }}
 
       - name: View logs
         if: always()
