@@ -187,7 +187,7 @@ pub fn get_module() -> Module {
         10i64,
         Policy::System,
     );
-    module.add_ini(SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER, false, Policy::System);
+    module.add_ini(SKYWALKING_AGENT_ENABLE_ZEND_OBSERVER, true, Policy::System);
     module.add_ini(
         SKYWALKING_AGENT_REPORTER_TYPE,
         "grpc".to_string(),

@@ -2,7 +2,7 @@
 
 > Refer to: <https://www.datadoghq.com/blog/engineering/php-8-observability-baked-right-in/#the-observability-landscape-before-php-8>
 
-By default, skywalking-php hooks the `zend_execute_internal` and `zend_execute_ex` functions to implement auto instrumentation.
+On PHP 7, skywalking-php hooks the `zend_execute_internal` and `zend_execute_ex` functions to implement auto instrumentation.
 
 But there are some drawbacks:
 
@@ -28,5 +28,6 @@ opcache.jit = tracing
 [skywalking_agent]
 extension = skywalking_agent.so
 ; Switch to use zend observer api to implement auto instrumentation.
+; Default is On for PHP 8+.
 skywalking_agent.enable_zend_observer = On
 ```
