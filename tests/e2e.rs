@@ -74,7 +74,8 @@ async fn run_e2e() {
     request_swoole_2_predis().await;
     request_swoole_2_mongodb().await;
     request_swoole_2_memcache().await;
-    sleep(Duration::from_secs(3)).await;
+    // Wait for PHM meter report (metrics_report_period=5s on FPM test-1).
+    sleep(Duration::from_secs(8)).await;
     request_collector_validate().await;
 }
 

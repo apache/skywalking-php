@@ -113,6 +113,48 @@ Refer to the Configuration section for more configuration items.
 > Enabling it by default will cause extra meaningless consumption when skywalking agent is not
 > needed (such as simply executing a php script).
 
+### PHP Health Metrics (PHM)
+
+> **Platform:** PHM process meters are **Linux only**. The forked reporter worker reads the
+> parent PHP process via `/proc` (`/proc/{pid}/status`, `stat`, and `fd`). They are not available
+> on macOS or Windows. Trace and other agent features are unchanged.
+
+When `reporter_type` is `grpc` or `kafka`, the forked reporter worker boots
+`skywalking::metrics::Metricer` in `start_worker`, alongside heartbeat reporting. A background
+collector samples `/proc` for the parent PHP process (`getppid()`), updates Gauges, and `Metricer`
+reports meter data to OAP through the same path as traces and logs. PHM does not run when
+`reporter_type = standalone`.
+
+PHM reports PHP runtime meters through the native Meter protocol (MeterReportService), without
+requiring HTTP traffic, similar to Python PVM and Ruby runtime meters.
+**PHM is enabled by default on Linux** when the agent is active (`skywalking_agent.enable = On`).
+To disable it or tune the interval, use `php.ini`:
+
+```ini
+; Disable PHM if not needed (default is On on Linux).
+; skywalking_agent.metrics_enable = Off
+
+; Report interval in seconds (default 30).
+skywalking_agent.metrics_report_period = 30
+```
+
+PHM reports six process meters (aligned with OAP `php-runtime.yaml` and Horizon UI widgets):
+
+| Agent meter name | OAP / UI expression | Source |
+| --- | --- | --- |
+| `instance_php_process_cpu_utilization` | `meter_instance_php_process_cpu_utilization` | `/proc/{pid}/stat` utime+stime delta |
+| `instance_php_memory_used_mb` | `meter_instance_php_memory_used_mb` | `/proc/{pid}/status` VmRSS |
+| `instance_php_memory_peak_mb` | `meter_instance_php_memory_peak_mb` | `/proc/{pid}/status` VmHWM |
+| `instance_php_virtual_memory_mb` | `meter_instance_php_virtual_memory_mb` | `/proc/{pid}/status` VmSize |
+| `instance_php_thread_count` | `meter_instance_php_thread_count` | `/proc/{pid}/status` Threads |
+| `instance_php_open_fd_count` | `meter_instance_php_open_fd_count` | `/proc/{pid}/fd` count |
+
+On the OAP side, activate the `php-runtime` entry in
+`agent-analyzer.default.meterAnalyzerActiveFiles`. Horizon UI shows the widgets on the **General
+Service → Instance** dashboard when data is available.
+
+See [INI Settings](../../../configuration/ini-settings.md) for all PHM options.
+
 ## Run
 
 Start `php-fpm` server:

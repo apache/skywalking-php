@@ -115,7 +115,10 @@ jobs:
       - name: Setup php-fpm for Linux
         if: matrix.os == 'ubuntu-24.04'
         run: |
-          sudo apt-get update 
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository -y ppa:ondrej/php
+          sudo apt-get update
           sudo apt-get install -y php${{ matrix.flag.php_version }}-fpm
           sudo ln -sf /usr/sbin/php-fpm${{ matrix.flag.php_version }} /usr/sbin/php-fpm
 
@@ -171,8 +174,18 @@ jobs:
       # Build mixture for cargo test.
       - name: Docker compose
         run: |
-          docker compose up -d --wait
-          docker compose ps
+          for i in 1 2 3; do
+            if docker compose up -d --wait && docker compose ps; then
+              break
+            fi
+            echo "docker compose up failed (attempt ${i}/3), retrying in 10s..."
+            docker compose down --remove-orphans 2>/dev/null || true
+            if [ "${i}" -lt 3 ]; then
+              sleep 10
+            else
+              exit 1
+            fi
+          done
 
       # Try cargo test.
       - name: Cargo test

@@ -167,6 +167,12 @@ pub static PSR_LOGGING_LEVEL: Lazy<PsrLogLevel> = Lazy::new(|| {
         .into()
 });
 
+pub static METRICS_ENABLE: Lazy<bool> =
+    Lazy::new(|| ini_get::<bool>(SKYWALKING_AGENT_METRICS_ENABLE));
+
+pub static METRICS_REPORT_PERIOD: Lazy<i64> =
+    Lazy::new(|| ini_get::<i64>(SKYWALKING_AGENT_METRICS_REPORT_PERIOD));
+
 pub fn init() {
     if !is_enable() {
         return;
@@ -193,6 +199,8 @@ pub fn init() {
     Lazy::force(&KAFKA_PRODUCER_CONFIG);
     Lazy::force(&INJECT_CONTEXT);
     Lazy::force(&PSR_LOGGING_LEVEL);
+    Lazy::force(&METRICS_ENABLE);
+    Lazy::force(&METRICS_REPORT_PERIOD);
 
     if let Err(err) = try_init_logger() {
         eprintln!("skywalking_agent: initialize logger failed: {}", err);
@@ -228,7 +236,6 @@ pub fn init() {
         return;
     }
 
-    // Initialize Agent worker.
     init_worker();
 
     let reporter = Arc::new(Reporter::new(&*SOCKET_FILE_PATH));
@@ -239,7 +246,11 @@ pub fn init() {
         reporter.clone(),
     ));
 
-    logger::set_global_logger(Logger::new(&*SERVICE_NAME, &*SERVICE_INSTANCE, reporter));
+    logger::set_global_logger(Logger::new(
+        &*SERVICE_NAME,
+        &*SERVICE_INSTANCE,
+        reporter.clone(),
+    ));
 
     // Hook functions.
     register_execute_functions();

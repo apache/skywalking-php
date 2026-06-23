@@ -2,7 +2,8 @@
 
 <img src="http://skywalking.apache.org/assets/logo.svg" alt="Sky Walking logo" height="90px" align="right" />
 
-**SkyWalking PHP** The PHP Agent for Apache SkyWalking, which provides the native tracing abilities for PHP project.
+**SkyWalking PHP** The PHP Agent for Apache SkyWalking, which provides native tracing and PHP Health Metrics (PHM)
+runtime reporting for PHP projects.
 
 **SkyWalking** an APM(application performance monitor) system, especially designed for
 microservices, cloud native and container-based (Docker, Kubernetes, Mesos) architectures.

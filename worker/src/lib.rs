@@ -14,10 +14,12 @@
 // limitations under the License.
 
 pub mod channel;
+pub mod phm;
 pub mod reporter;
 
 use crate::{
     channel::TxReporter,
+    phm::{PhmConfiguration, boot_phm_metrics},
     reporter::{ReporterConfiguration, run_reporter},
 };
 use skywalking::{
@@ -44,6 +46,7 @@ use tracing::{debug, error, info};
 pub struct WorkerConfiguration {
     pub socket_file_path: PathBuf,
     pub heart_beat: Option<HeartBeatConfiguration>,
+    pub phm: Option<PhmConfiguration>,
     pub reporter_config: ReporterConfiguration,
 }
 
@@ -126,7 +129,11 @@ pub async fn start_worker(config: WorkerConfiguration) -> anyhow::Result<()> {
         });
 
         if let Some(heart_beat_config) = config.heart_beat {
-            report_properties_and_keep_alive(heart_beat_config, TxReporter(tx_));
+            report_properties_and_keep_alive(heart_beat_config, TxReporter(tx_.clone()));
+        }
+
+        if let Some(phm_config) = config.phm {
+            boot_phm_metrics(phm_config, TxReporter(tx_.clone()));
         }
 
         // Run reporter with blocking.
