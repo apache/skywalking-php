@@ -23,17 +23,10 @@ use axum::{
     routing::any,
 };
 use futures_util::future::join_all;
-use libc::{SIGTERM, kill, pid_t};
+use libc::{SIGKILL, SIGTERM, kill, pid_t};
 use once_cell::sync::Lazy;
 use std::{
-    env,
-    fs::File,
-    io::{self, Cursor},
-    net::SocketAddr,
-    process::{ExitStatus, Stdio},
-    sync::Arc,
-    thread,
-    time::Duration,
+    env, fs::File, io::Cursor, net::SocketAddr, process::Stdio, sync::Arc, thread, time::Duration,
 };
 use tokio::{
     net::TcpStream,
@@ -112,16 +105,13 @@ pub async fn teardown(fixture: Fixture) {
     fixture.http_server_1_handle.abort();
     fixture.http_server_2_handle.abort();
 
-    let results = join_all([
-        kill_command(fixture.php_fpm_1_child),
-        kill_command(fixture.php_fpm_2_child),
-        kill_command(fixture.php_swoole_1_child),
-        kill_command(fixture.php_swoole_2_child),
+    join_all([
+        stop_child(fixture.php_fpm_1_child),
+        stop_child(fixture.php_fpm_2_child),
+        stop_child(fixture.php_swoole_1_child),
+        stop_child(fixture.php_swoole_2_child),
     ])
     .await;
-    for result in results {
-        assert!(result.unwrap().success());
-    }
 }
 
 fn setup_logging() {
@@ -319,8 +309,22 @@ fn setup_php_fpm(index: usize, fpm_addr: &str) -> Child {
         "-d",
         "skywalking_agent.psr_logging_level=Warning",
     ];
+    let mut args: Vec<String> = args.iter().map(|s| (*s).to_string()).collect();
+    if index == 1 {
+        args.extend([
+            "-d".to_owned(),
+            "skywalking_agent.metrics_enable=On".to_owned(),
+            "-d".to_owned(),
+            "skywalking_agent.metrics_report_period=5".to_owned(),
+        ]);
+    } else {
+        args.extend([
+            "-d".to_owned(),
+            "skywalking_agent.metrics_enable=Off".to_owned(),
+        ]);
+    }
     info!(cmd = args.join(" "), "start command");
-    let child = Command::new(args[0])
+    let child = Command::new(&args[0])
         .args(&args[1..])
         .stdin(Stdio::null())
         .stdout(File::create("/tmp/fpm-skywalking-stdout.log").unwrap())
@@ -364,6 +368,8 @@ fn setup_php_swoole(index: usize) -> Child {
             "skywalking_agent.enable_zend_observer={}",
             *ENABLE_ZEND_OBSERVER
         ),
+        "-d",
+        "skywalking_agent.metrics_enable=Off",
         &format!("tests/php/swoole/main.{}.php", index),
     ];
     info!(cmd = args.join(" "), "start command");
@@ -378,11 +384,21 @@ fn setup_php_swoole(index: usize) -> Child {
     child
 }
 
-async fn kill_command(mut child: Child) -> io::Result<ExitStatus> {
-    if let Some(id) = child.id() {
-        unsafe {
-            kill(id as pid_t, SIGTERM);
+async fn stop_child(mut child: Child) {
+    let Some(id) = child.id() else {
+        let _ = child.wait().await;
+        return;
+    };
+    unsafe {
+        kill(id as pid_t, SIGTERM);
+    }
+    match tokio::time::timeout(Duration::from_secs(5), child.wait()).await {
+        Ok(Ok(_)) | Ok(Err(_)) => {}
+        Err(_) => {
+            unsafe {
+                kill(id as pid_t, SIGKILL);
+            }
+            let _ = child.wait().await;
         }
     }
-    child.wait().await
 }

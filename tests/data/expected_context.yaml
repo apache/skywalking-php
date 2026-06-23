@@ -2059,3 +2059,31 @@ logItems:
       - {key: bar, value: 'false'}
       - {key: baz, value: test}
     layer: ''
+meterItems:
+  - serviceName: skywalking-agent-test-1
+    meterSize: ge 6
+    meters:
+      - meterId:
+          name: instance_php_process_cpu_utilization
+          tags: []
+        singleValue: ge 0
+      - meterId:
+          name: instance_php_memory_used_mb
+          tags: []
+        singleValue: ge 0
+      - meterId:
+          name: instance_php_memory_peak_mb
+          tags: []
+        singleValue: ge 0
+      - meterId:
+          name: instance_php_virtual_memory_mb
+          tags: []
+        singleValue: ge 0
+      - meterId:
+          name: instance_php_thread_count
+          tags: []
+        singleValue: ge 1
+      - meterId:
+          name: instance_php_open_fd_count
+          tags: []
+        singleValue: ge 1
