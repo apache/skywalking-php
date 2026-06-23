@@ -18,7 +18,10 @@
 //! `Metricer`, booted from `start_worker` alongside heartbeat reporting.
 
 use crate::channel::TxReporter;
-use skywalking::metrics::{meter::Gauge, metricer::Metricer};
+use skywalking::metrics::{
+    meter::Gauge,
+    metricer::{Booting, Metricer},
+};
 use std::{
     fs,
     sync::{
@@ -109,16 +112,17 @@ fn update_samples(samples: &PhmSamples, cpu_sample: &mut Option<CpuStatSample>) 
         return None;
     }
 
-    if let Some(mb) = read_status_kib(pid, "VmRSS") {
+    let status = read_proc_status(pid);
+    if let Some(mb) = status.vm_rss_mb {
         PhmSamples::store(&samples.memory_used_mb, mb);
     }
-    if let Some(mb) = read_status_kib(pid, "VmHWM") {
+    if let Some(mb) = status.vm_hwm_mb {
         PhmSamples::store(&samples.memory_peak_mb, mb);
     }
-    if let Some(mb) = read_status_kib(pid, "VmSize") {
+    if let Some(mb) = status.vm_size_mb {
         PhmSamples::store(&samples.virtual_memory_mb, mb);
     }
-    if let Some(count) = read_status_count(pid, "Threads") {
+    if let Some(count) = status.threads {
         PhmSamples::store(&samples.thread_count, count as f64);
     }
     if let Some(count) = read_open_fd_count(pid) {
@@ -163,7 +167,7 @@ pub fn warmup_samples(samples: &PhmSamples) {
     update_samples(samples, &mut cpu_sample);
 }
 
-pub fn boot_phm_metrics(config: PhmConfiguration, reporter: TxReporter) {
+pub fn boot_phm_metrics(config: PhmConfiguration, reporter: TxReporter) -> Booting {
     let samples = PhmSamples::default();
     let report_period = Duration::from_secs(config.report_period_secs.max(1) as u64);
     let collector_config = PhmCollectorConfiguration {
@@ -174,7 +178,7 @@ pub fn boot_phm_metrics(config: PhmConfiguration, reporter: TxReporter) {
     let mut metricer = Metricer::new(config.service_name, config.service_instance, reporter);
     metricer.set_report_interval(report_period);
     register_gauges(&mut metricer, samples);
-    let _booting = metricer.boot();
+    metricer.boot()
 }
 
 fn run_phm_collector(config: PhmCollectorConfiguration, samples: PhmSamples) {
@@ -194,15 +198,58 @@ fn process_alive(pid: i32) -> bool {
     fs::metadata(format!("/proc/{pid}")).is_ok()
 }
 
-fn read_status_count(pid: i32, key: &str) -> Option<u64> {
-    let content = fs::read_to_string(format!("/proc/{pid}/status")).ok()?;
-    let prefix = format!("{key}:");
+#[derive(Default)]
+struct ProcStatusFields {
+    vm_rss_mb: Option<f64>,
+    vm_hwm_mb: Option<f64>,
+    vm_size_mb: Option<f64>,
+    threads: Option<u64>,
+}
+
+fn read_proc_status(pid: i32) -> ProcStatusFields {
+    let Ok(content) = fs::read_to_string(format!("/proc/{pid}/status")) else {
+        return ProcStatusFields::default();
+    };
+    let mut fields = ProcStatusFields::default();
     for line in content.lines() {
-        if line.starts_with(&prefix) {
-            return line.split_whitespace().nth(1)?.parse().ok();
+        if fields.vm_rss_mb.is_none() {
+            fields.vm_rss_mb = parse_status_kib_line(line, "VmRSS");
+        }
+        if fields.vm_hwm_mb.is_none() {
+            fields.vm_hwm_mb = parse_status_kib_line(line, "VmHWM");
+        }
+        if fields.vm_size_mb.is_none() {
+            fields.vm_size_mb = parse_status_kib_line(line, "VmSize");
+        }
+        if fields.threads.is_none() {
+            fields.threads = parse_status_count_line(line, "Threads");
+        }
+        if fields.vm_rss_mb.is_some()
+            && fields.vm_hwm_mb.is_some()
+            && fields.vm_size_mb.is_some()
+            && fields.threads.is_some()
+        {
+            break;
         }
     }
-    None
+    fields
+}
+
+fn parse_status_kib_line(line: &str, key: &str) -> Option<f64> {
+    let prefix = format!("{key}:");
+    if !line.starts_with(&prefix) {
+        return None;
+    }
+    let kb: f64 = line.split_whitespace().nth(1)?.parse().ok()?;
+    Some(kb / 1024.0)
+}
+
+fn parse_status_count_line(line: &str, key: &str) -> Option<u64> {
+    let prefix = format!("{key}:");
+    if !line.starts_with(&prefix) {
+        return None;
+    }
+    line.split_whitespace().nth(1)?.parse().ok()
 }
 
 fn read_open_fd_count(pid: i32) -> Option<f64> {
@@ -211,18 +258,6 @@ fn read_open_fd_count(pid: i32) -> Option<f64> {
         .filter_map(|entry| entry.ok())
         .count();
     Some(count as f64)
-}
-
-fn read_status_kib(pid: i32, key: &str) -> Option<f64> {
-    let content = fs::read_to_string(format!("/proc/{pid}/status")).ok()?;
-    let prefix = format!("{key}:");
-    for line in content.lines() {
-        if line.starts_with(&prefix) {
-            let kb: f64 = line.split_whitespace().nth(1)?.parse().ok()?;
-            return Some(kb / 1024.0);
-        }
-    }
-    None
 }
 
 fn read_proc_stat_cpu(pid: i32) -> Option<(u64, u64)> {

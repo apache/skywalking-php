@@ -132,9 +132,9 @@ pub async fn start_worker(config: WorkerConfiguration) -> anyhow::Result<()> {
             report_properties_and_keep_alive(heart_beat_config, TxReporter(tx_.clone()));
         }
 
-        if let Some(phm_config) = config.phm {
-            boot_phm_metrics(phm_config, TxReporter(tx_.clone()));
-        }
+        let _phm_booting = config
+            .phm
+            .map(|phm_config| boot_phm_metrics(phm_config, TxReporter(tx_.clone())));
 
         // Run reporter with blocking.
         run_reporter(config.reporter_config, (), Consumer(rx)).await?;
