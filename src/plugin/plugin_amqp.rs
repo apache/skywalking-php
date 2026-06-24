@@ -75,7 +75,7 @@ impl AmqpPlugin {
                             .and_then(|s| s.to_str().ok())
                             .map(ToOwned::to_owned)
                     })
-                    .unwrap_or_else(|| "unknown".to_owned());
+                    .unwrap_or_default();
 
                 let routing_key = execute_data
                     .get_parameter(1)
