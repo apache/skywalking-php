@@ -31,7 +31,7 @@ SkyWalking PHP Agent requires SkyWalking 8.4+ and PHP 7.2+
   * [x] [MySQL Improved](https://www.php.net/manual/en/book.mysqli.php)
   * [x] [Memcached](https://www.php.net/manual/en/book.memcached.php)
   * [x] [phpredis](https://github.com/phpredis/phpredis)
-  * [ ] [php-amqp](https://github.com/php-amqp/php-amqp)
+  * [x] [php-amqp](https://github.com/php-amqp/php-amqp) for Message Queuing Producer
   * [ ] [php-rdkafka](https://github.com/arnaud-lb/php-rdkafka)
   * [x] [predis](https://github.com/predis/predis)
   * [x] [php-amqplib](https://github.com/php-amqplib/php-amqplib) for Message Queuing Producer
