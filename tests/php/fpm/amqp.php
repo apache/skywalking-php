@@ -20,13 +20,20 @@ $connection = new AMQPConnection(['host' => '127.0.0.1', 'port' => 5672, 'login'
 $connection->connect();
 $channel = new AMQPChannel($connection);
 
-$channel->queueDeclare('queue_test');
-$channel->exchangeDeclare('exchange_test', AMQP_EX_TYPE_DIRECT);
-$channel->queueBind('queue_test', 'exchange_test', 'routing_test');
+$queue = new AMQPQueue($channel);
+$queue->setName('queue_test');
+$queue->setFlags(AMQP_NOPARAM);
+$queue->declareQueue();
+
+$exchange = new AMQPExchange($channel);
+$exchange->setName('exchange_test');
+$exchange->setType(AMQP_EX_TYPE_DIRECT);
+$exchange->declareExchange();
+
+$queue->bind('exchange_test', 'routing_test');
 
 {
     $exchange = new AMQPExchange($channel);
-    $exchange->setName('');
     $exchange->publish('Hello World!', 'queue_test', AMQP_NOPARAM, []);
 }
 
@@ -38,7 +45,6 @@ $channel->queueBind('queue_test', 'exchange_test', 'routing_test');
 
 {
     $exchange = new AMQPExchange($channel);
-    $exchange->setName('');
     $exchange->publish('Hello World!', 'not_exists', AMQP_NOPARAM, ['foo' => 'bar']);
 }
 
