@@ -147,6 +147,10 @@ jobs:
         run: |
           cargo clippy --release --workspace ${{ matrix.flag.cargo_features }}
 
+      - name: Cargo build
+        run: |
+          cargo build --release --workspace ${{ matrix.flag.cargo_features }}
+
       - name: Composer install
         run: composer install --working-dir=tests/php
 
