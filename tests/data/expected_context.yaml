@@ -15,7 +15,7 @@
 
 segmentItems:
   - serviceName: skywalking-agent-test-1
-    segmentSize: 21
+    segmentSize: 22
     segments:
       - segmentId: "not null"
         spans:
@@ -1224,11 +1224,26 @@ segmentItems:
             skipAnalysis: false
             tags:
               - { key: mq.broker, value: "127.0.0.1:5672" }
+              - { key: mq.topic, value: fanout_exchange_test }
+              - { key: mq.queue, value: "" }
+          - operationName: AMQPExchange->publish
+            parentSpanId: 0
+            spanId: 2
+            spanLayer: MQ
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 144
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:5672
+            skipAnalysis: false
+            tags:
+              - { key: mq.broker, value: "127.0.0.1:5672" }
               - { key: mq.topic, value: "" }
               - { key: mq.queue, value: queue_test }
           - operationName: AMQPExchange->publish
             parentSpanId: 0
-            spanId: 2
+            spanId: 3
             spanLayer: MQ
             startTime: gt 0
             endTime: gt 0
@@ -1243,7 +1258,7 @@ segmentItems:
               - { key: mq.queue, value: routing_test }
           - operationName: AMQPExchange->publish
             parentSpanId: 0
-            spanId: 3
+            spanId: 4
             spanLayer: MQ
             startTime: gt 0
             endTime: gt 0
@@ -1255,7 +1270,22 @@ segmentItems:
             tags:
               - { key: mq.broker, value: "127.0.0.1:5672" }
               - { key: mq.topic, value: "" }
-              - { key: mq.queue, value: not_exists }
+              - { key: mq.queue, value: queue_test }
+          - operationName: AMQPExchange->publish
+            parentSpanId: 0
+            spanId: 5
+            spanLayer: MQ
+            startTime: gt 0
+            endTime: gt 0
+            componentId: 144
+            isError: false
+            spanType: Exit
+            peer: 127.0.0.1:5672
+            skipAnalysis: false
+            tags:
+              - { key: mq.broker, value: "127.0.0.1:5672" }
+              - { key: mq.topic, value: "" }
+              - { key: mq.queue, value: queue_test }
           - operationName: GET:/amqp.php
             parentSpanId: -1
             spanId: 0

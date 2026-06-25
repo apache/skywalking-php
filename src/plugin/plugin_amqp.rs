@@ -20,7 +20,7 @@ use crate::{
     execute::{AfterExecuteHook, BeforeExecuteHook, get_this_mut, validate_num_args},
     tag::{TAG_MQ_BROKER, TAG_MQ_QUEUE, TAG_MQ_TOPIC},
 };
-use phper::{objects::ZObj, values::ExecuteData};
+use phper::{arrays::ZArray, objects::ZObj, values::ExecuteData};
 use skywalking::{
     proto::v3::SpanLayer,
     trace::span::{HandleSpanObject, Span},
@@ -61,7 +61,7 @@ impl AmqpPlugin {
         let function_name = function_name.to_owned();
         (
             Box::new(move |request_id, execute_data| {
-                validate_num_args(execute_data, 2)?;
+                validate_num_args(execute_data, 1)?;
 
                 let this = get_this_mut(execute_data)?;
 
@@ -77,12 +77,16 @@ impl AmqpPlugin {
                     })
                     .unwrap_or_default();
 
-                let routing_key = execute_data
-                    .get_parameter(1)
-                    .as_z_str()
-                    .and_then(|s| s.to_str().ok())
-                    .map(ToOwned::to_owned)
-                    .unwrap_or_else(|| "unknown".to_owned());
+                let routing_key = if execute_data.num_args() >= 2 {
+                    execute_data
+                        .get_parameter(1)
+                        .as_z_str()
+                        .and_then(|s| s.to_str().ok())
+                        .map(ToOwned::to_owned)
+                        .unwrap_or_default()
+                } else {
+                    String::new()
+                };
 
                 let span = Self::create_exit_span(
                     request_id,
@@ -147,14 +151,36 @@ impl AmqpPlugin {
     ) -> crate::Result<()> {
         let sw_header = RequestContext::try_get_sw_header(request_id, peer)?;
 
-        let num_args = execute_data.num_args();
-        if num_args > 3 {
-            let headers = execute_data.get_mut_parameter(3);
-            if let Some(headers) = headers.as_mut_z_arr() {
-                headers.insert(SW_HEADER, sw_header);
-            }
-        }
+        let attributes = Self::ensure_attributes(execute_data)?;
+        let headers = Self::ensure_headers(attributes)?;
+        headers.insert(SW_HEADER, sw_header);
 
         Ok(())
+    }
+
+    fn ensure_attributes(execute_data: &mut ExecuteData) -> crate::Result<&mut phper::arrays::ZArr> {
+        let attributes = execute_data.get_mut_parameter(3);
+        if attributes.as_z_arr().is_none() {
+            *attributes = ZArray::new().into();
+        }
+
+        Ok(attributes
+            .as_mut_z_arr()
+            .ok_or_else(|| anyhow::anyhow!("attributes isn't array"))?)
+    }
+
+    fn ensure_headers(attributes: &mut phper::arrays::ZArr) -> crate::Result<&mut phper::arrays::ZArr> {
+        let has_headers = attributes
+            .get("headers")
+            .and_then(|headers| headers.as_z_arr())
+            .is_some();
+        if !has_headers {
+            attributes.insert("headers", ZArray::new());
+        }
+
+        Ok(attributes
+            .get_mut("headers")
+            .and_then(|headers| headers.as_mut_z_arr())
+            .ok_or_else(|| anyhow::anyhow!("headers isn't array"))?)
     }
 }
