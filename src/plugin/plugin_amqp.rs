@@ -158,7 +158,9 @@ impl AmqpPlugin {
         Ok(())
     }
 
-    fn ensure_attributes(execute_data: &mut ExecuteData) -> crate::Result<&mut phper::arrays::ZArr> {
+    fn ensure_attributes(
+        execute_data: &mut ExecuteData,
+    ) -> crate::Result<&mut phper::arrays::ZArr> {
         let attributes = execute_data.get_mut_parameter(3);
         if attributes.as_z_arr().is_none() {
             *attributes = ZArray::new().into();
@@ -169,7 +171,9 @@ impl AmqpPlugin {
             .ok_or_else(|| anyhow::anyhow!("attributes isn't array"))?)
     }
 
-    fn ensure_headers(attributes: &mut phper::arrays::ZArr) -> crate::Result<&mut phper::arrays::ZArr> {
+    fn ensure_headers(
+        attributes: &mut phper::arrays::ZArr,
+    ) -> crate::Result<&mut phper::arrays::ZArr> {
         let has_headers = attributes
             .get("headers")
             .and_then(|headers| headers.as_z_arr())
