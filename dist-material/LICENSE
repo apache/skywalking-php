@@ -654,11 +654,11 @@ MulanPSL-2.0 licenses
 The following components are provided under the MulanPSL-2.0 License. See project link for details.
 The text of each license is also included in licenses/LICENSE-[project].txt.
 
-    https://crates.io/crates/phper/0.17.2 0.17.2 MulanPSL-2.0
-    https://crates.io/crates/phper-alloc/0.16.1 0.16.1 MulanPSL-2.0
-    https://crates.io/crates/phper-build/0.15.4 0.15.4 MulanPSL-2.0
-    https://crates.io/crates/phper-macros/0.15.2 0.15.2 MulanPSL-2.0
-    https://crates.io/crates/phper-sys/0.15.4 0.15.4 MulanPSL-2.0
+    https://crates.io/crates/phper/0.17.5 0.17.5 MulanPSL-2.0
+    https://crates.io/crates/phper-alloc/0.16.3 0.16.3 MulanPSL-2.0
+    https://crates.io/crates/phper-build/0.15.6 0.15.6 MulanPSL-2.0
+    https://crates.io/crates/phper-macros/0.15.3 0.15.3 MulanPSL-2.0
+    https://crates.io/crates/phper-sys/0.15.6 0.15.6 MulanPSL-2.0
 
 ========================================================================
 Unicode-3.0 licenses

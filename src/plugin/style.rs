@@ -40,7 +40,7 @@ impl ApiStyle {
         }
     }
 
-    pub fn get_parameter<'a>(self, execute_data: &'a ExecuteData, index: usize) -> &'a ZVal {
+    pub fn get_parameter(self, execute_data: &ExecuteData, index: usize) -> &ZVal {
         let index = match self {
             ApiStyle::OO => index,
             ApiStyle::Procedural => index + 1,
