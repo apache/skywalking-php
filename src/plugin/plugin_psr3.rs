@@ -16,7 +16,7 @@
 use super::Plugin;
 use crate::{
     context::RequestContext,
-    execute::{AfterExecuteHook, BeforeExecuteHook, Noop},
+    execute::{AfterExecuteHook, BeforeExecuteHook, Noop, validate_num_args},
     log::PsrLogLevel,
     module::PSR_LOGGING_LEVEL,
 };
@@ -85,8 +85,14 @@ impl Psr3Plugin {
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         (
             Box::new(move |request_id, execute_data| {
+                validate_num_args(execute_data, 1)?;
+
                 let message = Self::handle_message(execute_data.get_mut_parameter(0))?;
-                let context = Self::handle_context(execute_data.get_mut_parameter(1))?;
+                let context = if execute_data.num_args() >= 2 {
+                    Self::handle_context(execute_data.get_mut_parameter(1))?
+                } else {
+                    vec![]
+                };
                 Self::handle_log(
                     class_name.clone(),
                     function_name.clone(),
@@ -107,13 +113,19 @@ impl Psr3Plugin {
     ) -> (Box<BeforeExecuteHook>, Box<AfterExecuteHook>) {
         (
             Box::new(move |request_id, execute_data| {
+                validate_num_args(execute_data, 2)?;
+
                 let log_level = execute_data.get_parameter(0).expect_z_str()?.to_str()?;
                 let log_level: PsrLogLevel = log_level.into();
                 if log_level < *PSR_LOGGING_LEVEL {
                     return Ok(Box::new(()));
                 }
                 let message = Self::handle_message(execute_data.get_mut_parameter(1))?;
-                let context = Self::handle_context(execute_data.get_mut_parameter(2))?;
+                let context = if execute_data.num_args() >= 3 {
+                    Self::handle_context(execute_data.get_mut_parameter(2))?
+                } else {
+                    vec![]
+                };
                 Self::handle_log(
                     class_name.clone(),
                     function_name.clone(),

@@ -20,7 +20,11 @@ use crate::{
     execute::{AfterExecuteHook, BeforeExecuteHook, get_this_mut, validate_num_args},
     tag::{TAG_MQ_BROKER, TAG_MQ_QUEUE, TAG_MQ_TOPIC},
 };
-use phper::{arrays::ZArray, objects::ZObj, sys, values::ExecuteData};
+use phper::{
+    arrays::ZArray,
+    objects::ZObj,
+    values::{ExecuteData, ZVal},
+};
 use skywalking::{
     proto::v3::SpanLayer,
     trace::span::{HandleSpanObject, Span},
@@ -162,33 +166,13 @@ impl AmqpPlugin {
         execute_data: &mut ExecuteData,
     ) -> crate::Result<&mut phper::arrays::ZArr> {
         // php-amqp parses publish() as `s|s!l!a/`, so the 4th `headers`
-        // argument is only visible when the missing optional parameters are
-        // materialized and the call arg count reflects that.
-        match execute_data.num_args() {
-            0 => unreachable!("publish is validated to have at least one argument"),
-            1 => {
-                *execute_data.get_mut_parameter(1) = ().into();
-                *execute_data.get_mut_parameter(2) = ().into();
-                *execute_data.get_mut_parameter(3) = ZArray::new().into();
-                unsafe {
-                    sys::phper_zend_set_call_num_args(execute_data.as_mut_ptr(), 4);
-                }
-            }
-            2 => {
-                *execute_data.get_mut_parameter(2) = ().into();
-                *execute_data.get_mut_parameter(3) = ZArray::new().into();
-                unsafe {
-                    sys::phper_zend_set_call_num_args(execute_data.as_mut_ptr(), 4);
-                }
-            }
-            3 => {
-                *execute_data.get_mut_parameter(3) = ZArray::new().into();
-                unsafe {
-                    sys::phper_zend_set_call_num_args(execute_data.as_mut_ptr(), 4);
-                }
-            }
-            _ => {}
-        }
+        // argument is only visible after the missing optional parameters are
+        // materialized and `num_args` reflects that.
+        execute_data.materialize_missing([
+            ZVal::from(()),
+            ZVal::from(()),
+            ZVal::from(ZArray::new()),
+        ])?;
 
         let attributes = execute_data.get_mut_parameter(3);
         if attributes.as_z_arr().is_none() {

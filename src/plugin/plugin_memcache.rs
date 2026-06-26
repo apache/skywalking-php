@@ -200,7 +200,7 @@ impl MemcachePlugin {
                     .unwrap();
 
                 let key = style
-                    .get_mut_parameter(execute_data, 0)
+                    .get_parameter(execute_data, 0)
                     .as_z_str()
                     .and_then(|s| s.to_str().ok())
                     .map(ToOwned::to_owned)

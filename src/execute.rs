@@ -321,8 +321,8 @@ fn infer_request_id(execute_data: &mut ExecuteData) -> Option<i64> {
             prev_execute_data_ptr = unsafe { (*prev_execute_data_ptr).prev_execute_data };
             continue;
         }
-        let request = prev_execute_data.get_mut_parameter(0).as_mut_z_obj()?;
-        match request.get_mut_property("fd").as_long() {
+        let request = prev_execute_data.get_parameter(0).as_z_obj()?;
+        match request.get_property("fd").as_long() {
             Some(fd) => return Some(fd),
             None => {
                 error!("infer request id failed");
