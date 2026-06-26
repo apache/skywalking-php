@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::execute::{get_this_mut, validate_num_args};
+use crate::execute::get_this_mut;
 use anyhow::Context;
 use phper::{
     objects::ZObj,
@@ -40,22 +40,12 @@ impl ApiStyle {
         }
     }
 
-    pub fn get_mut_parameter(self, execute_data: &mut ExecuteData, index: usize) -> &mut ZVal {
+    pub fn get_parameter(self, execute_data: &ExecuteData, index: usize) -> &ZVal {
         let index = match self {
             ApiStyle::OO => index,
             ApiStyle::Procedural => index + 1,
         };
-        execute_data.get_mut_parameter(index)
-    }
-
-    pub fn validate_num_args(
-        self, execute_data: &mut ExecuteData, num: usize,
-    ) -> anyhow::Result<()> {
-        let num = match self {
-            ApiStyle::OO => num,
-            ApiStyle::Procedural => num + 1,
-        };
-        validate_num_args(execute_data, num)
+        execute_data.get_parameter(index)
     }
 
     pub fn generate_operation_name(self, class_name: Option<&str>, function_name: &str) -> String {

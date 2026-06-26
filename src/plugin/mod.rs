@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+mod plugin_amqp;
 mod plugin_amqplib;
 mod plugin_curl;
 mod plugin_memcache;
@@ -48,6 +49,7 @@ static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
         Box::<plugin_predis::PredisPlugin>::default(),
         Box::<plugin_memcached::MemcachedPlugin>::default(),
         Box::<plugin_redis::RedisPlugin>::default(),
+        Box::<plugin_amqp::AmqpPlugin>::default(),
         Box::<plugin_amqplib::AmqplibPlugin>::default(),
         Box::<plugin_mongodb::MongodbPlugin>::default(),
         Box::<plugin_memcache::MemcachePlugin>::default(),

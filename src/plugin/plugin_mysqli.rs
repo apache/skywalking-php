@@ -94,7 +94,8 @@ impl MySQLImprovedPlugin {
             Box::new(move |request_id, execute_data| {
                 // Sometimes the connection is failed. Therefore, first assemble the peer from
                 // the parameters to prevent assembly failure in the after hook.
-                let peer = get_peer_by_parameters(execute_data, style);
+                let peer =
+                    get_peer_by_parameters(execute_data, class_name.as_deref(), &function_name);
 
                 let span = create_mysqli_exit_span(
                     request_id,
@@ -159,10 +160,8 @@ impl MySQLImprovedPlugin {
                     style,
                 )?;
 
-                if execute_data.num_args() >= 1 {
-                    if let Some(statement) = execute_data.get_parameter(0).as_z_str() {
-                        span.add_tag("db.statement", statement.to_str()?);
-                    }
+                if let Some(statement) = execute_data.get_parameter(0).as_z_str() {
+                    span.add_tag("db.statement", statement.to_str()?);
                 }
 
                 Ok(Box::new(span) as _)
@@ -226,21 +225,28 @@ fn get_peer_by_this(this: &mut ZObj) -> Option<String> {
         })
 }
 
-fn get_peer_by_parameters(execute_data: &mut ExecuteData, style: ApiStyle) -> String {
-    let mut peer = "".to_owned();
+fn get_peer_by_parameters(
+    execute_data: &ExecuteData, class_name: Option<&str>, function_name: &str,
+) -> String {
+    let (host_index, port_index) = match (class_name, function_name) {
+        (Some("mysqli"), "__construct" | "real_connect") => (0, 4),
+        (None, "mysqli_connect") => (0, 4),
+        (None, "mysqli_real_connect") => (1, 5),
+        _ => return String::new(),
+    };
 
-    if style.validate_num_args(execute_data, 1).is_ok() {
-        peer.push_str(
-            style
-                .get_mut_parameter(execute_data, 0)
-                .as_z_str()
-                .and_then(|s| s.to_str().ok())
-                .unwrap_or_default(),
-        );
-    }
+    let mut peer = String::new();
+
+    peer.push_str(
+        execute_data
+            .get_parameter(host_index)
+            .as_z_str()
+            .and_then(|s| s.to_str().ok())
+            .unwrap_or_default(),
+    );
 
     if !peer.is_empty() {
-        let port = style.get_mut_parameter(execute_data, 4);
+        let port = execute_data.get_parameter(port_index);
 
         #[allow(clippy::manual_map)]
         let port = if let Some(port) = port.as_z_str() {

@@ -62,6 +62,7 @@ async fn run_e2e() {
     request_fpm_memcached().await;
     request_fpm_redis().await;
     request_fpm_rabbitmq().await;
+    request_fpm_amqp().await;
     request_fpm_mongodb().await;
     request_fpm_memcache().await;
     request_fpm_monolog().await;
@@ -147,6 +148,14 @@ async fn request_fpm_redis() {
 async fn request_fpm_rabbitmq() {
     request_common(
         HTTP_CLIENT.get(format!("http://{}/rabbitmq.php", PROXY_SERVER_1_ADDRESS)),
+        "ok",
+    )
+    .await;
+}
+
+async fn request_fpm_amqp() {
+    request_common(
+        HTTP_CLIENT.get(format!("http://{}/amqp.php", PROXY_SERVER_1_ADDRESS)),
         "ok",
     )
     .await;
