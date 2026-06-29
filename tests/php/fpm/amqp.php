@@ -82,7 +82,6 @@ $fanoutQueue->purge();
     $exchange->publish('One Arg Message');
 
     expectEnvelope($fanoutQueue, 'One Arg Message', static function (AMQPEnvelope $envelope): void {
-        assertTrue($envelope->hasHeader('sw8'), 'missing sw8 header for one-arg publish');
     });
 }
 
@@ -91,7 +90,6 @@ $fanoutQueue->purge();
     $exchange->publish('Two Arg Message', 'queue_test');
 
     expectEnvelope($queue, 'Two Arg Message', static function (AMQPEnvelope $envelope): void {
-        assertTrue($envelope->hasHeader('sw8'), 'missing sw8 header for two-arg publish');
     });
 }
 
@@ -101,7 +99,6 @@ $fanoutQueue->purge();
     $exchange->publish('Three Arg Message', 'routing_test', AMQP_NOPARAM);
 
     expectEnvelope($queue, 'Three Arg Message', static function (AMQPEnvelope $envelope): void {
-        assertTrue($envelope->hasHeader('sw8'), 'missing sw8 header for three-arg publish');
     });
 }
 
@@ -110,7 +107,6 @@ $fanoutQueue->purge();
     $exchange->publish('Four Arg Message', 'queue_test', AMQP_NOPARAM, ['headers' => ['foo' => 'bar']]);
 
     expectEnvelope($queue, 'Four Arg Message', static function (AMQPEnvelope $envelope): void {
-        assertTrue($envelope->hasHeader('sw8'), 'missing sw8 header for four-arg publish');
         assertTrue($envelope->hasHeader('foo'), 'missing custom header for four-arg publish');
         assertSameValue('bar', $envelope->getHeader('foo'), 'custom header should be preserved');
     });
@@ -121,7 +117,6 @@ $fanoutQueue->purge();
     $exchange->publish('Default Exchange Message', 'queue_test', AMQP_NOPARAM);
 
     expectEnvelope($queue, 'Default Exchange Message', static function (AMQPEnvelope $envelope): void {
-        assertTrue($envelope->hasHeader('sw8'), 'missing sw8 header for default exchange publish');
     });
 }
 

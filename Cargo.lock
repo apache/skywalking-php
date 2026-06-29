@@ -1285,7 +1285,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "07033963ba89ebaf1584d767badaa2e8fcec21aedea6b8c0346d487d49c28667"
 dependencies = [
  "cfg-if",
- "windows-targets 0.53.2",
+ "windows-targets 0.52.6",
 ]
 
 [[package]]
@@ -1695,9 +1695,9 @@ dependencies = [
 
 [[package]]
 name = "phper"
-version = "0.17.5"
+version = "0.17.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a6ded58ef5936b049dcf4b73307889a21b49b9ebd51069f0a554c75275064a7"
+checksum = "2f1a07e8df098947d7c0eab4b1e57a0f1689253402b4edd4e3feea509a070858"
 dependencies = [
  "cfg-if",
  "derive_more",
