@@ -23,6 +23,7 @@ mod plugin_mysqli;
 mod plugin_pdo;
 mod plugin_predis;
 mod plugin_psr3;
+mod plugin_rdkafka;
 mod plugin_redis;
 mod plugin_swoole;
 mod style;
@@ -51,6 +52,7 @@ static PLUGINS: Lazy<Vec<Box<DynPlugin>>> = Lazy::new(|| {
         Box::<plugin_redis::RedisPlugin>::default(),
         Box::<plugin_amqp::AmqpPlugin>::default(),
         Box::<plugin_amqplib::AmqplibPlugin>::default(),
+        Box::<plugin_rdkafka::RdkafkaPlugin>::default(),
         Box::<plugin_mongodb::MongodbPlugin>::default(),
         Box::<plugin_memcache::MemcachePlugin>::default(),
     ];

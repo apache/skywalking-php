@@ -16,15 +16,11 @@
 use super::{Plugin, log_exception};
 use crate::{
     component::COMPONENT_AMQP_PRODUCER_ID,
-    context::{RequestContext, SW_HEADER},
+    context::RequestContext,
     execute::{AfterExecuteHook, BeforeExecuteHook, get_this_mut, validate_num_args},
     tag::{TAG_MQ_BROKER, TAG_MQ_QUEUE, TAG_MQ_TOPIC},
 };
-use phper::{
-    arrays::ZArray,
-    objects::ZObj,
-    values::{ExecuteData, ZVal},
-};
+use phper::objects::ZObj;
 use skywalking::{
     proto::v3::SpanLayer,
     trace::span::{HandleSpanObject, Span},
@@ -101,7 +97,8 @@ impl AmqpPlugin {
                     &routing_key,
                 )?;
 
-                Self::inject_sw_header(request_id, execute_data, &peer)?;
+                // TODO: php-amqp extension call parameter injection is
+                // difficult, will implement later.
 
                 Ok(Box::new(span))
             }),
@@ -148,56 +145,5 @@ impl AmqpPlugin {
         span_object.add_tag(TAG_MQ_QUEUE, routing_key);
 
         Ok(span)
-    }
-
-    fn inject_sw_header(
-        request_id: Option<i64>, execute_data: &mut ExecuteData, peer: &str,
-    ) -> crate::Result<()> {
-        let sw_header = RequestContext::try_get_sw_header(request_id, peer)?;
-
-        let attributes = Self::ensure_attributes(execute_data)?;
-        let headers = Self::ensure_headers(attributes)?;
-        headers.insert(SW_HEADER, sw_header);
-
-        Ok(())
-    }
-
-    fn ensure_attributes(
-        execute_data: &mut ExecuteData,
-    ) -> crate::Result<&mut phper::arrays::ZArr> {
-        // php-amqp parses publish() as `s|s!l!a/`, so the 4th `headers`
-        // argument is only visible after the missing optional parameters are
-        // materialized and `num_args` reflects that.
-        execute_data.materialize_missing([
-            ZVal::from(()),
-            ZVal::from(()),
-            ZVal::from(ZArray::new()),
-        ])?;
-
-        let attributes = execute_data.get_mut_parameter(3);
-        if attributes.as_z_arr().is_none() {
-            *attributes = ZArray::new().into();
-        }
-
-        Ok(attributes
-            .as_mut_z_arr()
-            .ok_or_else(|| anyhow::anyhow!("attributes isn't array"))?)
-    }
-
-    fn ensure_headers(
-        attributes: &mut phper::arrays::ZArr,
-    ) -> crate::Result<&mut phper::arrays::ZArr> {
-        let has_headers = attributes
-            .get("headers")
-            .and_then(|headers| headers.as_z_arr())
-            .is_some();
-        if !has_headers {
-            attributes.insert("headers", ZArray::new());
-        }
-
-        Ok(attributes
-            .get_mut("headers")
-            .and_then(|headers| headers.as_mut_z_arr())
-            .ok_or_else(|| anyhow::anyhow!("headers isn't array"))?)
     }
 }

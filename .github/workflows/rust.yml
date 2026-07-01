@@ -95,7 +95,7 @@ jobs:
 
       - name: Install dependencies for Linux
         if: matrix.os == 'ubuntu-24.04'
-        run: sudo apt-get update && sudo apt-get install -y llvm-18-dev libclang-18-dev protobuf-compiler libsasl2-dev librabbitmq-dev
+        run: sudo apt-get update && sudo apt-get install -y llvm-18-dev libclang-18-dev protobuf-compiler libsasl2-dev librabbitmq-dev librdkafka-dev
 
       - name: Install protobuf for Macos
         if: matrix.os == 'macos-14'
@@ -110,7 +110,7 @@ jobs:
             bcmath, calendar, ctype, dom, exif, gettext, iconv, intl, json, mbstring,
             mysqli, mysqlnd, opcache, pdo, pdo_mysql, phar, posix, readline, redis,
             memcached, swoole-${{ matrix.flag.swoole_version }}, xml, xmlreader, xmlwriter,
-            yaml, zip, mongodb, memcache, amqp
+            yaml, zip, mongodb, memcache, amqp, rdkafka
 
       - name: Setup php-fpm for Linux
         if: matrix.os == 'ubuntu-24.04'
