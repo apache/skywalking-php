@@ -368,7 +368,7 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/kstat-rs/0.2.5 0.2.5 Apache-2.0 OR MIT
     https://crates.io/crates/lazy_static/1.5.0 1.5.0 Apache-2.0 OR MIT
     https://crates.io/crates/libc/0.2.189 0.2.189 Apache-2.0 OR MIT
-    https://crates.io/crates/libz-sys/1.1.29 1.1.29 Apache-2.0 OR MIT
+    https://crates.io/crates/libz-sys/1.1.31 1.1.31 Apache-2.0 OR MIT
     https://crates.io/crates/lock_api/0.4.14 0.4.14 Apache-2.0 OR MIT
     https://crates.io/crates/log/0.4.34 0.4.34 Apache-2.0 OR MIT
     https://crates.io/crates/mime/0.3.17 0.3.17 Apache-2.0 OR MIT
@@ -515,7 +515,7 @@ The following components are provided under the ISC License. See project link fo
 The text of each license is also included in licenses/LICENSE-[project].txt.
 
     https://crates.io/crates/libloading/0.8.9 0.8.9 ISC
-    https://crates.io/crates/rustls-webpki/0.103.15 0.103.15 ISC
+    https://crates.io/crates/rustls-webpki/0.103.16 0.103.16 ISC
     https://crates.io/crates/untrusted/0.9.0 0.9.0 ISC
 
 ========================================================================
@@ -567,7 +567,7 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/strsim/0.11.1 0.11.1 MIT
     https://crates.io/crates/synstructure/0.13.2 0.13.2 MIT
     https://crates.io/crates/tera/1.20.1 1.20.1 MIT
-    https://crates.io/crates/tokio/1.53.1 1.53.1 MIT
+    https://crates.io/crates/tokio/1.53.3 1.53.3 MIT
     https://crates.io/crates/tokio-macros/2.7.2 2.7.2 MIT
     https://crates.io/crates/tokio-native-tls/0.3.1 0.3.1 MIT
     https://crates.io/crates/tokio-stream/0.1.19 0.1.19 MIT
