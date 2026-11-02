@@ -89,7 +89,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           submodules: "recursive"
 
@@ -139,7 +139,7 @@ jobs:
            rustup toolchain add --profile=minimal --component clippy $RUST_STABLE_TOOLCHAIN
            rustup override set $RUST_STABLE_TOOLCHAIN
 
-      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           key: ${{ matrix.os }}-test-${{ matrix.flag.php_version }}
 
@@ -229,7 +229,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           submodules: "recursive"
 
