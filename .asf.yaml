@@ -14,6 +14,7 @@
 # limitations under the License.
 
 github:
+  dependabot_updates: false
   description: Apache SkyWalking PHP Agent
   homepage: https://skywalking.apache.org/
   labels:
