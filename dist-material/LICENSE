@@ -235,7 +235,7 @@ The following components are provided under the Apache-2.0 OR Apache-2.0 WITH LL
 The text of each license is also included in licenses/LICENSE-[project].txt.
 
     https://crates.io/crates/linux-raw-sys/0.12.1 0.12.1 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
-    https://crates.io/crates/rustix/1.1.4 1.1.4 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
+    https://crates.io/crates/rustix/1.1.6 1.1.6 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
     https://crates.io/crates/wasi/0.11.1+wasi-snapshot-preview1 0.11.1+wasi-snapshot-preview1 Apache-2.0 OR Apache-2.0 WITH LLVM-exception OR MIT
 
 ========================================================================

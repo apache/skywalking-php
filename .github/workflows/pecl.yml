@@ -48,7 +48,7 @@ jobs:
       matrix:
         os:
           - ubuntu-24.04
-          - macos-14
+          - macos-15
         version:
           - php: "8.2"
             swoole: "5.1.1"
@@ -68,7 +68,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y llvm-18-dev libclang-18-dev protobuf-compiler libsasl2-dev
 
       - name: Install protobuf for Macos
-        if: matrix.os == 'macos-14'
+        if: matrix.os == 'macos-15'
         run: brew install protobuf
 
       - name: Setup PHP
