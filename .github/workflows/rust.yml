@@ -52,7 +52,7 @@ jobs:
         os:
           - ubuntu-24.04
           # TODO Temporarily remove macos and wait for the docker container's connection refused problem to be resolved.
-          # - macos-14
+          # - macos-15
         flag:
           # Many composer dependencies need PHP 7.2+
           - php_version: "7.2"
@@ -98,7 +98,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y llvm-18-dev libclang-18-dev protobuf-compiler libsasl2-dev librabbitmq-dev librdkafka-dev
 
       - name: Install protobuf for Macos
-        if: matrix.os == 'macos-14'
+        if: matrix.os == 'macos-15'
         run: brew install protobuf
 
       - name: Setup PHP
@@ -155,7 +155,7 @@ jobs:
         run: composer install --working-dir=tests/php
 
       - name: Setup docker (missing on MacOS)
-        if: matrix.os == 'macos-14'
+        if: matrix.os == 'macos-15'
         run: |
           brew install docker
           brew install docker-compose
