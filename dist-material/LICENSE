@@ -368,7 +368,7 @@ The text of each license is also included in licenses/LICENSE-[project].txt.
     https://crates.io/crates/kstat-rs/0.2.5 0.2.5 Apache-2.0 OR MIT
     https://crates.io/crates/lazy_static/1.5.0 1.5.0 Apache-2.0 OR MIT
     https://crates.io/crates/libc/0.2.189 0.2.189 Apache-2.0 OR MIT
-    https://crates.io/crates/libz-sys/1.1.31 1.1.31 Apache-2.0 OR MIT
+    https://crates.io/crates/libz-sys/1.1.33 1.1.33 Apache-2.0 OR MIT
     https://crates.io/crates/lock_api/0.4.14 0.4.14 Apache-2.0 OR MIT
     https://crates.io/crates/log/0.4.34 0.4.34 Apache-2.0 OR MIT
     https://crates.io/crates/mime/0.3.17 0.3.17 Apache-2.0 OR MIT
